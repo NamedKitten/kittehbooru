@@ -7,6 +7,8 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"image"
+	"image/jpeg"
 
 	"github.com/gorilla/mux"
 	log "github.com/sirupsen/logrus"
@@ -55,7 +57,7 @@ func ThumbnailHandler(w http.ResponseWriter, r *http.Request) {
 			contentFilename = fmt.Sprintf("content/%s.%s", post.Filename, post.FileExtension)
 		}
 
-		contentFile, err := bimg.Read(contentFilename)
+		contentFile, err := os.Open(contentFilename)
 		if err != nil {
 			log.Error("Content file open fail: ", err)
 			return
