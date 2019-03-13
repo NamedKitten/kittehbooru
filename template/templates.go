@@ -41,10 +41,9 @@ func getTemplateFuncs() tmpl.FuncMap {
 		"readFile": func(filename string) tmplHTML.HTML {
 			textBytes, _ := ioutil.ReadFile(filename)
 			text := string(textBytes) 
-
 			escaped := tmplHTML.HTMLEscapeString(text)
-			replaced := strings.Replace(escaped, "\r\n", "<br>", -1)
-			replaced = strings.Replace(replaced, "\n", "<br>", -1)
+			replaced := strings.Replace(escaped, "\r\n", "&#10", -1)
+			replaced = strings.Replace(replaced, "\n", "&#10", -1)
 			html := tmplHTML.HTML(replaced)
 			return html
 		},
