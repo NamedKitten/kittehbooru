@@ -1,26 +1,29 @@
-package main
+package handlers
 
 import (
 	"github.com/bwmarrin/snowflake"
 	log "github.com/sirupsen/logrus"
 	"net/http"
+	"github.com/NamedKitten/kittehimageboard/types"
+	"github.com/NamedKitten/kittehimageboard/utils"
+	"github.com/NamedKitten/kittehimageboard/template"
 )
 
 // setupPageHandler takes you to the setup page for initial setup.
-func setupPageHandler(w http.ResponseWriter, r *http.Request) {
+func SetupPageHandler(w http.ResponseWriter, r *http.Request) {
 	/*if DB.SetupCompleted == true {
 		log.Error("Setup already completed. ", DB.SetupCompleted)
 		http.Redirect(w, r, "/", 302)
 		return
 	}*/
 	log.Error("Setup.")
-	err := renderTemplate(w, "setup.html", nil)
+	err := templates.RenderTemplate(w, "setup.html", nil)
 	if err != nil {
 		panic(err)
 	}
 }
 
-func setupHandler(w http.ResponseWriter, r *http.Request) {
+func SetupHandler(w http.ResponseWriter, r *http.Request) {
 	if DB.SetupCompleted == true {
 		log.Error("Setup already completed. ", DB.SetupCompleted)
 		http.Redirect(w, r, "/", 302)
@@ -43,7 +46,7 @@ func setupHandler(w http.ResponseWriter, r *http.Request) {
 
 	node, _ := snowflake.NewNode(1)
 	userID := node.Generate().Int64()
-	DB.Users[userID] = User{
+	DB.Users[userID] = types.User{
 		ID:          userID,
 		Owner:       true,
 		Admin:       true,
@@ -52,7 +55,7 @@ func setupHandler(w http.ResponseWriter, r *http.Request) {
 		Posts:       []int64{},
 	}
 	DB.UsernameToID[username] = userID
-	DB.Passwords[userID] = encryptPassword(password)
+	DB.Passwords[userID] = utils.EncryptPassword(password)
 
 	DB.Settings.SiteName = siteTitle
 	DB.Settings.Rules = rules

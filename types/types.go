@@ -1,4 +1,4 @@
-package main
+package types
 
 type User struct {
 	// The snowflake ID of the user.
@@ -38,14 +38,4 @@ type Post struct {
 	Sha256 string `json:"sha256"`
 	// MimeType is the MIME type of the post file.
 	MimeType string `json:"mimetype"`
-}
-
-// The base struct for all templating operations.
-// Includes stuff for logged in user and more for headers.
-type TemplateTemplate struct {
-	// LoggedIn specifies whether a user is logged in or not.
-	LoggedIn bool
-	// LoggedInUser is the user struct of a logged in user.
-	// If no user is logged in, all fields will be blank.
-	LoggedInUser User
 }

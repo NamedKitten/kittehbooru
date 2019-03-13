@@ -1,4 +1,4 @@
-package main
+package utils
 
 import (
 	"crypto/rand"
@@ -8,43 +8,44 @@ import (
 	"golang.org/x/crypto/bcrypt"
 	"sort"
 	"strings"
+	"github.com/NamedKitten/kittehimageboard/types"
 )
 
-func encryptPassword(password string) string {
+func EncryptPassword(password string) string {
 	passwordBytes := []byte(password)
 	bytes, _ := bcrypt.GenerateFromPassword(passwordBytes, 12)
 	return string(bytes)
 }
 
-func checkPassword(encryptedPassword, attemptPassword string) bool {
+func CheckPassword(encryptedPassword, attemptPassword string) bool {
 	err := bcrypt.CompareHashAndPassword([]byte(encryptedPassword), []byte(attemptPassword))
 	return err == nil
 }
 
-func genSessionToken() string {
+func GenSessionToken() string {
 	bytes := make([]byte, 16)
 	rand.Read(bytes)
 	return hex.EncodeToString(bytes)
 }
 
-func sha256Bytes(b []byte) string {
+func Sha256Bytes(b []byte) string {
 	h := sha256.New()
 	h.Write(b)
 	return fmt.Sprintf("%x", h.Sum(nil))
 }
 
-func splitTagsString(tags string) []string {
+func SplitTagsString(tags string) []string {
 	tags = strings.Replace(tags, "+", " ", -1)
 	tags = strings.Replace(tags, ", ", " ", -1)
 	return strings.Split(tags, " ")
 }
 
-func tagsListToString(tags []string) string {
+func TagsListToString(tags []string) string {
 	sort.Strings(tags)
 	return strings.Join(tags, "+")
 }
 
-func doesMatchTags(searchTags []string, post Post) bool {
+func DoesMatchTags(searchTags []string, post types.Post) bool {
 	if len(searchTags) == 0 {
 		return false
 	}
@@ -76,7 +77,7 @@ func doesMatchTags(searchTags []string, post Post) bool {
 	return tagMatched
 }
 
-func paginate(x []int64, page int, pageSize int) []int64 {
+func Paginate(x []int64, page int, pageSize int) []int64 {
 	skip := pageSize * page
 	numItems := len(x)
 	limit := func() int {
@@ -100,7 +101,7 @@ func paginate(x []int64, page int, pageSize int) []int64 {
 	return x[start():limit()]
 }
 
-func removeFromSlice(slice []int64, toDelete int64) []int64 {
+func RemoveFromSlice(slice []int64, toDelete int64) []int64 {
 	var newSlice []int64
 	for _, v := range slice {
 		if v == toDelete {

@@ -1,4 +1,4 @@
-package main
+package handlers
 
 import (
 	"github.com/gorilla/mux"
@@ -6,12 +6,15 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"github.com/NamedKitten/kittehimageboard/types"
+	"github.com/NamedKitten/kittehimageboard/utils"
+	"github.com/NamedKitten/kittehimageboard/template"
 )
 
 // SearchResultsTemplate contains data to be used in the template.
 type SearchResultsTemplate struct {
 	// The posts that match the search for a page.
-	Results []Post
+	Results []types.Post
 	// RealPage is the real page number for the current page.
 	RealPage int
 	// Page is RealPage + 1 and is used to show a 1-based page number index.
@@ -27,19 +30,19 @@ type SearchResultsTemplate struct {
 	// Tags is the tags from the search query args, used to refill
 	// the search bar.
 	Tags string
-	TemplateTemplate
+	templates.TemplateTemplate
 }
 
 // searchHandler is the search endpoint used for displaying results
 // of a search query.
-func searchHandler(w http.ResponseWriter, r *http.Request) {
+func SearchHandler(w http.ResponseWriter, r *http.Request) {
 	user, loggedIn := DB.CheckForLoggedInUser(r)
 	vars := mux.Vars(r)
 	tagsStr := vars["tags"]
 	if len(tagsStr) == 0 {
 		tagsStr = "*"
 	}
-	tags := splitTagsString(tagsStr)
+	tags := utils.SplitTagsString(tagsStr)
 	log.Error(tags)
 	pageStr := vars["page"]
 	if len(tagsStr) == 0 {
@@ -47,7 +50,7 @@ func searchHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	page, _ := strconv.Atoi(pageStr)
 	log.Error(page)
-	matchingPosts := DB.getSearchPage(tags, page)
+	matchingPosts := DB.GetSearchPage(tags, page)
 	var prevPage int
 	if page <= 0 {
 		prevPage = 0
@@ -64,18 +67,18 @@ func searchHandler(w http.ResponseWriter, r *http.Request) {
 		Results:    matchingPosts,
 		RealPage:   page,
 		Page:       page + 1,
-		NumPosts:   DB.numOfPostsForTags(tags),
-		TotalPages: DB.numOfPagesForTags(tags),
+		NumPosts:   DB.NumOfPostsForTags(tags),
+		TotalPages: DB.NumOfPagesForTags(tags),
 		NextLink:   nextLink,
 		PrevLink:   prevLink,
 		Tags:       tagsStr,
-		TemplateTemplate: TemplateTemplate{
+		TemplateTemplate: templates.TemplateTemplate{
 			LoggedIn:     loggedIn,
 			LoggedInUser: user,
 		},
 	}
 
-	err := renderTemplate(w, "search.html", searchResults)
+	err := templates.RenderTemplate(w, "search.html", searchResults)
 	if err != nil {
 		panic(err)
 	}

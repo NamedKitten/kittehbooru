@@ -1,4 +1,4 @@
-package main
+package handlers
 
 import (
 	"fmt"
@@ -23,7 +23,7 @@ func fileExists(fn string) bool {
 }
 
 // thumbnailHandler handles serving and downscaling post images as thumbnails.
-func thumbnailHandler(w http.ResponseWriter, r *http.Request) {
+func ThumbnailHandler(w http.ResponseWriter, r *http.Request) {
 	var err error
 	vars := mux.Vars(r)
 	postID, err := strconv.Atoi(vars["postID"])

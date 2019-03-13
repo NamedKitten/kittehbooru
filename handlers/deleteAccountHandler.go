@@ -1,18 +1,19 @@
-package main
+package handlers
 
 import (
 	"github.com/gorilla/mux"
 	log "github.com/sirupsen/logrus"
 	"net/http"
 	"strconv"
+	"github.com/NamedKitten/kittehimageboard/template"
 )
 
 type DeletePostTemplate struct {
 	PostID int64
-	TemplateTemplate
+	templates.TemplateTemplate
 }
 
-func deletePostPageHandler(w http.ResponseWriter, r *http.Request) {
+func DeletePostPageHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	postID, _ := strconv.Atoi(vars["postID"])
 	user, loggedIn := DB.CheckForLoggedInUser(r)
@@ -24,19 +25,19 @@ func deletePostPageHandler(w http.ResponseWriter, r *http.Request) {
 
 	templateInfo := DeletePostTemplate{
 		PostID:         int64(postID),
-		TemplateTemplate: TemplateTemplate{
+		TemplateTemplate: templates.TemplateTemplate{
 			LoggedIn:     loggedIn,
 			LoggedInUser: user,
 		},
 	}
 
-	err := renderTemplate(w, "deletePost.html", templateInfo)
+	err := templates.RenderTemplate(w, "deletePost.html", templateInfo)
 	if err != nil {
 		panic(err)
 	}
 }
 
-func deletePostHandler(w http.ResponseWriter, r *http.Request) {
+func DeletePostHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	user, loggedIn := DB.CheckForLoggedInUser(r)
 	if !loggedIn {

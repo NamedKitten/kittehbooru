@@ -1,10 +1,26 @@
-package main
+package templates
 
 import (
 	tmplHTML "html/template"
 	"strings"
 	tmpl "text/template"
+	"github.com/NamedKitten/kittehimageboard/database"
+
+	"github.com/NamedKitten/kittehimageboard/types"
 )
+
+var DB *database.DBType
+
+// The base struct for all templating operations.
+// Includes stuff for logged in user and more for headers.
+type TemplateTemplate struct {
+	// LoggedIn specifies whether a user is logged in or not.
+	LoggedIn bool
+	// LoggedInUser is the user struct of a logged in user.
+	// If no user is logged in, all fields will be blank.
+	LoggedInUser types.User
+}
+
 
 func getTemplateFuncs() tmpl.FuncMap {
 	return tmpl.FuncMap{
@@ -22,7 +38,7 @@ func getTemplateFuncs() tmpl.FuncMap {
 			html := tmplHTML.HTML(replaced)
 			return html
 		},
-		"settings": func() Settings {
+		"settings": func() database.Settings {
 			return DB.Settings
 		},
 	}

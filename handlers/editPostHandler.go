@@ -1,4 +1,4 @@
-package main
+package handlers
 
 import (
 	"github.com/gorilla/mux"
@@ -6,10 +6,11 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"github.com/NamedKitten/kittehimageboard/utils"
 )
 
-// editPostHandler is the endpoint used to edit posts.
-func editPostHandler(w http.ResponseWriter, r *http.Request) {
+// EditPostHandler is the endpoint used to edit posts.
+func EditPostHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	user, loggedIn := DB.CheckForLoggedInUser(r)
 	if !loggedIn {
@@ -40,7 +41,7 @@ func editPostHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tags := splitTagsString(r.PostFormValue("tags"))
+	tags := utils.SplitTagsString(r.PostFormValue("tags"))
 
 	newTags := make([]string, 0)
 	for _, tag := range tags {

@@ -1,4 +1,4 @@
-package main
+package database
 
 import (
 	json "encoding/json"
@@ -11,6 +11,8 @@ import (
 	"sort"
 	"time"
 	"sync"
+	"github.com/NamedKitten/kittehimageboard/types"
+	"github.com/NamedKitten/kittehimageboard/utils"
 )
 
 var captcha recaptcha.ReCAPTCHA
@@ -42,15 +44,15 @@ type DBType struct {
 	// Passwords is a map of user IDs to their bcrypt2 encrypted
 	// hashes.
 	Passwords map[int64]string `json:"passwords"`
-	// Users is a map of user ID to their user data.
-	Users map[int64]User `json:"users"`
+	// types.Users is a map of user ID to their user data.
+	Users map[int64]types.User `json:"users"`
 	// Posts is a map of post ID to the post.
-	Posts map[int64]Post `json:"posts"`
+	Posts map[int64]types.Post `json:"posts"`
 	// SearchCache is a cache of search strings and the post IDs
 	// that match the result.
 	SearchCache     map[string][]int64 `json:"searchCache"`
 	searchCacheLock sync.Mutex
-	// UsernameToID is used to easily fetch the user ID from a username
+	// types.UsernameToID is used to easily fetch the user ID from a username
 	// to make it so you dont need to itterate over every user to see if
 	// a username exists.
 	UsernameToID map[string]int64 `json:"usernameToID"`
@@ -69,23 +71,22 @@ func (db *DBType) Save() {
 }
 
 // numOfPostsForTags returns the total number of posts for a list of tags.
-func (db *DBType) numOfPostsForTags(searchTags []string) int {
+func (db *DBType) NumOfPostsForTags(searchTags []string) int {
 	return len(db.cacheSearch(searchTags))
 }
 
 // numOfPagesForTags returns the total number of pages for a list of tags.
-func (db *DBType) numOfPagesForTags(searchTags []string) int {
-	return int(math.Ceil(float64(db.numOfPostsForTags(searchTags)) / float64(DefaultPostsPerPage)))
+func (db *DBType) NumOfPagesForTags(searchTags []string) int {
+	return int(math.Ceil(float64(db.NumOfPostsForTags(searchTags)) / float64(20)))
 }
 
 // cacheCleaner runs in the background to remove expired searches from the cache.
 func (db *DBType) cacheCleaner() {
 	for true {
 		db.searchCacheLock.Lock()
-		log.Error(db.SearchCache)
 		for tags, _ := range db.SearchCache {
 			val, ok := db.searchCacheTimes[tags]			
-			if !ok || (time.Unix(val, 0).Add(CacheExpirationTime).After(time.Now())) {
+			if !ok || (time.Unix(val, 0).Add(time.Second * 5).After(time.Now())) {
 				log.Info(tags + " has expired, removing from cache.")
 				delete(db.SearchCache, tags)
 				delete(db.searchCacheTimes, tags)
@@ -93,7 +94,7 @@ func (db *DBType) cacheCleaner() {
 		}
 		db.searchCacheLock.Unlock()
 
-		time.Sleep(CacheTimer)
+		time.Sleep(time.Second * 20)
 	}
 }
 
@@ -101,13 +102,13 @@ func (db *DBType) cacheCleaner() {
 func (db *DBType) init() {
 	snowflake.Epoch = 1551864242
 	if db.Users == nil {
-		db.Users = make(map[int64]User, 0)
+		db.Users = make(map[int64]types.User, 0)
 	}
 	if db.Passwords == nil {
 		db.Passwords = make(map[int64]string, 0)
 	}
 	if db.Posts == nil {
-		db.Posts = make(map[int64]Post, 0)
+		db.Posts = make(map[int64]types.Post, 0)
 	}
 	if db.SearchCache == nil {
 		db.SearchCache = make(map[string][]int64, 0)
@@ -133,8 +134,8 @@ func (db *DBType) init() {
 }
 
 // LoadDB loads the database from the db.json file and initializes it.
-func LoadDB() DBType {
-	var db DBType
+func LoadDB() *DBType {
+	var db *DBType
 	data, _ := ioutil.ReadFile("db.json")
 	json.Unmarshal(data, &db)
 	db.init()
@@ -143,26 +144,26 @@ func LoadDB() DBType {
 }
 
 // AddPost adds a post to the DB and adds it to the author's post list.
-func (db *DBType) AddPost(post Post, postID, userID int64) int64 {
-	user := DB.Users[userID]
+func (db *DBType) AddPost(post types.Post, postID, userID int64) int64 {
+	user := db.Users[userID]
 	user.Posts = append(user.Posts, postID)
-	DB.Users[userID] = user
-	DB.Posts[postID] = post
+	db.Users[userID] = user
+	db.Posts[postID] = post
 	return postID
 }
 
 func (db *DBType) DeletePost(postID int64) {
-	authorID := DB.Posts[postID].PosterID
-	delete(DB.Posts, postID)
-	author := DB.Users[authorID]
-	author.Posts = removeFromSlice(DB.Users[authorID].Posts, postID)
-	DB.Users[authorID] = author
+	authorID := db.Posts[postID].PosterID
+	delete(db.Posts, postID)
+	author := db.Users[authorID]
+	author.Posts = utils.RemoveFromSlice(db.Users[authorID].Posts, postID)
+	db.Users[authorID] = author
 }
 
 // cacheSearch searches for posts matching tags and returns a
 // array of post IDs matching those tags.
 func (db *DBType) cacheSearch(searchTags []string) []int64 {
-	combinedTags := tagsListToString(searchTags)
+	combinedTags := utils.TagsListToString(searchTags)
 	db.searchCacheLock.Lock()
 	defer db.searchCacheLock.Unlock()
 
@@ -172,7 +173,7 @@ func (db *DBType) cacheSearch(searchTags []string) []int64 {
 
 		var matching []int64
 		for i, item := range db.Posts {
-			if doesMatchTags(searchTags, item) {
+			if utils.DoesMatchTags(searchTags, item) {
 				matching = append(matching, i)
 			}
 		}
@@ -184,35 +185,36 @@ func (db *DBType) cacheSearch(searchTags []string) []int64 {
 }
 
 // getSearchPage returns a paginated list of posts from a list of tags.
-func (db *DBType) getSearchPage(searchTags []string, page int) []Post {
+func (db *DBType) GetSearchPage(searchTags []string, page int) []types.Post {
 	matching := db.cacheSearch(searchTags)
-	var matchingPosts []Post
-	for _, post := range paginate(matching, page, DefaultPostsPerPage) {
+	var matchingPosts []types.Post
+	// TODO: add post per page for stuff
+	for _, post := range utils.Paginate(matching, page, 20) {
 		matchingPosts = append(matchingPosts, db.Posts[post])
 	}
 
 	return matchingPosts
 }
 
-// CheckForLoggedInUser is a helper function that is used to see if a
+// CheckForLoggedIntypes.User is a helper function that is used to see if a
 // HTTP request is from a logged in user.
-// It returns a User struct and a bool to tell if there was a logged in
+// It returns a types.User struct and a bool to tell if there was a logged in
 // user or not.
-func (db *DBType) CheckForLoggedInUser(r *http.Request) (User, bool) {
+func (db *DBType) CheckForLoggedInUser(r *http.Request) (types.User, bool) {
 	c, err := r.Cookie("sessionToken")
 	if err == nil {
-		if id, ok := DB.Sessions[c.Value]; ok {
-			return DB.Users[id], true
+		if id, ok := db.Sessions[c.Value]; ok {
+			return db.Users[id], true
 		} else {
-			return User{}, false
+			return types.User{}, false
 		}
 	} else {
 		log.Error(err)
 	}
-	return User{}, false
+	return types.User{}, false
 }
 
-func (db *DBType) verifyRecaptcha(resp string) bool {
+func (db *DBType) VerifyRecaptcha(resp string) bool {
 	if db.Settings.ReCaptcha {
 		err := captcha.Verify(resp)
 		if err != nil {

@@ -1,6 +1,6 @@
 // +build development
 
-package main
+package templates
 
 import (
 	"github.com/NamedKitten/hot"
@@ -25,6 +25,6 @@ func init() {
 	templateEngine = tpl
 }
 
-func renderTemplate(w io.Writer, name string, ctx interface{}) error {
+func RenderTemplate(w io.Writer, name string, ctx interface{}) error {
 	return templateEngine.Execute(w, name, ctx)
 }

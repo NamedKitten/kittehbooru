@@ -1,25 +1,28 @@
-package main
+package handlers
 
 import (
 	"github.com/bwmarrin/snowflake"
 	log "github.com/sirupsen/logrus"
 	"net/http"
 	"time"
+	"github.com/NamedKitten/kittehimageboard/types"
+	"github.com/NamedKitten/kittehimageboard/utils"
+	"github.com/NamedKitten/kittehimageboard/template"
 )
 
-func registerPageHandler(w http.ResponseWriter, r *http.Request) {
-	err := renderTemplate(w, "register.html", nil)
+func RegisterPageHandler(w http.ResponseWriter, r *http.Request) {
+	err := templates.RenderTemplate(w, "register.html", nil)
 	if err != nil {
 		panic(err)
 	}
 }
 
-func registerHandler(w http.ResponseWriter, r *http.Request) {
+func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 	username := r.FormValue("username")
 	password := r.FormValue("password")
 
-	if !DB.verifyRecaptcha(r.FormValue("recaptchaResponse")) {
+	if !DB.VerifyRecaptcha(r.FormValue("recaptchaResponse")) {
 		log.Error("Recaptcha failed: ", r.FormValue("recaptchaResponse"))
 		http.Redirect(w, r, "/register", 302)
 		return
@@ -34,7 +37,7 @@ func registerHandler(w http.ResponseWriter, r *http.Request) {
 
 	node, _ := snowflake.NewNode(1)
 	userID := node.Generate().Int64()
-	DB.Users[userID] = User{
+	DB.Users[userID] = types.User{
 		ID:          userID,
 		Owner:       true,
 		Admin:       true,
@@ -43,9 +46,9 @@ func registerHandler(w http.ResponseWriter, r *http.Request) {
 		Posts:       []int64{},
 	}
 	DB.UsernameToID[username] = userID
-	DB.Passwords[userID] = encryptPassword(password)
+	DB.Passwords[userID] = utils.EncryptPassword(password)
 
-	sessionToken := genSessionToken()
+	sessionToken := utils.GenSessionToken()
 	http.SetCookie(w, &http.Cookie{
 		Name:    "sessionToken",
 		Value:   sessionToken,

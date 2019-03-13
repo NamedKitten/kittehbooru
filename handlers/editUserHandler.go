@@ -1,15 +1,16 @@
 
-package main
+package handlers
 
 import (
 	"github.com/gorilla/mux"
 	log "github.com/sirupsen/logrus"
 	"net/http"
 	"strconv"
+	"github.com/NamedKitten/kittehimageboard/utils"
 )
 
-// editUserHandler is the endpoint used to edit user settings.
-func editUserHandler(w http.ResponseWriter, r *http.Request) {
+// EditUserHandler is the endpoint used to edit user settings.
+func EditUserHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	loggedInUser, loggedIn := DB.CheckForLoggedInUser(r)
 	if !loggedIn {
@@ -42,7 +43,7 @@ func editUserHandler(w http.ResponseWriter, r *http.Request) {
 
 	password := r.PostFormValue("password")
 	if ! (len(password) == 0) {
-		DB.Passwords[int64(userID)] = encryptPassword(password)
+		DB.Passwords[int64(userID)] = utils.EncryptPassword(password)
 	}
 
 	avatarID := r.PostFormValue("avatarID")

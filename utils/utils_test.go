@@ -1,4 +1,4 @@
-package main
+package utils
 
 import "testing"
 
@@ -26,7 +26,7 @@ var tagsListToStringTests = []struct {
 
 func TestTagsListToString(t *testing.T) {
 	for _, test := range tagsListToStringTests {
-		output := tagsListToString(test.input)
+		output := TagsListToString(test.input)
 		if output != test.output {
 			t.Errorf("Output was incorrect, got: %v, want: %v.", output, test.output)
 		}
@@ -98,7 +98,7 @@ var doesMatchTagsTests = []struct {
 
 func TestDoesMatchTags(t *testing.T) {
 	for i, test := range doesMatchTagsTests {
-		result := doesMatchTags(test.searchTags, test.post)
+		result := DoesMatchTags(test.searchTags, test.post)
 		if result != test.result {
 			t.Errorf("Test %d, Output was incorrect, got: %t, want: %t.", i, result, test.result)
 		}
@@ -139,7 +139,7 @@ var checkPasswordTests = []struct {
 
 func TestCheckPassword(t *testing.T) {
 	for i, test := range checkPasswordTests {
-		result := checkPassword(test.password1, test.password2)
+		result := CheckPassword(test.password1, test.password2)
 		if result != test.result {
 			t.Errorf("Test %d, Output was incorrect, got: %v, want: %v.", i, result, test.result)
 		}

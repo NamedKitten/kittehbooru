@@ -1,19 +1,21 @@
-package main
+package handlers
 
 import (
 	log "github.com/sirupsen/logrus"
 	"net/http"
 	"time"
+	"github.com/NamedKitten/kittehimageboard/utils"
+	"github.com/NamedKitten/kittehimageboard/template"
 )
 
-// loginPageHandler takes you to the login page or the root page if you are already logged in.
-func loginPageHandler(w http.ResponseWriter, r *http.Request) {
+// LoginPageHandler takes you to the login page or the root page if you are already logged in.
+func LoginPageHandler(w http.ResponseWriter, r *http.Request) {
 	_, loggedIn := DB.CheckForLoggedInUser(r)
 	if loggedIn {
 		http.Redirect(w, r, "/", 302)
 		return
 	}
-	err := renderTemplate(w, "login.html", nil)
+	err := templates.RenderTemplate(w, "login.html", nil)
 	if err != nil {
 		panic(err)
 	}
@@ -21,15 +23,15 @@ func loginPageHandler(w http.ResponseWriter, r *http.Request) {
 
 // loginHandler is the API endpoint that handles checking if a login
 // is correct and giving the user a session token.
-func loginHandler(w http.ResponseWriter, r *http.Request) {
+func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 	username := r.FormValue("username")
 	password := r.FormValue("password")
 
 	if userID, ok := DB.UsernameToID[username]; ok {
-		if checkPassword(DB.Passwords[userID], password) {
+		if utils.CheckPassword(DB.Passwords[userID], password) {
 			log.Info("login is correct", username)
-			sessionToken := genSessionToken()
+			sessionToken := utils.GenSessionToken()
 			http.SetCookie(w, &http.Cookie{
 				Name:    "sessionToken",
 				Value:   sessionToken,
@@ -45,5 +47,5 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	_ = username
 	_ = password
-	loginPageHandler(w, r)
+	LoginPageHandler(w, r)
 }

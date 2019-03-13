@@ -1,24 +1,25 @@
-package main
+package handlers
 
 import (
 	"net/http"
+	"github.com/NamedKitten/kittehimageboard/template"
 )
 
 type RulesTemplateData struct {
 	RulesLineCount int
-	TemplateTemplate
+	templates.TemplateTemplate
 }
 
-func rulesHandler(w http.ResponseWriter, r *http.Request) {
+func RulesHandler(w http.ResponseWriter, r *http.Request) {
 	user, loggedIn := DB.CheckForLoggedInUser(r)
 	x := RulesTemplateData{
 		len(DB.Settings.Rules),
-		TemplateTemplate{
+		templates.TemplateTemplate{
 			LoggedIn:     loggedIn,
 			LoggedInUser: user,
 		},
 	}
-	err := renderTemplate(w, "rules.html", x)
+	err := templates.RenderTemplate(w, "rules.html", x)
 	if err != nil {
 		panic(err)
 	}

@@ -1,4 +1,4 @@
-package main
+package handlers
 
 import (
 	"github.com/bwmarrin/snowflake"
@@ -11,6 +11,9 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"github.com/NamedKitten/kittehimageboard/types"
+	"github.com/NamedKitten/kittehimageboard/utils"
+	"github.com/NamedKitten/kittehimageboard/template"
 )
 
 // maxUploadSize is the maximum filesize for a post.
@@ -19,7 +22,7 @@ import (
 const maxUploadSize = 64 * 1024 * 1024
 
 // uploadHandler is the API endpoint for creating posts.
-func uploadHandler(w http.ResponseWriter, r *http.Request) {
+func UploadHandler(w http.ResponseWriter, r *http.Request) {
 	user, loggedIn := DB.CheckForLoggedInUser(r)
 	if !loggedIn {
 		log.Error("Not logged in.")
@@ -53,7 +56,7 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 	postID := node.Generate()
 	postIDInt64 := postID.Int64()
 	fileName := strconv.Itoa(int(postIDInt64))
-	tags := splitTagsString(r.PostFormValue("tags"))
+	tags := utils.SplitTagsString(r.PostFormValue("tags"))
 	log.Error("Tags: ", tags)
 	description := r.PostFormValue("description")
 
@@ -89,9 +92,9 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 
 	tags = append(tags, "user:"+user.Username)
 
-	sha256sum := sha256Bytes(fileBytes)
+	sha256sum := utils.Sha256Bytes(fileBytes)
 
-	DB.AddPost(Post{
+	DB.AddPost(types.Post{
 		PostID:        postIDInt64,
 		Filename:      fileName,
 		FileExtension: strings.TrimPrefix(fileType.Extension, "."),
@@ -106,13 +109,13 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // uploadPageHandler is the endpoint where the file upload page is served.
-func uploadPageHandler(w http.ResponseWriter, r *http.Request) {
+func UploadPageHandler(w http.ResponseWriter, r *http.Request) {
 	user, loggedIn := DB.CheckForLoggedInUser(r)
 	if !loggedIn {
 		http.Redirect(w, r, "/login", 302)
 		return
 	}
-	err := renderTemplate(w, "upload.html", TemplateTemplate{
+	err := templates.RenderTemplate(w, "upload.html", templates.TemplateTemplate{
 		LoggedIn:     loggedIn,
 		LoggedInUser: user,
 	})

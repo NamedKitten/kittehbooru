@@ -1,19 +1,21 @@
-package main
+package handlers
 
 import (
 	"github.com/gorilla/mux"
 	"net/http"
 	"strconv"
+	"github.com/NamedKitten/kittehimageboard/types"
+	"github.com/NamedKitten/kittehimageboard/template"
 )
 
 type ViewResultsTemplate struct {
-	Post         Post
-	Author       User
+	Post         types.Post
+	Author       types.User
 	IsAbleToEdit bool
-	TemplateTemplate
+	templates.TemplateTemplate
 }
 
-func viewHandler(w http.ResponseWriter, r *http.Request) {
+func ViewHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	user, loggedIn := DB.CheckForLoggedInUser(r)
 
@@ -27,13 +29,13 @@ func viewHandler(w http.ResponseWriter, r *http.Request) {
 		Post:         post,
 		Author:       DB.Users[post.PosterID],
 		IsAbleToEdit: (user.Admin || post.PosterID == user.ID) && loggedIn,
-		TemplateTemplate: TemplateTemplate{
+		TemplateTemplate: templates.TemplateTemplate{
 			LoggedIn:     loggedIn,
 			LoggedInUser: user,
 		},
 	}
 
-	err := renderTemplate(w, "view.html", templateInfo)
+	err := templates.RenderTemplate(w, "view.html", templateInfo)
 	if err != nil {
 		panic(err)
 	}

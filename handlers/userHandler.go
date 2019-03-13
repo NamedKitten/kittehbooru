@@ -1,23 +1,25 @@
-package main
+package handlers
 
 import (
 	"github.com/gorilla/mux"
 	"net/http"
 	"strconv"
+	"github.com/NamedKitten/kittehimageboard/types"
+	"github.com/NamedKitten/kittehimageboard/template"
 )
 
 type UserResultsTemplate struct {
-	User       User
+	User       types.User
 	IsAbleToEdit bool
-	TemplateTemplate
+	templates.TemplateTemplate
 }
 
-func userHandler(w http.ResponseWriter, r *http.Request) {
+func UserHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	loggedInUser, loggedIn := DB.CheckForLoggedInUser(r)
 
 	userID, _ := strconv.Atoi(vars["userID"])
-	var user User
+	var user types.User
 	var ok bool
 
 	user, ok = DB.Users[int64(userID)]
@@ -35,13 +37,13 @@ func userHandler(w http.ResponseWriter, r *http.Request) {
 	templateInfo := UserResultsTemplate {
 		User:       user,
 		IsAbleToEdit: (loggedInUser.ID == int64(userID)) && loggedIn,
-		TemplateTemplate: TemplateTemplate{
+		TemplateTemplate: templates.TemplateTemplate{
 			LoggedIn:     loggedIn,
 			LoggedInUser: loggedInUser,
 		},
 	}
 
-	err := renderTemplate(w, "user.html", templateInfo)
+	err := templates.RenderTemplate(w, "user.html", templateInfo)
 	if err != nil {
 		panic(err)
 	}
