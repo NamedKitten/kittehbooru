@@ -1,0 +1,57 @@
+<header>
+    <style>
+        .navbar,
+        .nav {
+            padding-top: 0.25rem;
+            /* 0px does not look good on small screens */
+            padding-bottom: 0.25rem !important;
+            font-size: smaller;
+            /* Just because I am using big size font */
+            line-height: 1em;
+            margin-bottom: 5px
+        }
+    </style>
+
+    <nav id="headerNav" class="headerNav navbar navbar-dark fixed-top bg-primary" style="position: relative;">
+        <a class="navbar-brand" href="/">{{ with settings }}{{.SiteName}}{{end}}</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="/">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/rules">Rules</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/search">Search</a>
+                </li>
+                {{ if .LoggedIn }}
+                <li class="nav-item">
+                    <a class="nav-link" href="/upload">Create a post</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/user/{{.LoggedInUser.Username}}">User Profile and Account Settings</a>
+                </li>
+                {{ else }}
+                <li class="nav-item">
+                    <a class="nav-link" href="/login">Log In</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/register">Create an account</a>
+                </li>
+                {{end}}
+
+
+            </ul>
+        </div>
+
+        <!---{{ if .LoggedIn }}
+        <h4>Logged in as {{ html .LoggedInUser.Username }}</h4>
+        {{end}}-->
+
+    </nav>
+</header>

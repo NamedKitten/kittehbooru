@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Hi</title>
+    <link rel="stylesheet" href="/css/bootstrap.css">
+    <script src="/js/jquery.js"></script>
+    <script src="/js/bootstrap.js"></script>
+    <style>
+      .myTabContent {
+        height: 500px
+      }
+
+      .swfEmbedDiv {
+        height: 500px
+      }
+
+      .card-img-top {
+        width: 40%;
+        object-fit: contain;
+        vertical-align: middle
+      }
+
+
+      /*.card-img-top {
+        max-width: "25%";
+        max-height: "20%";
+      }*/
+    </style>
+  </head>
+
+  <body>
+    {{ template "header.html" . }}
+
+    <center>
+      <div class="container">
+
+        <div class="card">
+
+          <center><img class="card-img-top" src="/thumbnail/{{ .User.AvatarID }}"></center>
+          <div class="card-header">
+            <b>{{ .User.Username }}'s Profile</b>
+            <ul class="nav nav-tabs card-header-tabs pull-right infoSection" id="myTab" role="tablist">
+              <li class="nav-item">
+                <a class="nav-link active" id="info-tab" data-toggle="tab" href="#info" role="tab" aria-controls="info"
+                  aria-selected="true">Info</a>
+              </li>
+              {{ if .IsAbleToEdit }}
+              <li class="nav-item">
+                <a class="nav-link" id="settings-tab" data-toggle="tab" href="#settings" role="tab"
+                  aria-controls="settings" aria-selected="false">Settings</a>
+              </li>
+              {{ end }}
+            </ul>
+          </div>
+          <div class="card-body">
+            <div class="tab-content" id="myTabContent">
+              <div class="tab-pane fade show active" id="info" role="tabpanel" aria-labelledby="info-tab">
+                {{ nl2br .User.Description }}
+              </div>
+
+              {{ if .IsAbleToEdit }}
+              <div class="tab-pane fade" id="settings" role="tabpanel" aria-labelledby="settings-tab">
+                <form enctype="multipart/form-data" class="form-signin" method="post" action="/editUser/{{ .User.ID }}">
+                  <div class="form-label-group">
+                    <label for="description">Description</label>
+                    <textarea class="form-control" id="description" name="description"
+                      rows="6">{{ nlhtml .User.Description }}</textarea>
+                  </div>
+                  <br>
+                  <div class="form-label-group">
+                    <label for="password">Password</label>
+                    <input class="form-control" id="password" name="password" type="password" value=""></input>
+                    <small class="form-text text-muted">
+                      If your password has been changed, your session will be invalidated and you will need to log
+                      in again.
+                    </small>
+                  </div>
+                  <br>
+                  <button class="btn btn-lg btn-primary btn-block text-uppercase" type="submit">Edit</button>
+                  <br>
+                </form>
+                <form class="form-signin" method="get" action="/deleteUser/{{ .User.ID }}">
+                  <button class="btn btn-lg btn-danger btn-block text-uppercase" type="submit">Delete Account</button>
+                </form>
+              </div>
+              {{ end }}
+            </div>
+          </div>
+        </div>
+      </div>
+    </center>
+  </body>
+
+</html>

@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Hi</title>
+    <link rel="stylesheet" href="/css/bootstrap.css">
+    <script src="/js/jquery.js"></script>
+    <script src="/js/bootstrap.js"></script>
+  </head>
+
+  <body class="bg-primary">
+    <div class="container-fluid">
+      <form class="form-signin" method="post">
+        <div class="row">
+          <div class="col-sm-9 col-md-7 col-lg-7 mx-auto">
+            <div class="card card-signin my-5 bg-light">
+              <div class="card-body">
+                <h5 class="card-title text-center">Setup</h5>
+                <div class="form-row">
+                  <div class="form-group col-md-6">
+                    <label for="username">Admin Username</label>
+                    <input type="text" class="form-control" id="username" name="adminUsername"
+                      placeholder="Admin Username">
+                    <small class="form-text text-muted">
+                      This is the first admin user that will be created.
+                    </small>
+                  </div>
+                  <div class="form-group col-md-6">
+                    <label for="password">Admin Password</label>
+                    <input type="password" class="form-control" id="password" name="adminPassword"
+                      placeholder="Password">
+                    <small class="form-text text-muted">
+                      Please use a strong password...
+                    </small>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label for="site-title">Site Title</label>
+                  <input type="text" class="form-control" id="site-title" name="siteTitle" value="Kitteh's Imageboard">
+                  <small class="form-text text-muted">
+                    The title displayed in the navigation bar.
+                  </small>
+                </div>
+                <div class="custom-control custom-checkbox">
+                  <input type="checkbox" class="custom-control-input" id="enablereCaptcha" name="enablereCaptcha">
+                  <label class="custom-control-label" for="enablereCaptcha">Enable reCaptcha</label>
+                </div>
+                <small class="form-text text-muted">
+                  We highly recommend using reCaptcha to help prevent registration spam from bots.
+                </small>
+                <br>
+                <div class="form-row">
+                  <div class="col-md-6 mb-3">
+                    <label for="reCaptchaPublicKey">reCaptcha Public Key</label>
+                    <input type="text" class="form-control" id="reCaptchaPublicKey" name="reCaptchaPublicKey">
+                  </div>
+                  <div class="col-md-6 mb-3">
+                    <label for="reCaptchaPrivateKey">reCaptcha Private Key</label>
+                    <input type="text" class="form-control" id="reCaptchaPrivateKey" name="reCaptchaPrivateKey">
+                  </div>
+                </div>
+                <div class="form-label-group">
+                  <label for="rules">Rules</label>
+                  <textarea class="form-control" id="rules" name="rules" rows="10"></textarea>
+                </div>
+                <br>
+                <button type="submit" class="btn btn-success">Submit</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+
+
+      </form>
+    </div>
+  </body>
+
+</html>

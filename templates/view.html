@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Hi</title>
+    <link rel="stylesheet" href="/css/bootstrap.css">
+    <script src="/js/jquery.js"></script>
+    <script src="/js/bootstrap.js"></script>
+    {{ if eq .Post.FileExtension "swf" }}
+
+    <script src="/js/shumway/shuobject.js"></script>
+    {{ end }}
+    <style>
+      .swfEmbedDiv {
+        height: 500px
+      }
+
+      .card-img-top {
+        width: 100%;
+        object-fit: contain;
+      }
+
+      /*.card-header {
+        padding: 0 1.25rem;
+      }*/
+
+      /* Small devices (landscape phones, 576px and up) */
+      @media (min-width: 576px) {
+        .card-img-top {
+          max-height: 80vw;
+        }
+      }
+
+      /* Medium devices (tablets, 768px and up) */
+      @media (min-width: 768px) {
+        .card-img-top {
+          max-height: 70vw;
+        }
+      }
+
+      /* Large devices (desktops, 992px and up) */
+      @media (min-width: 992px) {
+        .card-img-top {
+          max-height: 60vw;
+        }
+      }
+
+      /* Extra large devices (large desktops, 1200px and up) */
+      @media (min-width: 992px) {
+        .card-img-top {
+          max-height: 70vw;
+        }
+      }
+
+      /*.card-img-top {
+        max-width: "25%";
+        max-height: "20%";
+      }*/
+    </style>
+  </head>
+
+  <body>
+    {{ template "header.html" . }}
+
+    <center>
+      <div class="container-fluid">
+
+        <div class="card">
+          {{ if eq .Post.FileExtension "swf" }}
+          <div id="swfEmbedDiv" class="card-img-top"></div>
+          {{ else }}
+          <img class="card-img-top" src="/content/{{ .Post.Filename }}.{{ .Post.FileExtension }}" height="70%">
+          {{ end }}
+          <div class="card-header">
+            <ul class="nav nav-tabs card-header-tabs pull-right infoSection" id="myTab" role="tablist">
+              <li class="nav-item">
+                <a class="nav-link active" id="info-tab" data-toggle="tab" href="#info" role="tab" aria-controls="info"
+                  aria-selected="true">Info</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" id="tags-tab" data-toggle="tab" href="#tags" role="tab" aria-controls="tags"
+                  aria-selected="false">Tags</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" id="fileinfo-tab" data-toggle="tab" href="#fileinfo" role="tab"
+                  aria-controls="fileinfo" aria-selected="false">Extra Info</a>
+              </li>
+              {{ if .IsAbleToEdit }}
+              <li class="nav-item">
+                <a class="nav-link" id="settings-tab" data-toggle="tab" href="#settings" role="tab"
+                  aria-controls="settings" aria-selected="false">Settings</a>
+              </li>
+              {{ end }}
+            </ul>
+          </div>
+          <div class="card-body">
+            <div class="tab-content" id="myTabContent">
+              <div class="tab-pane fade show active" id="info" role="tabpanel" aria-labelledby="info-tab">
+                {{ nl2br .Post.Description }}
+                {{ if .LoggedIn }}
+                <br>
+                <br>
+                <form class="form-signin" method="post" action="/editUser/{{ .LoggedInUser.ID }}">
+                  <input type="hidden" name="avatarID" value="{{ .Post.PostID }}">
+                  <button class="btn btn-lg btn-success btn-block text-uppercase" type="submit">Set as avatar</button>
+                </form>
+                {{ end }}
+              </div>
+              <div class="tab-pane fade" id="tags" role="tabpanel" aria-labelledby="tags-tab">
+                {{ range .Post.Tags }} <a class="text-success" href="/search?page=0&tags={{ html . }}">{{ html . }}</a>
+                {{end }}
+              </div>
+              <div class="tab-pane fade" id="fileinfo" role="tabpanel" aria-labelledby="fileinfo-tab">
+                <b>Uploaded by user:</b> {{ html .Author.Username }}<br>
+                <b>Sha265:</b> {{ .Post.Sha256 }}<br>
+                <b>Direct Download:</b> <a class="text-success"
+                  href="/content/{{ .Post.Filename }}.{{ .Post.FileExtension }}">click me</a><br>
+              </div>
+
+              {{ if .IsAbleToEdit }}
+              <div class="tab-pane fade" id="settings" role="tabpanel" aria-labelledby="settings-tab">
+                <form enctype="multipart/form-data" class="form-signin" method="post"
+                  action="/editPost/{{ .Post.PostID }}">
+                  <div class="form-label-group">
+                    <label for="tags">Tags</label>
+                    <input type="text" class="form-control" id="tags" name="tags" required
+                      value="{{ range .Post.Tags }}{{ html .}} {{end}}">
+                  </div>
+                  <br>
+                  <div class="form-label-group">
+                    <label for="description">Description</label>
+                    <textarea class="form-control" id="description" name="description"
+                      rows="6">{{ nlhtml .Post.Description }}</textarea>
+                  </div>
+                  <br>
+                  <button class="btn btn-lg btn-primary btn-block text-uppercase" type="submit">Edit</button>
+                  <br>
+                </form>
+                <form class="form-signin" method="get" action="/deletePost/{{ .Post.PostID }}">
+                  <button class="btn btn-lg btn-danger btn-block text-uppercase" type="submit">Delete</button>
+                </form>
+              </div>
+              {{ end }}
+            </div>
+          </div>
+        </div>
+      </div>
+    </center>
+  </body>
+  {{ if eq .Post.FileExtension "swf" }}
+  <script>    shuobject.embedSWF('/content/{{ .Post.Filename }}.{{ .Post.FileExtension }}', 'swfEmbedDiv', "100%", "500", ''); </script>
+  {{end}}
+
+    <script src="/js/jquery.js"></script>
+    <script src="/js/bootstrap.js"></script>
+
+</html>
