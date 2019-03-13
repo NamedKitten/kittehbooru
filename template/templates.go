@@ -4,6 +4,7 @@ import (
 	"github.com/NamedKitten/kittehimageboard/database"
 	tmplHTML "html/template"
 	"strings"
+	"io/ioutil"
 	tmpl "text/template"
 
 	"github.com/NamedKitten/kittehimageboard/types"
@@ -31,6 +32,15 @@ func getTemplateFuncs() tmpl.FuncMap {
 			return html
 		},
 		"nl2br": func(text string) tmplHTML.HTML {
+			escaped := tmplHTML.HTMLEscapeString(text)
+			replaced := strings.Replace(escaped, "\r\n", "<br>", -1)
+			replaced = strings.Replace(replaced, "\n", "<br>", -1)
+			html := tmplHTML.HTML(replaced)
+			return html
+		},
+		"readFile": func(filename string) tmplHTML.HTML {
+			text := ioutil.ReadFile(filename)
+			
 			escaped := tmplHTML.HTMLEscapeString(text)
 			replaced := strings.Replace(escaped, "\r\n", "<br>", -1)
 			replaced = strings.Replace(replaced, "\n", "<br>", -1)
