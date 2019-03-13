@@ -5,15 +5,15 @@ import (
 	log "github.com/sirupsen/logrus"
 	"io/ioutil"
 
+	"github.com/NamedKitten/kittehimageboard/template"
+	"github.com/NamedKitten/kittehimageboard/types"
+	"github.com/NamedKitten/kittehimageboard/utils"
 	"github.com/h2non/filetype"
 	"net/http"
 	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
-	"github.com/NamedKitten/kittehimageboard/types"
-	"github.com/NamedKitten/kittehimageboard/utils"
-	"github.com/NamedKitten/kittehimageboard/template"
 )
 
 // maxUploadSize is the maximum filesize for a post.

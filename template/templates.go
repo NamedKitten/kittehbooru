@@ -1,10 +1,10 @@
 package templates
 
 import (
+	"github.com/NamedKitten/kittehimageboard/database"
 	tmplHTML "html/template"
 	"strings"
 	tmpl "text/template"
-	"github.com/NamedKitten/kittehimageboard/database"
 
 	"github.com/NamedKitten/kittehimageboard/types"
 )
@@ -20,7 +20,6 @@ type TemplateTemplate struct {
 	// If no user is logged in, all fields will be blank.
 	LoggedInUser types.User
 }
-
 
 func getTemplateFuncs() tmpl.FuncMap {
 	return tmpl.FuncMap{

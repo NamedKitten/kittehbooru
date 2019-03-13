@@ -1,13 +1,13 @@
 package handlers
 
 import (
+	"github.com/NamedKitten/kittehimageboard/template"
+	"github.com/NamedKitten/kittehimageboard/types"
+	"github.com/NamedKitten/kittehimageboard/utils"
 	"github.com/bwmarrin/snowflake"
 	log "github.com/sirupsen/logrus"
 	"net/http"
 	"time"
-	"github.com/NamedKitten/kittehimageboard/types"
-	"github.com/NamedKitten/kittehimageboard/utils"
-	"github.com/NamedKitten/kittehimageboard/template"
 )
 
 func RegisterPageHandler(w http.ResponseWriter, r *http.Request) {

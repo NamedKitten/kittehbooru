@@ -1,15 +1,15 @@
 package handlers
 
 import (
+	"github.com/NamedKitten/kittehimageboard/template"
+	"github.com/NamedKitten/kittehimageboard/types"
 	"github.com/gorilla/mux"
 	"net/http"
 	"strconv"
-	"github.com/NamedKitten/kittehimageboard/types"
-	"github.com/NamedKitten/kittehimageboard/template"
 )
 
 type UserResultsTemplate struct {
-	User       types.User
+	User         types.User
 	IsAbleToEdit bool
 	templates.TemplateTemplate
 }
@@ -34,8 +34,8 @@ func UserHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	templateInfo := UserResultsTemplate {
-		User:       user,
+	templateInfo := UserResultsTemplate{
+		User:         user,
 		IsAbleToEdit: (loggedInUser.ID == int64(userID)) && loggedIn,
 		TemplateTemplate: templates.TemplateTemplate{
 			LoggedIn:     loggedIn,

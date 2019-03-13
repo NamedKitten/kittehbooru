@@ -19,7 +19,8 @@
           <div class="my-5"> </div>
           <div class="alert alert-warning" style="margin-top: 33%; margin-bottom: 33%;" role="alert">
             <h4 class="alert-heading">Warning!</h4>
-            <p>Are you sure you want to delete this post, there is no way to undelete it.</p>
+            <p>Are you sure you want to delete your account, there is no way to undelete it.</p>
+            <p>This will delete all of your posts.</p>
             <hr>
             <div class="btn-group d-flex flex-row-reverse">
               <form method="post">
@@ -27,7 +28,7 @@
               </form>
 
 
-              <form action="/view/{{.PostID}}" method="get">
+              <form action="/view/{{.LoggedInUser.ID}}" method="get">
                 <button type="submit" class="btn btn-dark">Back</button>
               </form>
             </div>

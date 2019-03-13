@@ -2,6 +2,8 @@ package database
 
 import (
 	json "encoding/json"
+	"github.com/NamedKitten/kittehimageboard/types"
+	"github.com/NamedKitten/kittehimageboard/utils"
 	"github.com/bwmarrin/snowflake"
 	"github.com/ezzarghili/recaptcha-go"
 	log "github.com/sirupsen/logrus"
@@ -9,10 +11,8 @@ import (
 	"math"
 	"net/http"
 	"sort"
-	"time"
 	"sync"
-	"github.com/NamedKitten/kittehimageboard/types"
-	"github.com/NamedKitten/kittehimageboard/utils"
+	"time"
 )
 
 var captcha recaptcha.ReCAPTCHA
@@ -85,7 +85,7 @@ func (db *DBType) cacheCleaner() {
 	for true {
 		db.searchCacheLock.Lock()
 		for tags, _ := range db.SearchCache {
-			val, ok := db.searchCacheTimes[tags]			
+			val, ok := db.searchCacheTimes[tags]
 			if !ok || (time.Unix(val, 0).Add(time.Second * 5).After(time.Now())) {
 				log.Info(tags + " has expired, removing from cache.")
 				delete(db.SearchCache, tags)
@@ -141,6 +141,16 @@ func LoadDB() *DBType {
 	db.init()
 	db.Save()
 	return db
+}
+
+func (db *DBType) DeleteUser(userID int64) {
+	user := db.Users[userID]
+	for _, postID := range user.Posts {
+		db.DeletePost(postID)
+	}
+	delete(db.UsernameToID, user.Username)
+	delete(db.Passwords, user.ID)
+	delete(db.Users, user.ID)
 }
 
 // AddPost adds a post to the DB and adds it to the author's post list.

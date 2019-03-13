@@ -1,8 +1,8 @@
 package handlers
 
 import (
-	"net/http"
 	"github.com/NamedKitten/kittehimageboard/template"
+	"net/http"
 )
 
 // RootTemplateData contains data to be used in the template.

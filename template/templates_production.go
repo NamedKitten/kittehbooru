@@ -3,7 +3,6 @@
 package templates
 
 import (
-	"fmt"
 	"io"
 	tmpl "text/template"
 )
@@ -11,7 +10,6 @@ import (
 var templateEngine *tmpl.Template
 
 func init() {
-	fmt.Println("prod")
 	templateEngine, _ = tmpl.New("").Funcs(getTemplateFuncs()).ParseGlob(
 		"templates/*.html",
 	)

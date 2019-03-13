@@ -2,14 +2,15 @@ package handlers
 
 import (
 	"fmt"
-	"github.com/gorilla/mux"
-	log "github.com/sirupsen/logrus"
-	"gopkg.in/h2non/bimg.v1"
 	"io"
 	"net/http"
 	"os"
 	"strconv"
 	"strings"
+
+	"github.com/gorilla/mux"
+	log "github.com/sirupsen/logrus"
+	"gopkg.in/h2non/bimg.v1"
 )
 
 // fileExists is a helper function to tell if a file exists or not.
@@ -74,6 +75,5 @@ func ThumbnailHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.Header().Set("Cache-Control", "max-age=2592000")
-
 	io.Copy(w, cachedFile)
 }

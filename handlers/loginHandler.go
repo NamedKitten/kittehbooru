@@ -1,11 +1,11 @@
 package handlers
 
 import (
+	"github.com/NamedKitten/kittehimageboard/template"
+	"github.com/NamedKitten/kittehimageboard/utils"
 	log "github.com/sirupsen/logrus"
 	"net/http"
 	"time"
-	"github.com/NamedKitten/kittehimageboard/utils"
-	"github.com/NamedKitten/kittehimageboard/template"
 )
 
 // LoginPageHandler takes you to the login page or the root page if you are already logged in.

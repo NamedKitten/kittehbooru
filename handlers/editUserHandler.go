@@ -1,12 +1,11 @@
-
 package handlers
 
 import (
+	"github.com/NamedKitten/kittehimageboard/utils"
 	"github.com/gorilla/mux"
 	log "github.com/sirupsen/logrus"
 	"net/http"
 	"strconv"
-	"github.com/NamedKitten/kittehimageboard/utils"
 )
 
 // EditUserHandler is the endpoint used to edit user settings.
@@ -37,24 +36,22 @@ func EditUserHandler(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 
 	description := r.PostFormValue("description")
-	if ! (len(description) == 0) {
+	if !(len(description) == 0) {
 		user.Description = r.PostFormValue("description")
 	}
 
 	password := r.PostFormValue("password")
-	if ! (len(password) == 0) {
+	if !(len(password) == 0) {
 		DB.Passwords[int64(userID)] = utils.EncryptPassword(password)
 	}
 
 	avatarID := r.PostFormValue("avatarID")
-	if ! (len(avatarID) == 0) {
+	if !(len(avatarID) == 0) {
 		avatarIDInt, _ := strconv.Atoi(avatarID)
 		user.AvatarID = int64(avatarIDInt)
 	}
 
 	DB.Users[int64(userID)] = user
 
-
 	http.Redirect(w, r, "/user/"+vars["userID"], 302)
 }
-

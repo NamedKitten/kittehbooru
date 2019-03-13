@@ -1,11 +1,11 @@
 package handlers
 
 import (
+	"github.com/NamedKitten/kittehimageboard/template"
+	"github.com/NamedKitten/kittehimageboard/types"
 	"github.com/gorilla/mux"
 	"net/http"
 	"strconv"
-	"github.com/NamedKitten/kittehimageboard/types"
-	"github.com/NamedKitten/kittehimageboard/template"
 )
 
 type ViewResultsTemplate struct {

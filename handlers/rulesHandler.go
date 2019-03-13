@@ -1,8 +1,8 @@
 package handlers
 
 import (
-	"net/http"
 	"github.com/NamedKitten/kittehimageboard/template"
+	"net/http"
 )
 
 type RulesTemplateData struct {

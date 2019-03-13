@@ -1,11 +1,11 @@
 package handlers
 
 import (
+	"github.com/NamedKitten/kittehimageboard/template"
 	"github.com/gorilla/mux"
 	log "github.com/sirupsen/logrus"
 	"net/http"
 	"strconv"
-	"github.com/NamedKitten/kittehimageboard/template"
 )
 
 type DeletePostTemplate struct {
@@ -22,9 +22,8 @@ func DeletePostPageHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-
 	templateInfo := DeletePostTemplate{
-		PostID:         int64(postID),
+		PostID: int64(postID),
 		TemplateTemplate: templates.TemplateTemplate{
 			LoggedIn:     loggedIn,
 			LoggedInUser: user,

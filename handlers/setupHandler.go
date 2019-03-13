@@ -1,12 +1,12 @@
 package handlers
 
 import (
+	"github.com/NamedKitten/kittehimageboard/template"
+	"github.com/NamedKitten/kittehimageboard/types"
+	"github.com/NamedKitten/kittehimageboard/utils"
 	"github.com/bwmarrin/snowflake"
 	log "github.com/sirupsen/logrus"
 	"net/http"
-	"github.com/NamedKitten/kittehimageboard/types"
-	"github.com/NamedKitten/kittehimageboard/utils"
-	"github.com/NamedKitten/kittehimageboard/template"
 )
 
 // setupPageHandler takes you to the setup page for initial setup.

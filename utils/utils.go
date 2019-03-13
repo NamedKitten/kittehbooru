@@ -5,10 +5,10 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
+	"github.com/NamedKitten/kittehimageboard/types"
 	"golang.org/x/crypto/bcrypt"
 	"sort"
 	"strings"
-	"github.com/NamedKitten/kittehimageboard/types"
 )
 
 func EncryptPassword(password string) string {

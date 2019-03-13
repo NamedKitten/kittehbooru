@@ -1,14 +1,12 @@
 package handlers
 
 import (
-	"github.com/gorilla/mux"
-	log "github.com/sirupsen/logrus"
+	"github.com/NamedKitten/kittehimageboard/template"
+	"github.com/NamedKitten/kittehimageboard/types"
+	"github.com/NamedKitten/kittehimageboard/utils"
 	"net/http"
 	"net/url"
 	"strconv"
-	"github.com/NamedKitten/kittehimageboard/types"
-	"github.com/NamedKitten/kittehimageboard/utils"
-	"github.com/NamedKitten/kittehimageboard/template"
 )
 
 // SearchResultsTemplate contains data to be used in the template.
@@ -37,19 +35,16 @@ type SearchResultsTemplate struct {
 // of a search query.
 func SearchHandler(w http.ResponseWriter, r *http.Request) {
 	user, loggedIn := DB.CheckForLoggedInUser(r)
-	vars := mux.Vars(r)
-	tagsStr := vars["tags"]
+	tagsStr := r.URL.Query().Get("tags")
 	if len(tagsStr) == 0 {
 		tagsStr = "*"
 	}
 	tags := utils.SplitTagsString(tagsStr)
-	log.Error(tags)
-	pageStr := vars["page"]
-	if len(tagsStr) == 0 {
-		tagsStr = "0"
+	pageStr := r.URL.Query().Get("page")
+	if len(pageStr) == 0 {
+		pageStr = "0"
 	}
 	page, _ := strconv.Atoi(pageStr)
-	log.Error(page)
 	matchingPosts := DB.GetSearchPage(tags, page)
 	var prevPage int
 	if page <= 0 {
