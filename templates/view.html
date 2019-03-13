@@ -9,13 +9,13 @@
     <script src="/js/jquery.js"></script>
     <script src="/js/bootstrap.js"></script>
     {{ if eq .Post.FileExtension "swf" }}
-
     <script src="/js/shumway/shuobject.js"></script>
     {{ end }}
     <style>
       .swfEmbedDiv {
         height: 500px
       }
+
 
       .card-img-top {
         width: 100%;
@@ -59,6 +59,14 @@
         max-height: "20%";
       }*/
     </style>
+    {{ if eq .Post.MimeType "application/pdf" }}
+    <style>
+      .card-img-top {
+        height: 1000000px;
+      }
+    </style>
+
+    {{ end }}
   </head>
 
   <body>
@@ -70,6 +78,9 @@
         <div class="card">
           {{ if eq .Post.FileExtension "swf" }}
           <div id="swfEmbedDiv" class="card-img-top"></div>
+          {{ else if eq .Post.MimeType "application/pdf" }}
+          <iframe class="card-img-top"
+            src="/js/pdfjs/web/viewer.html?file=/content/{{ .Post.Filename }}.{{ .Post.FileExtension }}"></iframe>
           {{ else }}
           <img class="card-img-top" src="/content/{{ .Post.Filename }}.{{ .Post.FileExtension }}" height="70%">
           {{ end }}
@@ -153,7 +164,7 @@
   <script>    shuobject.embedSWF('/content/{{ .Post.Filename }}.{{ .Post.FileExtension }}', 'swfEmbedDiv', "100%", "500", ''); </script>
   {{end}}
 
-    <script src="/js/jquery.js"></script>
-    <script src="/js/bootstrap.js"></script>
+  <script src="/js/jquery.js"></script>
+  <script src="/js/bootstrap.js"></script>
 
 </html>

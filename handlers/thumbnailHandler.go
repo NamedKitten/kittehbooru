@@ -9,10 +9,10 @@ import (
 	"strings"
 	"image"
 	"image/jpeg"
+	_ "image/png"
 
 	"github.com/gorilla/mux"
 	log "github.com/sirupsen/logrus"
-	"gopkg.in/h2non/bimg.v1"
 )
 
 // fileExists is a helper function to tell if a file exists or not.
@@ -54,6 +54,7 @@ func ThumbnailHandler(w http.ResponseWriter, r *http.Request) {
 			contentFilename = "img/flash.jpg"
 		} else {
 			// Otherise just use the image file.
+			log.Error(post.FileExtension)
 			contentFilename = fmt.Sprintf("content/%s.%s", post.Filename, post.FileExtension)
 		}
 
@@ -64,11 +65,19 @@ func ThumbnailHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// Resize to a width or 600px
-		newImage, err := bimg.NewImage(contentFile).Resize(600, 0)
+		image, _, err := image.Decode(contentFile)
 		if err != nil {
-			log.Error("Error resizing file... ", err)
+			log.Error("Error decoding file... ", err)
 		}
-		bimg.Write(cacheFile, newImage)
+		newCacheFile, err := os.Create(cacheFile)
+		if err != nil {
+			log.Error("Error creating cache file... ", err)
+		}
+
+		err = jpeg.Encode(newCacheFile, image, &jpeg.Options{70})
+		if err != nil {
+			log.Error("Error encoding file... ", err)
+		}
 	}
 	// Load the cached thumbnail file.
 	cachedFile, err := os.Open(cacheFile)
