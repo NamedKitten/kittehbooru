@@ -8,64 +8,9 @@
     <link rel="stylesheet" href="/css/bootstrap.css">
     <script src="/js/jquery.js"></script>
     <script src="/js/bootstrap.js"></script>
+    <link rel="stylesheet" href="/css/main.css">
     {{ if eq .Post.FileExtension "swf" }}
     <script src="/js/shumway/shuobject.js"></script>
-    {{ end }}
-    <style>
-      .swfEmbedDiv {
-        height: 500px
-      }
-
-
-      .card-img-top {
-        width: 100%;
-        object-fit: contain;
-      }
-
-      /*.card-header {
-        padding: 0 1.25rem;
-      }*/
-
-      /* Small devices (landscape phones, 576px and up) */
-      @media (min-width: 576px) {
-        .card-img-top {
-          max-height: 80vw;
-        }
-      }
-
-      /* Medium devices (tablets, 768px and up) */
-      @media (min-width: 768px) {
-        .card-img-top {
-          max-height: 70vw;
-        }
-      }
-
-      /* Large devices (desktops, 992px and up) */
-      @media (min-width: 992px) {
-        .card-img-top {
-          max-height: 60vw;
-        }
-      }
-
-      /* Extra large devices (large desktops, 1200px and up) */
-      @media (min-width: 992px) {
-        .card-img-top {
-          max-height: 70vw;
-        }
-      }
-
-      /*.card-img-top {
-        max-width: "25%";
-        max-height: "20%";
-      }*/
-    </style>
-    {{ if eq .Post.MimeType "application/pdf" }}
-    <style>
-      .card-img-top {
-        height: 1000000px;
-      }
-    </style>
-
     {{ end }}
   </head>
 
@@ -73,17 +18,11 @@
     {{ template "header.html" . }}
 
     <center>
-      <div class="container-fluid">
+      <div class="container">
 
         <div class="card">
-          {{ if eq .Post.FileExtension "swf" }}
-          <div id="swfEmbedDiv" class="card-img-top"></div>
-          {{ else if eq .Post.MimeType "application/pdf" }}
-          <iframe class="card-img-top"
-            src="/js/pdfjs/web/viewer.html?file=/content/{{ .Post.Filename }}.{{ .Post.FileExtension }}"></iframe>
-          {{ else }}
-          <img class="card-img-top" src="/content/{{ .Post.Filename }}.{{ .Post.FileExtension }}" height="70%">
-          {{ end }}
+          {{ template "viewPostInclude.html" .Post }}
+
           <div class="card-header">
             <ul class="nav nav-tabs card-header-tabs pull-right infoSection" id="myTab" role="tablist">
               <li class="nav-item">
@@ -160,11 +99,5 @@
       </div>
     </center>
   </body>
-  {{ if eq .Post.FileExtension "swf" }}
-  <script>    shuobject.embedSWF('/content/{{ .Post.Filename }}.{{ .Post.FileExtension }}', 'swfEmbedDiv', "100%", "500", ''); </script>
-  {{end}}
-
-  <script src="/js/jquery.js"></script>
-  <script src="/js/bootstrap.js"></script>
 
 </html>

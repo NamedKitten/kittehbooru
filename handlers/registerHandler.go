@@ -18,6 +18,10 @@ func RegisterPageHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func RegisterHandler(w http.ResponseWriter, r *http.Request) {
+	if ! DB.SetupCompleted {
+		http.Redirect(w, r, "/setup", 302)
+		return
+	}
 	r.ParseForm()
 	username := r.FormValue("username")
 	password := r.FormValue("password")
@@ -39,8 +43,6 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	userID := node.Generate().Int64()
 	DB.Users[userID] = types.User{
 		ID:          userID,
-		Owner:       true,
-		Admin:       true,
 		Username:    username,
 		Description: "",
 		Posts:       []int64{},
@@ -48,13 +50,11 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	DB.UsernameToID[username] = userID
 	DB.Passwords[userID] = utils.EncryptPassword(password)
 
-	sessionToken := utils.GenSessionToken()
 	http.SetCookie(w, &http.Cookie{
 		Name:    "sessionToken",
-		Value:   sessionToken,
+		Value:   DB.CreateSession(userID),
 		Expires: time.Now().Add(3 * time.Hour),
 	})
-	DB.Sessions[sessionToken] = userID
 	http.Redirect(w, r, "/", 302)
 	return
 

@@ -34,6 +34,10 @@ type SearchResultsTemplate struct {
 // searchHandler is the search endpoint used for displaying results
 // of a search query.
 func SearchHandler(w http.ResponseWriter, r *http.Request) {
+	if ! DB.SetupCompleted {
+		http.Redirect(w, r, "/setup", 302)
+		return
+	}
 	user, loggedIn := DB.CheckForLoggedInUser(r)
 	tagsStr := r.URL.Query().Get("tags")
 	if len(tagsStr) == 0 {

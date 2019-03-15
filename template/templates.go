@@ -3,8 +3,8 @@ package templates
 import (
 	"github.com/NamedKitten/kittehimageboard/database"
 	tmplHTML "html/template"
-	"strings"
 	"io/ioutil"
+	"strings"
 	tmpl "text/template"
 
 	"github.com/NamedKitten/kittehimageboard/types"
@@ -38,14 +38,17 @@ func getTemplateFuncs() tmpl.FuncMap {
 			html := tmplHTML.HTML(replaced)
 			return html
 		},
-		"readFile": func(filename string) tmplHTML.HTML {
-			textBytes, _ := ioutil.ReadFile(filename)
-			text := string(textBytes) 
+		"readPostContent": func(post types.Post) tmplHTML.HTML {
+			textBytes, _ := ioutil.ReadFile("content/" + post.Filename + "." + post.FileExtension)
+			text := string(textBytes)
 			escaped := tmplHTML.HTMLEscapeString(text)
 			replaced := strings.Replace(escaped, "\r\n", "&#10", -1)
 			replaced = strings.Replace(replaced, "\n", "&#10", -1)
 			html := tmplHTML.HTML(replaced)
 			return html
+		},
+		"startsWith": func(thing, startsWith string) bool {
+			return strings.HasPrefix(thing, startsWith)
 		},
 		"settings": func() database.Settings {
 			return DB.Settings

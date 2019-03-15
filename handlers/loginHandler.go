@@ -10,6 +10,11 @@ import (
 
 // LoginPageHandler takes you to the login page or the root page if you are already logged in.
 func LoginPageHandler(w http.ResponseWriter, r *http.Request) {
+	log.Error(DB.SetupCompleted)
+	if ! DB.SetupCompleted {
+		http.Redirect(w, r, "/setup", 302)
+		return
+	}
 	_, loggedIn := DB.CheckForLoggedInUser(r)
 	if loggedIn {
 		http.Redirect(w, r, "/", 302)
@@ -31,14 +36,13 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	if userID, ok := DB.UsernameToID[username]; ok {
 		if utils.CheckPassword(DB.Passwords[userID], password) {
 			log.Info("login is correct", username)
-			sessionToken := utils.GenSessionToken()
+
 			http.SetCookie(w, &http.Cookie{
 				Name:    "sessionToken",
-				Value:   sessionToken,
-				Expires: time.Now().Add(3 * time.Hour),
+				Value:   DB.CreateSession(userID),
+				Expires: time.Now().Add(2 * time.Hour),
 			})
-			DB.Sessions[sessionToken] = userID
-			http.Redirect(w, r, "/", 301)
+			http.Redirect(w, r, "/", 302)
 			return
 		}
 

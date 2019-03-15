@@ -14,6 +14,10 @@ type RootTemplateData struct {
 
 // rootHandler is the root endpoint where a index page is served.
 func RootHandler(w http.ResponseWriter, r *http.Request) {
+	if ! DB.SetupCompleted {
+		http.Redirect(w, r, "/setup", 302)
+		return
+	}
 	user, loggedIn := DB.CheckForLoggedInUser(r)
 	x := RootTemplateData{
 		templates.TemplateTemplate{

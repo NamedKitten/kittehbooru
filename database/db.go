@@ -40,7 +40,8 @@ type DBType struct {
 	LockedTags map[string]int64 `json:"lockedTags"`
 	// Sessions is a map of session token to the user ID the session
 	// belongs to.
-	Sessions map[string]int64 `json:"sessions"`
+	Sessions map[string]types.Session `json:"sessions"`
+	sessionsLock sync.Mutex
 	// Passwords is a map of user IDs to their bcrypt2 encrypted
 	// hashes.
 	Passwords map[int64]string `json:"passwords"`
@@ -52,13 +53,11 @@ type DBType struct {
 	// that match the result.
 	SearchCache     map[string][]int64 `json:"searchCache"`
 	searchCacheLock sync.Mutex
+	searchCacheTimes map[string]int64
 	// types.UsernameToID is used to easily fetch the user ID from a username
 	// to make it so you dont need to itterate over every user to see if
 	// a username exists.
 	UsernameToID map[string]int64 `json:"usernameToID"`
-	// searchCacheTimes is a map of the search strings to the time at which
-	// they where last searched.
-	searchCacheTimes map[string]int64
 	// Settings contains instance-specific settings for this instance.
 	Settings Settings `json:"settings"`
 }
@@ -86,7 +85,7 @@ func (db *DBType) cacheCleaner() {
 		db.searchCacheLock.Lock()
 		for tags, _ := range db.SearchCache {
 			val, ok := db.searchCacheTimes[tags]
-			if !ok || (time.Unix(val, 0).Add(time.Second * 5).After(time.Now())) {
+			if !ok || (time.Unix(val, 0).Add(time.Second).After(time.Now())) {
 				log.Info(tags + " has expired, removing from cache.")
 				delete(db.SearchCache, tags)
 				delete(db.searchCacheTimes, tags)
@@ -94,7 +93,23 @@ func (db *DBType) cacheCleaner() {
 		}
 		db.searchCacheLock.Unlock()
 
-		time.Sleep(time.Second * 20)
+		//time.Sleep(time.Second * 2)
+	}
+}
+
+func (db *DBType) sessionCleaner() {
+	for true {
+		db.sessionsLock.Lock()
+		for _, session := range db.Sessions {
+			if time.Now().After(time.Unix(session.ExpirationTime, 0)) {
+				log.Error(time.Unix(session.ExpirationTime, 0))
+				log.Error(time.Now())
+				//delete(db.Sessions, token)
+			}
+		}
+		db.sessionsLock.Unlock()
+
+		time.Sleep(time.Second * 2)
 	}
 }
 
@@ -120,7 +135,7 @@ func (db *DBType) init() {
 		db.UsernameToID = make(map[string]int64, 0)
 	}
 	if db.Sessions == nil {
-		db.Sessions = make(map[string]int64, 0)
+		db.Sessions = make(map[string]types.Session, 0)
 	}
 	if !db.SetupCompleted {
 		log.Warning("You need to go to /setup in web browser to setup this imageboard.")
@@ -130,7 +145,7 @@ func (db *DBType) init() {
 	}
 
 	go db.cacheCleaner()
-
+	go db.sessionCleaner()
 }
 
 // LoadDB loads the database from the db.json file and initializes it.
@@ -152,6 +167,15 @@ func (db *DBType) DeleteUser(userID int64) {
 	delete(db.Passwords, user.ID)
 	delete(db.Users, user.ID)
 }
+
+func (db *DBType) CreateSession(userID int64) string {
+	db.sessionsLock.Lock()
+	sessionToken := utils.GenSessionToken()
+	db.Sessions[sessionToken] = types.Session{UserID: userID, ExpirationTime: time.Now().Add(time.Hour * 3).Unix()}
+	db.sessionsLock.Unlock()
+	return sessionToken
+}
+
 
 // AddPost adds a post to the DB and adds it to the author's post list.
 func (db *DBType) AddPost(post types.Post, postID, userID int64) int64 {
@@ -203,6 +227,9 @@ func (db *DBType) GetSearchPage(searchTags []string, page int) []types.Post {
 		matchingPosts = append(matchingPosts, db.Posts[post])
 	}
 
+	sort.Slice(matchingPosts, func(i, j int) bool { return snowflake.ID(matchingPosts[i].PostID).Time() > snowflake.ID(matchingPosts[j].PostID).Time() })
+
+
 	return matchingPosts
 }
 
@@ -213,8 +240,8 @@ func (db *DBType) GetSearchPage(searchTags []string, page int) []types.Post {
 func (db *DBType) CheckForLoggedInUser(r *http.Request) (types.User, bool) {
 	c, err := r.Cookie("sessionToken")
 	if err == nil {
-		if id, ok := db.Sessions[c.Value]; ok {
-			return db.Users[id], true
+		if sess, ok := db.Sessions[c.Value]; ok {
+			return db.Users[sess.UserID], true
 		} else {
 			return types.User{}, false
 		}

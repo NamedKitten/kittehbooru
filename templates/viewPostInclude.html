@@ -1,0 +1,21 @@
+{{ if eq .FileExtension "swf" }}
+<script src="/js/shumway/shuobject.js"></script>
+{{ end }}
+
+{{ if eq .FileExtension "swf" }}
+<div id="swfEmbedDiv" class="card-img-top"></div>
+{{ else if eq .MimeType "application/pdf" }}
+<iframe class="card-img-top pdf-view"
+    src="/js/pdfjs/web/viewer.html?file=/content/{{ .Filename }}.{{ .FileExtension }}"></iframe>
+{{ else if eq .FileExtension "unknown" }}
+<textarea class="text-view card-img-top form-control" id="content" name="content"
+    readonly>{{ readPostContent . }}</textarea>
+{{ else if startsWith .MimeType "video" }}
+<video class="video-view card-img-top" src="/content/{{ .Filename }}.{{ .FileExtension }}" controls></video>
+{{ else }}
+<img class="card-img-top" src="/content/{{ .Filename }}.{{ .FileExtension }}" height="70%">
+{{ end }}
+
+{{ if eq .FileExtension "swf" }}
+<script>shuobject.embedSWF('/content/{{ .Filename }}.{{ .FileExtension }}', 'swfEmbedDiv', "100%", "500", ''); </script>
+{{end}}

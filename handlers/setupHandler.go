@@ -7,15 +7,15 @@ import (
 	"github.com/bwmarrin/snowflake"
 	log "github.com/sirupsen/logrus"
 	"net/http"
+	"time"
 )
 
 // setupPageHandler takes you to the setup page for initial setup.
 func SetupPageHandler(w http.ResponseWriter, r *http.Request) {
-	/*if DB.SetupCompleted == true {
-		log.Error("Setup already completed. ", DB.SetupCompleted)
+	if DB.SetupCompleted {
 		http.Redirect(w, r, "/", 302)
 		return
-	}*/
+	}
 	log.Error("Setup.")
 	err := templates.RenderTemplate(w, "setup.html", nil)
 	if err != nil {
@@ -63,5 +63,10 @@ func SetupHandler(w http.ResponseWriter, r *http.Request) {
 	DB.Settings.ReCaptchaPubkey = reCaptchaPublicKey
 	DB.Settings.ReCaptchaPrivkey = reCaptchaPrivateKey
 	DB.SetupCompleted = true
-
+	http.SetCookie(w, &http.Cookie{
+		Name:    "sessionToken",
+		Value:   DB.CreateSession(userID),
+		Expires: time.Now().Add(3 * time.Hour),
+	})
+	http.Redirect(w, r, "/", 302)
 }

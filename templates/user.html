@@ -8,26 +8,13 @@
     <link rel="stylesheet" href="/css/bootstrap.css">
     <script src="/js/jquery.js"></script>
     <script src="/js/bootstrap.js"></script>
+    <link rel="stylesheet" href="/css/main.css">
+
     <style>
-      .myTabContent {
-        height: 500px
-      }
-
-      .swfEmbedDiv {
-        height: 500px
-      }
-
       .card-img-top {
-        width: 40%;
         object-fit: contain;
         vertical-align: middle
       }
-
-
-      /*.card-img-top {
-        max-width: "25%";
-        max-height: "20%";
-      }*/
     </style>
   </head>
 
@@ -39,7 +26,7 @@
 
         <div class="card">
 
-          <center><img class="card-img-top" src="/thumbnail/{{ .User.AvatarID }}"></center>
+          <center>{{ template "viewPostInclude.html" .AvatarPost }}</center>
           <div class="card-header">
             <b>{{ .User.Username }}'s Profile</b>
             <ul class="nav nav-tabs card-header-tabs pull-right infoSection" id="myTab" role="tablist">

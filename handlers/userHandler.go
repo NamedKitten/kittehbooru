@@ -9,12 +9,17 @@ import (
 )
 
 type UserResultsTemplate struct {
+	AvatarPost   types.Post
 	User         types.User
 	IsAbleToEdit bool
 	templates.TemplateTemplate
 }
 
 func UserHandler(w http.ResponseWriter, r *http.Request) {
+	if ! DB.SetupCompleted {
+		http.Redirect(w, r, "/setup", 302)
+		return
+	}
 	vars := mux.Vars(r)
 	loggedInUser, loggedIn := DB.CheckForLoggedInUser(r)
 
@@ -35,6 +40,7 @@ func UserHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	templateInfo := UserResultsTemplate{
+		AvatarPost:   DB.Posts[user.AvatarID],
 		User:         user,
 		IsAbleToEdit: (loggedInUser.ID == int64(userID)) && loggedIn,
 		TemplateTemplate: templates.TemplateTemplate{
