@@ -22,6 +22,7 @@ func cacheMiddleware(next http.Handler) http.Handler {
 }
 
 func Start() {
+	log.SetReportCaller(true)
 	log.Info("starting, loading db")
 	DB = database.LoadDB()
 	templates.DB = DB

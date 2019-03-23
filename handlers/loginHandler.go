@@ -11,7 +11,7 @@ import (
 // LoginPageHandler takes you to the login page or the root page if you are already logged in.
 func LoginPageHandler(w http.ResponseWriter, r *http.Request) {
 	log.Error(DB.SetupCompleted)
-	if ! DB.SetupCompleted {
+	if !DB.SetupCompleted {
 		http.Redirect(w, r, "/setup", 302)
 		return
 	}

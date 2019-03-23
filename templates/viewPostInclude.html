@@ -2,11 +2,16 @@
 <script src="/js/shumway/shuobject.js"></script>
 {{ end }}
 
+{{ if not (eq .PostID 0) }}
 {{ if eq .FileExtension "swf" }}
 <div id="swfEmbedDiv" class="card-img-top"></div>
 {{ else if eq .MimeType "application/pdf" }}
+{{ if settings.PDFView}}
 <iframe class="card-img-top pdf-view"
     src="/js/pdfjs/web/viewer.html?file=/content/{{ .Filename }}.{{ .FileExtension }}"></iframe>
+{{ else }}
+<a href="/content/{{ .Filename }}.{{ .FileExtension }}">Click to download PDF</a>
+{{ end }}
 {{ else if eq .FileExtension "unknown" }}
 <textarea class="text-view card-img-top form-control" id="content" name="content"
     readonly>{{ readPostContent . }}</textarea>
@@ -14,6 +19,7 @@
 <video class="video-view card-img-top" src="/content/{{ .Filename }}.{{ .FileExtension }}" controls></video>
 {{ else }}
 <img class="card-img-top" src="/content/{{ .Filename }}.{{ .FileExtension }}" height="70%">
+{{ end }}
 {{ end }}
 
 {{ if eq .FileExtension "swf" }}

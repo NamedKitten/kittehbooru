@@ -16,7 +16,7 @@ type ViewResultsTemplate struct {
 }
 
 func ViewHandler(w http.ResponseWriter, r *http.Request) {
-	if ! DB.SetupCompleted {
+	if !DB.SetupCompleted {
 		http.Redirect(w, r, "/setup", 302)
 		return
 	}

@@ -1,10 +1,9 @@
 package types
 
 type Session struct {
-	UserID int64 `json:"userID"`
+	UserID         int64 `json:"userID"`
 	ExpirationTime int64 `json:"expirationTime"`
 }
-
 
 type User struct {
 	// The snowflake ID of the user.

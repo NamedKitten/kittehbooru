@@ -29,6 +29,16 @@ type Settings struct {
 	ReCaptchaPrivkey string `json:"reCaptchaPrivKey"`
 	// Rules are the instance specific rules for this instance.
 	Rules string `json:"rules"`
+	// ThumbnailFormat can be either "jpeg" or "png"
+	ThumbnailFormat string `json:"thumbnailFormat"`
+	// VideoThumbnails is to enable/disable creating video thumbnails.
+	// This requires ffmpegthumbnailer to be installed.
+	VideoThumbnails bool `json:"videoThumbnails"`
+	// PDFThumbnails is to enable/disable creating PDF thumbnails.
+	// This requires imagemagick's convert tool to be installed.
+	PDFThumbnails bool `json:"pdfThumbnails"`
+	// PDFView is to enable/disable the viewing of PDFs in the browser using pdf.js.
+	PDFView bool `json:"pdfView"`
 }
 
 // DBType is the type at which all things are stored in the database.
@@ -38,9 +48,8 @@ type DBType struct {
 	// LockedTags is a map of tags which are locked and the user ID
 	// of the user that can use them.
 	LockedTags map[string]int64 `json:"lockedTags"`
-	// Sessions is a map of session token to the user ID the session
-	// belongs to.
-	Sessions map[string]types.Session `json:"sessions"`
+	// Sessions is a map of token IDs and session info.
+	Sessions     map[string]types.Session `json:"sessions"`
 	sessionsLock sync.Mutex
 	// Passwords is a map of user IDs to their bcrypt2 encrypted
 	// hashes.
@@ -51,8 +60,8 @@ type DBType struct {
 	Posts map[int64]types.Post `json:"posts"`
 	// SearchCache is a cache of search strings and the post IDs
 	// that match the result.
-	SearchCache     map[string][]int64 `json:"searchCache"`
-	searchCacheLock sync.Mutex
+	SearchCache      map[string][]int64 `json:"searchCache"`
+	searchCacheLock  sync.Mutex
 	searchCacheTimes map[string]int64
 	// types.UsernameToID is used to easily fetch the user ID from a username
 	// to make it so you dont need to itterate over every user to see if
@@ -83,7 +92,7 @@ func (db *DBType) NumOfPagesForTags(searchTags []string) int {
 func (db *DBType) cacheCleaner() {
 	for true {
 		db.searchCacheLock.Lock()
-		for tags, _ := range db.SearchCache {
+		for tags := range db.SearchCache {
 			val, ok := db.searchCacheTimes[tags]
 			if !ok || (time.Unix(val, 0).Add(time.Second).After(time.Now())) {
 				log.Info(tags + " has expired, removing from cache.")
@@ -100,11 +109,9 @@ func (db *DBType) cacheCleaner() {
 func (db *DBType) sessionCleaner() {
 	for true {
 		db.sessionsLock.Lock()
-		for _, session := range db.Sessions {
+		for token, session := range db.Sessions {
 			if time.Now().After(time.Unix(session.ExpirationTime, 0)) {
-				log.Error(time.Unix(session.ExpirationTime, 0))
-				log.Error(time.Now())
-				//delete(db.Sessions, token)
+				delete(db.Sessions, token)
 			}
 		}
 		db.sessionsLock.Unlock()
@@ -176,7 +183,6 @@ func (db *DBType) CreateSession(userID int64) string {
 	return sessionToken
 }
 
-
 // AddPost adds a post to the DB and adds it to the author's post list.
 func (db *DBType) AddPost(post types.Post, postID, userID int64) int64 {
 	user := db.Users[userID]
@@ -227,8 +233,9 @@ func (db *DBType) GetSearchPage(searchTags []string, page int) []types.Post {
 		matchingPosts = append(matchingPosts, db.Posts[post])
 	}
 
-	sort.Slice(matchingPosts, func(i, j int) bool { return snowflake.ID(matchingPosts[i].PostID).Time() > snowflake.ID(matchingPosts[j].PostID).Time() })
-
+	sort.Slice(matchingPosts, func(i, j int) bool {
+		return snowflake.ID(matchingPosts[i].PostID).Time() > snowflake.ID(matchingPosts[j].PostID).Time()
+	})
 
 	return matchingPosts
 }

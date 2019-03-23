@@ -23,6 +23,13 @@ func SetupPageHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func formValueToBool(val string) bool {
+	if val == "on" {
+		return true
+	}
+	return false
+}
+
 func SetupHandler(w http.ResponseWriter, r *http.Request) {
 	if DB.SetupCompleted == true {
 		log.Error("Setup already completed. ", DB.SetupCompleted)
@@ -34,15 +41,8 @@ func SetupHandler(w http.ResponseWriter, r *http.Request) {
 	password := r.FormValue("adminPassword")
 	siteTitle := r.FormValue("siteTitle")
 	rules := r.FormValue("rules")
-	enablereCaptcha := r.FormValue("enablereCaptcha")
 	reCaptchaPublicKey := r.FormValue("reCaptchaPublicKey")
 	reCaptchaPrivateKey := r.FormValue("reCaptchaPrivateKey")
-	log.Error("Stuff: ", username, password, siteTitle, enablereCaptcha, reCaptchaPublicKey, reCaptchaPrivateKey)
-	log.Error(r.Form)
-	reCaptchaEnabled := false
-	if enablereCaptcha == "on" {
-		reCaptchaEnabled = true
-	}
 
 	node, _ := snowflake.NewNode(1)
 	userID := node.Generate().Int64()
@@ -56,10 +56,14 @@ func SetupHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	DB.UsernameToID[username] = userID
 	DB.Passwords[userID] = utils.EncryptPassword(password)
+	DB.Settings.ThumbnailFormat = r.FormValue("thumbnailType")
+	DB.Settings.PDFView = formValueToBool(r.FormValue("enablePDFViewing"))
+	DB.Settings.VideoThumbnails = formValueToBool(r.FormValue("enableVideoThumbnails"))
+	DB.Settings.PDFThumbnails = formValueToBool(r.FormValue("enablePDFThumbnails"))
 
 	DB.Settings.SiteName = siteTitle
 	DB.Settings.Rules = rules
-	DB.Settings.ReCaptcha = reCaptchaEnabled
+	DB.Settings.ReCaptcha = formValueToBool(r.FormValue("enablereCaptcha"))
 	DB.Settings.ReCaptchaPubkey = reCaptchaPublicKey
 	DB.Settings.ReCaptchaPrivkey = reCaptchaPrivateKey
 	DB.SetupCompleted = true

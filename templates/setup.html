@@ -66,6 +66,41 @@
                   <textarea class="form-control" id="rules" name="rules" rows="10"></textarea>
                 </div>
                 <br>
+                <label for="thumbnailType">Thumbnail Format</label>
+                <select class="custom-select" name="thumbnailType" id="thumbnailType">
+                  <option value="jpeg">JPEG Thumbnails</option>
+                  <option value="png">PNG Thumbnails</option>
+                </select>
+                <br>
+                <br>
+                <div class="custom-control custom-checkbox">
+                  <input type="checkbox" class="custom-control-input" id="enablePDFViewing" name="enablePDFViewing">
+                  <label class="custom-control-label" for="enablePDFViewing">Enable PDF Viewing</label>
+                </div>
+                <small class="form-text text-muted">
+                  PDF Viewing requires PDF.js.
+                  You may prefer to offer a download link for the PDF instead of embedding it in the site.
+                </small>
+                <br>
+                <div class="custom-control custom-checkbox">
+                  <input type="checkbox" class="custom-control-input" id="enablePDFThumbnails"
+                    name="enablePDFThumbnails">
+                  <label class="custom-control-label" for="enablePDFThumbnails">Enable PDF Thumbnails</label>
+                </div>
+                <small class="form-text text-muted">
+                  This will require imagemagick installed to generate thumnails.
+                  Keep in mind that imagemagick may contain vulnerabilities that could put your server at risk.
+                </small>
+                <br>
+                <div class="custom-control custom-checkbox">
+                  <input type="checkbox" class="custom-control-input" id="enableVideoThumbnails"
+                    name="enableVideoThumbnails">
+                  <label class="custom-control-label" for="enableVideoThumbnails">Enable Video Thumbnails</label>
+                </div>
+                <small class="form-text text-muted">
+                  This will require ffmpegthumbnailer installed to generate thumnails.
+                </small>
+                <br>
                 <button type="submit" class="btn btn-success">Submit</button>
               </div>
             </div>
