@@ -13,6 +13,7 @@ import (
 	"sort"
 	"sync"
 	"time"
+	"os"
 )
 
 var captcha recaptcha.ReCAPTCHA
@@ -158,8 +159,12 @@ func (db *DBType) init() {
 // LoadDB loads the database from the db.json file and initializes it.
 func LoadDB() *DBType {
 	var db *DBType
+	os.Create("db.json")
 	data, _ := ioutil.ReadFile("db.json")
-	json.Unmarshal(data, &db)
+	err := json.Unmarshal(data, &db)
+	if err != nil {
+		db = &DBType{}
+	}
 	db.init()
 	db.Save()
 	return db
