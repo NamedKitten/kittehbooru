@@ -10,10 +10,10 @@ import (
 	"io/ioutil"
 	"math"
 	"net/http"
+	"os"
 	"sort"
 	"sync"
 	"time"
-	"os"
 )
 
 var captcha recaptcha.ReCAPTCHA
@@ -75,8 +75,14 @@ type DBType struct {
 // Save saves the database.
 func (db *DBType) Save() {
 	log.Info("Saving DB.")
-	data, _ := json.Marshal(db)
-	ioutil.WriteFile("db.json", data, 0644)
+	data, err := json.Marshal(db)
+	if err != nil {
+		log.Error("Can't encode DB to json", err)
+	}
+	err = ioutil.WriteFile("db.json", data, 0644)
+	if err != nil {
+		log.Error("Can't save DB", err)
+	}
 }
 
 // numOfPostsForTags returns the total number of posts for a list of tags.
@@ -159,10 +165,14 @@ func (db *DBType) init() {
 // LoadDB loads the database from the db.json file and initializes it.
 func LoadDB() *DBType {
 	var db *DBType
-	os.Create("db.json")
-	data, _ := ioutil.ReadFile("db.json")
-	err := json.Unmarshal(data, &db)
+	_, err := os.Stat("db.json")
 	if err != nil {
+		os.Create("db.json")
+	}
+	data, _ := ioutil.ReadFile("db.json")
+	err = json.Unmarshal(data, &db)
+	if err != nil {
+		log.Error("Cannot unmarshal DB", err)
 		db = &DBType{}
 	}
 	db.init()

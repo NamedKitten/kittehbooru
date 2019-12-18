@@ -13,5 +13,5 @@ require (
 	github.com/pytimer/mux-logrus v0.0.0-20190126083416-4024cdba0357
 	github.com/sirupsen/logrus v1.4.2
 	golang.org/x/crypto v0.0.0-20191206172530-e9b2fee46413
-	golang.org/x/image v0.0.0-20191214001246-9130b4cfad52 // indirect
+	golang.org/x/image v0.0.0-20191214001246-9130b4cfad52
 )

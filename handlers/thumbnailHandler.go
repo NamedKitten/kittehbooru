@@ -7,6 +7,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/hqbobo/text2pic"
 	log "github.com/sirupsen/logrus"
+	_ "golang.org/x/image/webp"
 	"image"
 	_ "image/gif"
 	"image/jpeg"

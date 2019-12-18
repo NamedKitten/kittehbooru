@@ -16,7 +16,6 @@ func SetupPageHandler(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/", 302)
 		return
 	}
-	log.Error("Setup.")
 	err := templates.RenderTemplate(w, "setup.html", nil)
 	if err != nil {
 		panic(err)
@@ -67,6 +66,7 @@ func SetupHandler(w http.ResponseWriter, r *http.Request) {
 	DB.Settings.ReCaptchaPubkey = reCaptchaPublicKey
 	DB.Settings.ReCaptchaPrivkey = reCaptchaPrivateKey
 	DB.SetupCompleted = true
+	DB.Save()
 	http.SetCookie(w, &http.Cookie{
 		Name:    "sessionToken",
 		Value:   DB.CreateSession(userID),
