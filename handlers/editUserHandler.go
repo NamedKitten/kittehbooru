@@ -3,7 +3,6 @@ package handlers
 import (
 	"github.com/NamedKitten/kittehimageboard/utils"
 	"github.com/gorilla/mux"
-	log "github.com/sirupsen/logrus"
 	"net/http"
 	"strconv"
 )
@@ -13,7 +12,6 @@ func EditUserHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	loggedInUser, loggedIn := DB.CheckForLoggedInUser(r)
 	if !loggedIn {
-		log.Error("Not logged in.")
 		http.Redirect(w, r, "/login", 302)
 		return
 	}
@@ -22,13 +20,11 @@ func EditUserHandler(w http.ResponseWriter, r *http.Request) {
 
 	user, userExists := DB.Users[int64(userID)]
 	if !userExists {
-		log.Error("User doesn't exist.")
 		http.Redirect(w, r, "/", 302)
 		return
 	}
 
 	if !(user.Admin || loggedInUser.ID == user.ID) {
-		log.Error("Not authorized.")
 		http.Redirect(w, r, "/", 302)
 		return
 	}

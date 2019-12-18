@@ -6,7 +6,7 @@ import (
 	"github.com/golang/freetype"
 	"github.com/gorilla/mux"
 	"github.com/hqbobo/text2pic"
-	log "github.com/sirupsen/logrus"
+	"github.com/rs/zerolog/log"
 	_ "golang.org/x/image/webp"
 	"image"
 	_ "image/gif"
@@ -62,12 +62,12 @@ func createThumbnail(post types.Post) string {
 		dataSplit := strings.Split(string(data), "\n")
 		fontBytes, err := ioutil.ReadFile("fonts/Lato.ttf")
 		if err != nil {
-			log.Error("Read Font Fail: ", err)
+			log.Error().Err(err).Msg("Read Font Fail")
 			return ""
 		}
 		f, err := freetype.ParseFont(fontBytes)
 		if err != nil {
-			log.Error("Parse FontErr: ", err)
+			log.Error().Err(err).Msg("Parse Font")
 			return ""
 		}
 		pic := text2pic.NewTextPicture(text2pic.Configure{Width: 4000, BgColor: text2pic.ColorWhite})
@@ -77,7 +77,6 @@ func createThumbnail(post types.Post) string {
 			if ii == 8 {
 				break
 			} else {
-				log.Error(l)
 				re := regexp.MustCompile("[[:^ascii:]]")
 				nl := re.ReplaceAllLiteralString(l, "")
 				pic.AddTextLine(nl, 30, f, text2pic.ColorBlack, text2pic.Padding{})
@@ -90,24 +89,23 @@ func createThumbnail(post types.Post) string {
 		defer os.Remove(tmpFile.Name())
 	} else {
 		// Otherise just use the image file.
-		log.Error(post.FileExtension)
 		contentFilename = originalFilename
 	}
 
 	contentFile, err := os.Open(contentFilename)
 	if err != nil {
-		log.Error("Content file open fail: ", err)
+		log.Error().Err(err).Msg("Lost File?")
 		return ""
 	}
 
 	image, _, err := image.Decode(contentFile)
 	if err != nil {
-		log.Error("Error decoding file... ", err)
+		log.Error().Err(err).Msg("Image Decode")
 		return ""
 	}
 	newCacheFile, err := os.Create(thumbnailFile)
 	if err != nil {
-		log.Error("Error creating cache file... ", err)
+		log.Error().Err(err).Msg("Cache Create")
 		return ""
 	}
 	if DB.Settings.ThumbnailFormat == "png" {
@@ -116,7 +114,7 @@ func createThumbnail(post types.Post) string {
 		err = jpeg.Encode(newCacheFile, image, &jpeg.Options{70})
 	}
 	if err != nil {
-		log.Error("Error encoding file... ", err)
+		log.Error().Err(err).Msg("Encode Fail")
 		return ""
 	}
 	return thumbnailFile
@@ -149,13 +147,12 @@ func ThumbnailHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !fileExists(cacheFilename) {
-		log.Error("File doesnt exists.")
 		cacheFilename = createThumbnail(post)
 	}
 
 	cacheFile, err = os.Open(cacheFilename)
 	if err != nil {
-		log.Error("Cache Open: ", err)
+		log.Error().Err(err).Msg("Open Cache File")
 		return
 	}
 

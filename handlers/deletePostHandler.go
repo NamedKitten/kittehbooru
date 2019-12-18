@@ -3,7 +3,6 @@ package handlers
 import (
 	"github.com/NamedKitten/kittehimageboard/template"
 	"github.com/gorilla/mux"
-	log "github.com/sirupsen/logrus"
 	"net/http"
 	"strconv"
 )
@@ -40,7 +39,6 @@ func DeletePostHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	user, loggedIn := DB.CheckForLoggedInUser(r)
 	if !loggedIn {
-		log.Error("Not logged in.")
 		http.Redirect(w, r, "/login", 302)
 		return
 	}
@@ -49,17 +47,14 @@ func DeletePostHandler(w http.ResponseWriter, r *http.Request) {
 
 	post, postExists := DB.Posts[int64(postID)]
 	if !postExists {
-		log.Error("Post doesn't exist.")
 		http.Redirect(w, r, "/", 302)
 		return
 	}
 
 	if !(user.Owner || user.Admin || post.PosterID == user.ID) {
-		log.Error("Not authorized.")
 		http.Redirect(w, r, "/", 302)
 		return
 	}
-	log.Error("Deleting.")
 
 	DB.DeletePost(int64(postID))
 

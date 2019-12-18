@@ -5,7 +5,7 @@ import (
 	"github.com/NamedKitten/kittehimageboard/types"
 	"github.com/NamedKitten/kittehimageboard/utils"
 	"github.com/bwmarrin/snowflake"
-	log "github.com/sirupsen/logrus"
+	"github.com/rs/zerolog/log"
 	"net/http"
 	"time"
 )
@@ -27,7 +27,6 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	password := r.FormValue("password")
 
 	if !DB.VerifyRecaptcha(r.FormValue("recaptchaResponse")) {
-		log.Error("Recaptcha failed: ", r.FormValue("recaptchaResponse"))
 		http.Redirect(w, r, "/register", 302)
 		return
 	}
@@ -49,7 +48,7 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	DB.UsernameToID[username] = userID
 	DB.Passwords[userID] = utils.EncryptPassword(password)
-
+	log.Info().Str("username", username).Msg("Register")
 	http.SetCookie(w, &http.Cookie{
 		Name:    "sessionToken",
 		Value:   DB.CreateSession(userID),

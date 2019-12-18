@@ -6,7 +6,7 @@ import (
 	"github.com/NamedKitten/kittehimageboard/utils"
 	"github.com/bwmarrin/snowflake"
 	"github.com/ezzarghili/recaptcha-go"
-	log "github.com/sirupsen/logrus"
+	"github.com/rs/zerolog/log"
 	"io/ioutil"
 	"math"
 	"net/http"
@@ -74,14 +74,14 @@ type DBType struct {
 
 // Save saves the database.
 func (db *DBType) Save() {
-	log.Info("Saving DB.")
+	log.Info().Msg("Saving DB.")
 	data, err := json.Marshal(db)
 	if err != nil {
-		log.Error("Can't encode DB to json", err)
+		log.Error().Err(err).Msg("Can't encode DB to json")
 	}
 	err = ioutil.WriteFile("db.json", data, 0644)
 	if err != nil {
-		log.Error("Can't save DB", err)
+		log.Error().Err(err).Msg("Can't save DB")
 	}
 }
 
@@ -102,7 +102,7 @@ func (db *DBType) cacheCleaner() {
 		for tags := range db.SearchCache {
 			val, ok := db.searchCacheTimes[tags]
 			if !ok || (time.Unix(val, 0).Add(time.Second).After(time.Now())) {
-				log.Info(tags + " has expired, removing from cache.")
+				log.Info().Msg(tags + " has expired, removing from cache.")
 				delete(db.SearchCache, tags)
 				delete(db.searchCacheTimes, tags)
 			}
@@ -152,7 +152,7 @@ func (db *DBType) init() {
 		db.Sessions = make(map[string]types.Session, 0)
 	}
 	if !db.SetupCompleted {
-		log.Warning("You need to go to /setup in web browser to setup this imageboard.")
+		log.Warn().Msg("You need to go to /setup in web browser to setup this imageboard.")
 	}
 	if db.Settings.ReCaptcha {
 		captcha, _ = recaptcha.NewReCAPTCHA(db.Settings.ReCaptchaPrivkey, recaptcha.V3, 10*time.Second)
@@ -172,7 +172,7 @@ func LoadDB() *DBType {
 	data, _ := ioutil.ReadFile("db.json")
 	err = json.Unmarshal(data, &db)
 	if err != nil {
-		log.Error("Cannot unmarshal DB", err)
+		log.Error().Err(err).Msg("Cannot unmarshal DB")
 		db = &DBType{}
 	}
 	db.init()
@@ -268,7 +268,7 @@ func (db *DBType) CheckForLoggedInUser(r *http.Request) (types.User, bool) {
 			return types.User{}, false
 		}
 	} else {
-		log.Error(err)
+		log.Error().Err(err).Msg("Invalid Token?")
 	}
 	return types.User{}, false
 }
@@ -277,7 +277,7 @@ func (db *DBType) VerifyRecaptcha(resp string) bool {
 	if db.Settings.ReCaptcha {
 		err := captcha.Verify(resp)
 		if err != nil {
-			log.Error(err)
+			log.Error().Err(err).Msg("Cannot verify recaptcha")
 			return false
 		} else {
 			return true

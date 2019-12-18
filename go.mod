@@ -11,6 +11,7 @@ require (
 	github.com/hqbobo/text2pic v0.0.0-20180823042751-2479e146d720
 	github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646 // indirect
 	github.com/pytimer/mux-logrus v0.0.0-20190126083416-4024cdba0357
+	github.com/rs/zerolog v1.17.2
 	github.com/sirupsen/logrus v1.4.2
 	golang.org/x/crypto v0.0.0-20191206172530-e9b2fee46413
 	golang.org/x/image v0.0.0-20191214001246-9130b4cfad52

@@ -5,7 +5,6 @@ import (
 	"github.com/NamedKitten/kittehimageboard/types"
 	"github.com/NamedKitten/kittehimageboard/utils"
 	"github.com/bwmarrin/snowflake"
-	log "github.com/sirupsen/logrus"
 	"net/http"
 	"time"
 )
@@ -31,7 +30,6 @@ func formValueToBool(val string) bool {
 
 func SetupHandler(w http.ResponseWriter, r *http.Request) {
 	if DB.SetupCompleted == true {
-		log.Error("Setup already completed. ", DB.SetupCompleted)
 		http.Redirect(w, r, "/", 302)
 		return
 	}

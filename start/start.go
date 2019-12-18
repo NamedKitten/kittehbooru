@@ -5,14 +5,19 @@ import (
 	"github.com/NamedKitten/kittehimageboard/handlers"
 	"github.com/NamedKitten/kittehimageboard/template"
 	"github.com/gorilla/mux"
-	"github.com/pytimer/mux-logrus"
-	log "github.com/sirupsen/logrus"
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 	"net/http"
 	"os"
 	"os/signal"
 )
 
 var DB *database.DBType
+
+func init() {
+	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
+	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
+}
 
 func cacheMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -22,15 +27,13 @@ func cacheMiddleware(next http.Handler) http.Handler {
 }
 
 func Start() {
-	log.SetReportCaller(true)
-	log.Info("starting, loading db")
+	log.Info().Msg("starting, loading db")
 	DB = database.LoadDB()
 	templates.DB = DB
 	handlers.DB = DB
-	log.Info("db loaded")
+	log.Info().Msg("db loaded")
 
 	r := mux.NewRouter()
-	r.Use(muxlogrus.NewLogger().Middleware)
 	r.HandleFunc("/", handlers.RootHandler)
 	r.HandleFunc("/rules", handlers.RulesHandler)
 	r.HandleFunc("/setup", handlers.SetupPageHandler).Methods("GET")
@@ -61,5 +64,5 @@ func Start() {
 	go http.ListenAndServe("0.0.0.0:9090", r)
 	<-c
 	DB.Save()
-	log.Info("Exiting")
+	log.Info().Msg("Exiting")
 }

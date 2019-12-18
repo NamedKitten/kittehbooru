@@ -2,7 +2,7 @@ package handlers
 
 import (
 	"github.com/bwmarrin/snowflake"
-	log "github.com/sirupsen/logrus"
+	"github.com/rs/zerolog/log"
 	"io/ioutil"
 
 	"github.com/NamedKitten/kittehimageboard/template"
@@ -25,28 +25,23 @@ const maxUploadSize = 64 * 1024 * 1024
 func UploadHandler(w http.ResponseWriter, r *http.Request) {
 	user, loggedIn := DB.CheckForLoggedInUser(r)
 	if !loggedIn {
-		log.Error("Not logged in.")
 		http.Redirect(w, r, "/login", 302)
 		return
 	}
-	log.Error(r.Body)
 	r.Body = http.MaxBytesReader(w, r.Body, maxUploadSize)
 	if err := r.ParseMultipartForm(maxUploadSize); err != nil {
-		log.Error("File too big.")
 		renderError(w, "FILE_TOO_BIG", http.StatusBadRequest)
 		return
 	}
 
 	file, _, err := r.FormFile("uploadFile")
 	if err != nil {
-		log.Error("Not logged in.")
 		renderError(w, "INVALID_FILE", http.StatusBadRequest)
 		return
 	}
 	defer file.Close()
 	fileBytes, err := ioutil.ReadAll(file)
 	if err != nil {
-		log.Error("Invalid file.")
 		renderError(w, "INVALID_FILE", http.StatusBadRequest)
 		return
 	}
@@ -57,19 +52,18 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 	postIDInt64 := postID.Int64()
 	fileName := strconv.Itoa(int(postIDInt64))
 	tags := utils.SplitTagsString(r.PostFormValue("tags"))
-	log.Error("Tags: ", tags)
 	description := r.PostFormValue("description")
 
 	newPath := filepath.Join("content/", fileName+"."+fileType.Extension)
 	newFile, err := os.Create(newPath)
 	if err != nil {
-		log.Error("Cant create file.")
+		log.Error().Err(err).Msg("File Create")
 		renderError(w, "CANT_WRITE_FILE", http.StatusInternalServerError)
 		return
 	}
 	defer newFile.Close()
 	if _, err := newFile.Write(fileBytes); err != nil || newFile.Close() != nil {
-		log.Error("Cant create file.")
+		log.Error().Err(err).Msg("File Write")
 		renderError(w, "CANT_WRITE_FILE", http.StatusInternalServerError)
 		return
 	}
