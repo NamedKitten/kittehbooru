@@ -1,6 +1,7 @@
 package utils
 
 import "testing"
+import "github.com/NamedKitten/kittehimageboard/types"
 
 var tagsListToStringTests = []struct {
 	input  []string
@@ -35,61 +36,61 @@ func TestTagsListToString(t *testing.T) {
 
 var doesMatchTagsTests = []struct {
 	searchTags []string
-	post       Post
+	post       types.Post
 	result     bool
 }{
 	{
 		[]string{"potato"},
-		Post{
+		types.Post{
 			Tags: []string{"tomato"},
 		},
 		false,
 	},
 	{
 		[]string{"-potato"},
-		Post{
+		types.Post{
 			Tags: []string{"potato"},
 		},
 		false,
 	},
 	{
 		[]string{"potato"},
-		Post{
+		types.Post{
 			Tags: []string{"potato"},
 		},
 		true,
 	},
 	{
 		[]string{"*"},
-		Post{
+		types.Post{
 			Tags: []string{"potato"},
 		},
 		true,
 	},
 	{
 		[]string{"-*"},
-		Post{
+		types.Post{
 			Tags: []string{"potato"},
 		},
 		false,
 	},
 	{
 		[]string{""},
-		Post{
+		types.Post{
 			Tags: []string{"potato"},
 		},
 		false,
 	},
 	{
 		[]string{"tomato"},
-		Post{
+		types.Post{
 			Tags: []string{"potato", "tomato"},
 		},
 		true,
 	},
 	{
 		[]string{"tomato"},
-		Post{
+		types.Post{
 			Tags: []string{"tomato", "potato"},
 		},
 		true,
