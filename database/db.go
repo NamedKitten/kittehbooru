@@ -61,9 +61,7 @@ type DBType struct {
 	Posts map[int64]types.Post `json:"posts"`
 	// SearchCache is a cache of search strings and the post IDs
 	// that match the result.
-	SearchCache      map[string][]int64 `json:"searchCache"`
-	searchCacheLock  sync.Mutex
-	searchCacheTimes map[string]int64
+	SearchCache SearchCache
 	// types.UsernameToID is used to easily fetch the user ID from a username
 	// to make it so you dont need to itterate over every user to see if
 	// a username exists.
@@ -95,24 +93,6 @@ func (db *DBType) NumOfPagesForTags(searchTags []string) int {
 	return int(math.Ceil(float64(db.NumOfPostsForTags(searchTags)) / float64(20)))
 }
 
-// cacheCleaner runs in the background to remove expired searches from the cache.
-func (db *DBType) cacheCleaner() {
-	for true {
-		db.searchCacheLock.Lock()
-		for tags := range db.SearchCache {
-			val, ok := db.searchCacheTimes[tags]
-			if !ok || (time.Unix(val, 0).Add(time.Second).After(time.Now())) {
-				log.Info().Msg(tags + " has expired, removing from cache.")
-				delete(db.SearchCache, tags)
-				delete(db.searchCacheTimes, tags)
-			}
-		}
-		db.searchCacheLock.Unlock()
-
-		//time.Sleep(time.Second * 2)
-	}
-}
-
 func (db *DBType) sessionCleaner() {
 	for true {
 		db.sessionsLock.Lock()
@@ -127,7 +107,7 @@ func (db *DBType) sessionCleaner() {
 	}
 }
 
-// init creates all the database fields and adds a user for testing.
+// init creates all the database fields and starts cache and session management.
 func (db *DBType) init() {
 	snowflake.Epoch = 1551864242
 	if db.Users == nil {
@@ -138,12 +118,6 @@ func (db *DBType) init() {
 	}
 	if db.Posts == nil {
 		db.Posts = make(map[int64]types.Post, 0)
-	}
-	if db.SearchCache == nil {
-		db.SearchCache = make(map[string][]int64, 0)
-	}
-	if db.searchCacheTimes == nil {
-		db.searchCacheTimes = make(map[string]int64, 0)
 	}
 	if db.UsernameToID == nil {
 		db.UsernameToID = make(map[string]int64, 0)
@@ -158,7 +132,7 @@ func (db *DBType) init() {
 		captcha, _ = recaptcha.NewReCAPTCHA(db.Settings.ReCaptchaPrivkey, recaptcha.V3, 10*time.Second)
 	}
 
-	go db.cacheCleaner()
+	go db.SearchCache.Start()
 	go db.sessionCleaner()
 }
 
@@ -219,10 +193,8 @@ func (db *DBType) DeletePost(postID int64) {
 // array of post IDs matching those tags.
 func (db *DBType) cacheSearch(searchTags []string) []int64 {
 	combinedTags := utils.TagsListToString(searchTags)
-	db.searchCacheLock.Lock()
-	defer db.searchCacheLock.Unlock()
 
-	if val, ok := db.SearchCache[combinedTags]; ok {
+	if val, ok := db.SearchCache.Get(combinedTags); ok {
 		return val
 	} else {
 
@@ -233,9 +205,8 @@ func (db *DBType) cacheSearch(searchTags []string) []int64 {
 			}
 		}
 		sort.Slice(matching, func(i, j int) bool { return snowflake.ID(i).Time() < snowflake.ID(j).Time() })
-		db.SearchCache[combinedTags] = matching
-		db.searchCacheTimes[combinedTags] = time.Now().Unix()
-		return db.SearchCache[combinedTags]
+		db.SearchCache.Add(combinedTags, matching)
+		return matching
 	}
 }
 
@@ -267,8 +238,6 @@ func (db *DBType) CheckForLoggedInUser(r *http.Request) (types.User, bool) {
 		} else {
 			return types.User{}, false
 		}
-	} else {
-		log.Error().Err(err).Msg("Invalid Token?")
 	}
 	return types.User{}, false
 }

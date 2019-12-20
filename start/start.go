@@ -27,11 +27,11 @@ func cacheMiddleware(next http.Handler) http.Handler {
 }
 
 func Start() {
-	log.Info().Msg("starting, loading db")
+	log.Info().Msg("Starting")
 	DB = database.LoadDB()
 	templates.DB = DB
 	handlers.DB = DB
-	log.Info().Msg("db loaded")
+	log.Info().Msg("Loaded DB")
 
 	r := mux.NewRouter()
 	r.HandleFunc("/", handlers.RootHandler)
