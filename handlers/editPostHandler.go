@@ -25,7 +25,7 @@ func EditPostHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !(user.Admin || post.PosterID == user.ID) {
+	if !(user.Admin || post.Poster == user.Username) {
 		http.Redirect(w, r, "/", 302)
 		return
 	}
@@ -42,7 +42,7 @@ func EditPostHandler(w http.ResponseWriter, r *http.Request) {
 	for _, tag := range tags {
 		hasPermissionToUseTag := true
 		if v, ok := DB.LockedTags[tag]; ok {
-			if v != user.ID {
+			if v != user.Username {
 				hasPermissionToUseTag = false
 			}
 		}

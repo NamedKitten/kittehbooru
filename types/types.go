@@ -1,13 +1,11 @@
 package types
 
 type Session struct {
-	UserID         int64 `json:"userID"`
+	Username         string `json:"username"`
 	ExpirationTime int64 `json:"expirationTime"`
 }
 
 type User struct {
-	// The snowflake ID of the user.
-	ID int64 `json:"ID"`
 	// AvatarID is the post ID of the author's avatar.
 	AvatarID int64 `json:"avatarID"`
 	// Owner allows for making other users admins.
@@ -36,7 +34,7 @@ type Post struct {
 	// PostID specifies the ID of the post.
 	PostID int64 `json:"postID"`
 	// PosterID is the user ID of the user who posted this.
-	PosterID int64 `json:"posterID"`
+	Poster string `json:"poster"`
 	// CreatedAt is the Unix timestamp of when this post was posted.
 	CreatedAt int64 `json:"timestamp"`
 	// Sha256 is the sha256 checksum of the post file.

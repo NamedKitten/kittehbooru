@@ -73,7 +73,7 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 	for _, tag := range tags {
 		hasPermissionToUseTag := true
 		if v, ok := DB.LockedTags[tag]; ok {
-			if v != user.ID {
+			if v != user.Username {
 				hasPermissionToUseTag = false
 			}
 		}
@@ -94,11 +94,11 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 		FileExtension: strings.TrimPrefix(fileType.Extension, "."),
 		Tags:          tags,
 		Description:   description,
-		PosterID:      user.ID,
+		Poster:      user.Username,
 		CreatedAt:     postID.Time(),
 		Sha256:        sha256sum,
 		MimeType:      fileType.MIME.Value,
-	}, postIDInt64, user.ID)
+	}, postIDInt64, user.Username)
 	http.Redirect(w, r, "/view/"+fileName, 302)
 }
 

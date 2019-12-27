@@ -31,8 +31,8 @@ func ViewHandler(w http.ResponseWriter, r *http.Request) {
 
 	templateInfo := ViewResultsTemplate{
 		Post:         post,
-		Author:       DB.Users[post.PosterID],
-		IsAbleToEdit: (user.Admin || post.PosterID == user.ID) && loggedIn,
+		Author:       DB.Users[post.Poster],
+		IsAbleToEdit: (user.Admin || post.Poster == user.Username) && loggedIn,
 		TemplateTemplate: templates.TemplateTemplate{
 			LoggedIn:     loggedIn,
 			LoggedInUser: user,

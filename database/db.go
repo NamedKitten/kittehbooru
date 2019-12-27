@@ -1,11 +1,13 @@
 package database
 
 import (
+	"database/sql"
 	json "encoding/json"
 	"github.com/NamedKitten/kittehimageboard/types"
 	"github.com/NamedKitten/kittehimageboard/utils"
 	"github.com/bwmarrin/snowflake"
 	"github.com/ezzarghili/recaptcha-go"
+	_ "github.com/mattn/go-sqlite3"
 	"github.com/rs/zerolog/log"
 	"io/ioutil"
 	"math"
@@ -44,28 +46,25 @@ type Settings struct {
 
 // DBType is the type at which all things are stored in the database.
 type DBType struct {
+	sqldb *sql.DB
 	// SetupCompleted is used to know when to run setup page.
 	SetupCompleted bool `json:"init"`
 	// LockedTags is a map of tags which are locked and the user ID
 	// of the user that can use them.
-	LockedTags map[string]int64 `json:"lockedTags"`
+	LockedTags map[string]string `json:"lockedTags"`
 	// Sessions is a map of token IDs and session info.
 	Sessions     map[string]types.Session `json:"sessions"`
 	sessionsLock sync.Mutex
 	// Passwords is a map of user IDs to their bcrypt2 encrypted
 	// hashes.
-	Passwords map[int64]string `json:"passwords"`
+	Passwords map[string]string `json:"passwords"`
 	// types.Users is a map of user ID to their user data.
-	Users map[int64]types.User `json:"users"`
+	Users map[string]types.User `json:"users"`
 	// Posts is a map of post ID to the post.
 	Posts map[int64]types.Post `json:"posts"`
 	// SearchCache is a cache of search strings and the post IDs
 	// that match the result.
 	SearchCache SearchCache
-	// types.UsernameToID is used to easily fetch the user ID from a username
-	// to make it so you dont need to itterate over every user to see if
-	// a username exists.
-	UsernameToID map[string]int64 `json:"usernameToID"`
 	// Settings contains instance-specific settings for this instance.
 	Settings Settings `json:"settings"`
 }
@@ -110,17 +109,23 @@ func (db *DBType) sessionCleaner() {
 // init creates all the database fields and starts cache and session management.
 func (db *DBType) init() {
 	snowflake.Epoch = 1551864242
+	var err error
+	db.sqldb, err = sql.Open("sqlite3", "file:db.sql")
+	if err != nil {
+		log.Warn().Err(err).Msg("SQL Error")
+	}
+	_, err = db.sqldb.Exec(`CREATE TABLE IF NOT EXISTS "users" (  "id"  INTEGER,  "avatarID"  INTEGER,  "owner"  BOOL,  "admin"  BOOL,  "username"  TEXT,  "description"  TEXT,  PRIMARY KEY("id"));`)
+	if err != nil {
+		log.Warn().Err(err).Msg("SQL Error")
+	}
 	if db.Users == nil {
-		db.Users = make(map[int64]types.User, 0)
+		db.Users = make(map[string]types.User, 0)
 	}
 	if db.Passwords == nil {
-		db.Passwords = make(map[int64]string, 0)
+		db.Passwords = make(map[string]string, 0)
 	}
 	if db.Posts == nil {
 		db.Posts = make(map[int64]types.Post, 0)
-	}
-	if db.UsernameToID == nil {
-		db.UsernameToID = make(map[string]int64, 0)
 	}
 	if db.Sessions == nil {
 		db.Sessions = make(map[string]types.Session, 0)
@@ -154,39 +159,91 @@ func LoadDB() *DBType {
 	return db
 }
 
-func (db *DBType) DeleteUser(userID int64) {
-	user := db.Users[userID]
+func (db *DBType) AddUser(u types.User) {
+	stmt, err := db.sqldb.Prepare(`INSERT INTO "users"("avatarID","owner","admin","username","description") VALUES (?,?,?,?,?);`)
+	if err != nil {
+		log.Warn().Err(err).Msg("AddUser SQL Error")
+	}
+
+	_, err = stmt.Exec(u.AvatarID, u.Owner, u.Admin, u.Username, u.Description)
+	if err != nil {
+		log.Warn().Err(err).Msg("AddUser SqlExec Error")
+	}
+}
+
+func (db *DBType) User(username string) (u types.User, err error) {
+	u = types.User{}
+
+	rows, err := db.sqldb.Query(`select "avatarID","owner","admin","username","description" from users where username = ?`, username)
+	if err != nil {
+		log.Error().Err(err).Msg("User SQL Error")
+		return u, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		err := rows.Scan(&u.AvatarID, &u.Owner, &u.Admin, &u.Username, &u.Description)
+		if err != nil {
+			log.Error().Err(err).Msg("User SQLScan Error")
+			return u, err
+		}
+	}
+	err = rows.Err()
+	if err != nil {
+		log.Error().Err(err).Msg("User RowsSQL Error")
+		return u, err
+	}
+	return u, nil
+
+}
+
+func (db *DBType) EditUser(u types.User) (err error) {
+	stmt, err := db.sqldb.Prepare(`update users set avatarID = ?, owner = ?, admin = ?, username = ?, description = ? where username = ?`)
+	if err != nil {
+		log.Warn().Err(err).Msg("EditUser SQL Error")
+		return err
+	}
+
+	_, err = stmt.Exec(u.AvatarID, u.Owner, u.Admin, u.Username, u.Description, u.Username)
+	if err != nil {
+		log.Warn().Err(err).Msg("EditUser SQLExec Error")
+		return err
+	}
+	return nil
+}
+
+
+func (db *DBType) DeleteUser(username string) {
+	// redo
+	user := types.User{}
 	for _, postID := range user.Posts {
 		db.DeletePost(postID)
 	}
-	delete(db.UsernameToID, user.Username)
-	delete(db.Passwords, user.ID)
-	delete(db.Users, user.ID)
+	delete(db.Passwords, user.Username)
 }
 
-func (db *DBType) CreateSession(userID int64) string {
+func (db *DBType) CreateSession(username string) string {
 	db.sessionsLock.Lock()
 	sessionToken := utils.GenSessionToken()
-	db.Sessions[sessionToken] = types.Session{UserID: userID, ExpirationTime: time.Now().Add(time.Hour * 3).Unix()}
+	db.Sessions[sessionToken] = types.Session{Username: username, ExpirationTime: time.Now().Add(time.Hour * 3).Unix()}
 	db.sessionsLock.Unlock()
 	return sessionToken
 }
 
 // AddPost adds a post to the DB and adds it to the author's post list.
-func (db *DBType) AddPost(post types.Post, postID, userID int64) int64 {
-	user := db.Users[userID]
+func (db *DBType) AddPost(post types.Post, postID int64, username string) int64 {
+	user := db.Users[username]
 	user.Posts = append(user.Posts, postID)
-	db.Users[userID] = user
+	db.Users[username] = user
 	db.Posts[postID] = post
 	return postID
 }
 
 func (db *DBType) DeletePost(postID int64) {
-	authorID := db.Posts[postID].PosterID
+	//authorID := db.Posts[postID].PosterID
 	delete(db.Posts, postID)
-	author := db.Users[authorID]
+	/*author := db.Users[authorID]
 	author.Posts = utils.RemoveFromSlice(db.Users[authorID].Posts, postID)
-	db.Users[authorID] = author
+	db.Users[authorID] = author*/
 }
 
 // cacheSearch searches for posts matching tags and returns a
@@ -234,7 +291,8 @@ func (db *DBType) CheckForLoggedInUser(r *http.Request) (types.User, bool) {
 	c, err := r.Cookie("sessionToken")
 	if err == nil {
 		if sess, ok := db.Sessions[c.Value]; ok {
-			return db.Users[sess.UserID], true
+			u, _ := db.User(sess.Username)
+			return u, true
 		} else {
 			return types.User{}, false
 		}

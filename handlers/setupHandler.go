@@ -4,7 +4,6 @@ import (
 	"github.com/NamedKitten/kittehimageboard/template"
 	"github.com/NamedKitten/kittehimageboard/types"
 	"github.com/NamedKitten/kittehimageboard/utils"
-	"github.com/bwmarrin/snowflake"
 	"net/http"
 	"time"
 )
@@ -41,18 +40,14 @@ func SetupHandler(w http.ResponseWriter, r *http.Request) {
 	reCaptchaPublicKey := r.FormValue("reCaptchaPublicKey")
 	reCaptchaPrivateKey := r.FormValue("reCaptchaPrivateKey")
 
-	node, _ := snowflake.NewNode(1)
-	userID := node.Generate().Int64()
-	DB.Users[userID] = types.User{
-		ID:          userID,
+	DB.AddUser(types.User{
 		Owner:       true,
 		Admin:       true,
 		Username:    username,
 		Description: "",
 		Posts:       []int64{},
-	}
-	DB.UsernameToID[username] = userID
-	DB.Passwords[userID] = utils.EncryptPassword(password)
+	})
+	DB.Passwords[username] = utils.EncryptPassword(password)
 	DB.Settings.ThumbnailFormat = r.FormValue("thumbnailType")
 	DB.Settings.PDFView = formValueToBool(r.FormValue("enablePDFViewing"))
 	DB.Settings.VideoThumbnails = formValueToBool(r.FormValue("enableVideoThumbnails"))
@@ -67,7 +62,7 @@ func SetupHandler(w http.ResponseWriter, r *http.Request) {
 	DB.Save()
 	http.SetCookie(w, &http.Cookie{
 		Name:    "sessionToken",
-		Value:   DB.CreateSession(userID),
+		Value:   DB.CreateSession(username),
 		Expires: time.Now().Add(3 * time.Hour),
 	})
 	http.Redirect(w, r, "/", 302)

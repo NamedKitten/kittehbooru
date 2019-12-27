@@ -51,7 +51,7 @@ func DeletePostHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !(user.Owner || user.Admin || post.PosterID == user.ID) {
+	if !(user.Owner || user.Admin || post.Poster == user.Username) {
 		http.Redirect(w, r, "/", 302)
 		return
 	}

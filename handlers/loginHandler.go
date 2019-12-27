@@ -32,13 +32,13 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	username := r.FormValue("username")
 	password := r.FormValue("password")
 
-	if userID, ok := DB.UsernameToID[username]; ok {
-		if utils.CheckPassword(DB.Passwords[userID], password) {
+	if _, err := DB.User(username); err != nil {
+		if utils.CheckPassword(DB.Passwords[username], password) {
 			log.Info().Str("username", username).Msg("Login")
 
 			http.SetCookie(w, &http.Cookie{
 				Name:    "sessionToken",
-				Value:   DB.CreateSession(userID),
+				Value:   DB.CreateSession(username),
 				Expires: time.Now().Add(2 * time.Hour),
 			})
 			http.Redirect(w, r, "/", 302)

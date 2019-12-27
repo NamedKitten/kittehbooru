@@ -16,15 +16,13 @@ func EditUserHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userID, _ := strconv.Atoi(vars["userID"])
-
-	user, userExists := DB.Users[int64(userID)]
-	if !userExists {
+	user, err := DB.User(vars["userID"])
+	if err != nil {
 		http.Redirect(w, r, "/", 302)
 		return
 	}
 
-	if !(user.Admin || loggedInUser.ID == user.ID) {
+	if !(user.Admin || loggedInUser.Username == user.Username) {
 		http.Redirect(w, r, "/", 302)
 		return
 	}
@@ -38,7 +36,7 @@ func EditUserHandler(w http.ResponseWriter, r *http.Request) {
 
 	password := r.PostFormValue("password")
 	if !(len(password) == 0) {
-		DB.Passwords[int64(userID)] = utils.EncryptPassword(password)
+		DB.Passwords[user.Username] = utils.EncryptPassword(password)
 	}
 
 	avatarID := r.PostFormValue("avatarID")
@@ -47,7 +45,7 @@ func EditUserHandler(w http.ResponseWriter, r *http.Request) {
 		user.AvatarID = int64(avatarIDInt)
 	}
 
-	DB.Users[int64(userID)] = user
+	DB.EditUser(user)
 
 	http.Redirect(w, r, "/user/"+vars["userID"], 302)
 }

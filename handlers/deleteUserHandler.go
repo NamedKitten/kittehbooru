@@ -43,7 +43,7 @@ func DeleteUserHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	log.Info().Str("username", user.Username).Msg("Account Deletion")
 
-	DB.DeleteUser(user.ID)
+	DB.DeleteUser(user.Username)
 
 	http.Redirect(w, r, "/", 302)
 }

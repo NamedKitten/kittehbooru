@@ -4,7 +4,6 @@ import (
 	"github.com/NamedKitten/kittehimageboard/template"
 	"github.com/NamedKitten/kittehimageboard/types"
 	"github.com/NamedKitten/kittehimageboard/utils"
-	"github.com/bwmarrin/snowflake"
 	"github.com/rs/zerolog/log"
 	"net/http"
 	"time"
@@ -31,27 +30,22 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, usernameExists := DB.UsernameToID[username]
-	if usernameExists {
-
+	_, err := DB.User(username)
+	if err != nil {
 		http.Redirect(w, r, "/register", 302)
 		return
 	}
 
-	node, _ := snowflake.NewNode(1)
-	userID := node.Generate().Int64()
-	DB.Users[userID] = types.User{
-		ID:          userID,
+	DB.AddUser(types.User{
 		Username:    username,
 		Description: "",
 		Posts:       []int64{},
-	}
-	DB.UsernameToID[username] = userID
-	DB.Passwords[userID] = utils.EncryptPassword(password)
+	})
+	DB.Passwords[username] = utils.EncryptPassword(password)
 	log.Info().Str("username", username).Msg("Register")
 	http.SetCookie(w, &http.Cookie{
 		Name:    "sessionToken",
-		Value:   DB.CreateSession(userID),
+		Value:   DB.CreateSession(username),
 		Expires: time.Now().Add(3 * time.Hour),
 	})
 	http.Redirect(w, r, "/", 302)

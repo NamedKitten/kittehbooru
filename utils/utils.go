@@ -1,8 +1,10 @@
 package utils
 
 import (
+	"bytes"
 	"crypto/rand"
 	"crypto/sha256"
+	"encoding/gob"
 	"encoding/hex"
 	"fmt"
 	"github.com/NamedKitten/kittehimageboard/types"
@@ -10,6 +12,20 @@ import (
 	"sort"
 	"strings"
 )
+
+func AnythingToBytes(i interface{}) []byte {
+	var buf bytes.Buffer
+	enc := gob.NewEncoder(&buf)
+	enc.Encode(i)
+	return buf.Bytes()
+}
+
+func AnythingFromBytes(x []byte, i interface{}) {
+	var buf bytes.Buffer
+	buf.Write(x)
+	dec := gob.NewDecoder(&buf)
+	dec.Decode(&i)
+}
 
 func EncryptPassword(password string) string {
 	passwordBytes := []byte(password)
