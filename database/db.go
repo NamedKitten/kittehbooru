@@ -139,12 +139,7 @@ func LoadDB() *DB {
 }
 
 func (db *DB) SetPassword(username string, password string) (err error) {
-	stmt, err := db.sqldb.Prepare(`INSERT OR REPLACE INTO "passwords"("username", "password") VALUES (?, ?);`)
-	if err != nil {
-		log.Warn().Err(err).Msg("SetPassword can't prepare statement")
-		return err
-	}
-	_, err = stmt.Exec(username, utils.EncryptPassword(password))
+	_, err = db.sqldb.Exec(`INSERT OR REPLACE INTO "passwords"("username", "password") VALUES (?, ?);`, username, utils.EncryptPassword(password))
 	if err != nil {
 		log.Warn().Err(err).Msg("SetPassword can't execute statement")
 		return err
@@ -167,12 +162,7 @@ func (db *DB) CheckPassword(username string, password string) bool {
 }
 
 func (db *DB) AddUser(u types.User) {
-	stmt, err := db.sqldb.Prepare(`INSERT INTO "users"("avatarID","owner","admin","username","description") VALUES (?,?,?,?,?);`)
-	if err != nil {
-		log.Warn().Err(err).Msg("AddUser can't prepare statement")
-	}
-
-	_, err = stmt.Exec(u.AvatarID, u.Owner, u.Admin, u.Username, "")
+	_, err := db.sqldb.Exec(`INSERT INTO "users"("avatarID","owner","admin","username","description") VALUES (?,?,?,?,?);`, u.AvatarID, u.Owner, u.Admin, u.Username, "")
 	if err != nil {
 		log.Warn().Err(err).Msg("AddUser can't execute statement")
 	}
@@ -183,14 +173,14 @@ func (db *DB) User(username string) (types.User, bool) {
 
 	rows, err := db.sqldb.Query(`select "avatarID","owner","admin","username","description" from users where username = ?`, username)
 	if err != nil {
-		log.Error().Err(err).Msg("User can't prepare statement")
+		log.Error().Err(err).Msg("User can't query statement")
 		return u, false
 	}
 	defer rows.Close()
 	for rows.Next() {
 		err := rows.Scan(&u.AvatarID, &u.Owner, &u.Admin, &u.Username, &u.Description)
 		if err != nil {
-			log.Error().Err(err).Msg("User can't execute statementr")
+			log.Error().Err(err).Msg("User can't scan")
 			return u, false
 		} else {
 			return u, username == u.Username
@@ -200,14 +190,7 @@ func (db *DB) User(username string) (types.User, bool) {
 }
 
 func (db *DB) EditUser(u types.User) (err error) {
-	stmt, err := db.sqldb.Prepare(`update users set avatarID=?, owner=?, admin=?, description=? where username = ?`)
-	if err != nil {
-		log.Warn().Err(err).Msg("EditUser can't prepare statement")
-		return err
-	}
-	log.Warn().Str("desc", u.Description).Msg("EditUser")
-
-	_, err = stmt.Exec(u.AvatarID, u.Owner, u.Admin, u.Description, u.Username)
+	_, err = db.sqldb.Exec(`update users set avatarID=?, owner=?, admin=?, description=? where username = ?`, u.AvatarID, u.Owner, u.Admin, u.Description, u.Username)
 	if err != nil {
 		log.Warn().Err(err).Msg("EditUser can't execute statement")
 		return err
@@ -216,33 +199,21 @@ func (db *DB) EditUser(u types.User) (err error) {
 }
 
 func (db *DB) DeleteUser(username string) error {
-	stmt, err := db.sqldb.Prepare(`delete from users where username = ?`)
-	if err != nil {
-		log.Warn().Err(err).Msg("DeleteUser can't prepare delete user statement")
-		return err
-	}
-
-	_, err = stmt.Exec(username)
+	_, err := db.sqldb.Exec(`delete from users where username = ?`, username)
 	if err != nil {
 		log.Warn().Err(err).Msg("DeleteUser can't execute delete user statement")
 		return err
 	}
 
-	stmt, err = db.sqldb.Prepare(`delete from passwords where username = ?`)
-	if err != nil {
-		log.Warn().Err(err).Msg("DeleteUser can't prepare delete password statement")
-		return err
-	}
-
-	_, err = stmt.Exec(username)
+	_, err = db.sqldb.Exec(`delete from passwords where username = ?`, username)
 	if err != nil {
 		log.Warn().Err(err).Msg("DeleteUser can't execute delete password statement")
 		return err
 	}
 
-	rows, err := db.sqldb.Query(`select "posts" from tags where tag = ?`, "user:" + username)
+	rows, err := db.sqldb.Query(`select "posts" from tags where tag = ?`, "user:"+username)
 	if err != nil {
-		log.Error().Err(err).Msg("DeleteUser can't prepare select tags statement")
+		log.Error().Err(err).Msg("DeleteUser can't select tags")
 	}
 	defer rows.Close()
 
@@ -293,12 +264,7 @@ func (db *DB) AddPost(post types.Post, postID int64, username string) int64 {
 	post.Poster = username
 	post.PostID = postID
 
-	stmt, err := db.sqldb.Prepare(`INSERT INTO "posts"("postid", "filename", "ext", "description", "tags", "poster", "timestamp", "sha256", "mimetype") VALUES (?,?,?,?,?,?,?,?,?);`)
-	if err != nil {
-		log.Warn().Err(err).Msg("AddPost can't prepare insert post statement")
-	}
-
-	_, err = stmt.Exec(postID, post.Filename, post.FileExtension, post.Description, utils.TagsListToString(post.Tags), post.Poster, post.CreatedAt, post.Sha256, post.MimeType)
+	_, err := db.sqldb.Exec(`INSERT INTO "posts"("postid", "filename", "ext", "description", "tags", "poster", "timestamp", "sha256", "mimetype") VALUES (?,?,?,?,?,?,?,?,?);`, postID, post.Filename, post.FileExtension, post.Description, utils.TagsListToString(post.Tags), post.Poster, post.CreatedAt, post.Sha256, post.MimeType)
 	if err != nil {
 		log.Warn().Err(err).Msg("AddPost can't execute insert post statement")
 	}
@@ -307,7 +273,7 @@ func (db *DB) AddPost(post types.Post, postID int64, username string) int64 {
 
 		rows, err := db.sqldb.Query(`select "posts" from tags where tag = ?`, tag)
 		if err != nil {
-			log.Error().Err(err).Msg("AddPost can't prepare select tags statement")
+			log.Error().Err(err).Msg("AddPost can't select tags")
 		}
 		defer rows.Close()
 
@@ -325,15 +291,10 @@ func (db *DB) AddPost(post types.Post, postID int64, username string) int64 {
 		posts = append(posts, postID)
 		x, _ := json.Marshal(posts)
 
-		stmt, err := db.sqldb.Prepare(`INSERT OR REPLACE INTO "tags"("tag", "posts") VALUES (?, ?);`)
-		if err != nil {
-			log.Warn().Err(err).Msg("AddPost Tags can't prepare insert tags statement")
-		}
-		_, err = stmt.Exec(tag, string(x))
+		_, err = db.sqldb.Exec(`INSERT OR REPLACE INTO "tags"("tag", "posts") VALUES (?, ?);`, tag, string(x))
 		if err != nil {
 			log.Warn().Err(err).Msg("AddPost Tags can't execute insert tags statement")
 		}
-
 	}
 
 	//db.Posts[postID] = post
@@ -350,7 +311,7 @@ func (db *DB) DeletePost(postID int64) {
 	for _, tag := range p.Tags {
 		rows, err := db.sqldb.Query(`select "posts" from tags where tag = ?`, tag)
 		if err != nil {
-			log.Error().Err(err).Msg("DeletePost can't prepare select tags statement")
+			log.Error().Err(err).Msg("DeletePost can't select tags")
 		}
 		defer rows.Close()
 
@@ -378,26 +339,17 @@ func (db *DB) DeletePost(postID int64) {
 		}
 
 		x, _ := json.Marshal(newPosts)
-		s, err := db.sqldb.Prepare(`INSERT OR REPLACE INTO "tags"("tag", "posts") VALUES (?, ?);`)
-		if err != nil {
-			log.Warn().Err(err).Msg("AddPost Tags can't prepare insert tags statement")
-		}
-		_, err = s.Exec(tag, string(x))
+		_, err = db.sqldb.Exec(`INSERT OR REPLACE INTO "tags"("tag", "posts") VALUES (?, ?);`, tag, string(x))
 		if err != nil {
 			log.Warn().Err(err).Msg("AddPost Tags can't execute insert tags statement")
 		}
-
 	}
 
-	stmt, err := db.sqldb.Prepare(`delete from posts where postid = ?`)
-	if err != nil {
-		log.Warn().Err(err).Msg("DeletePost can't prepare delete post statement")
-	}
-
-	_, err = stmt.Exec(postID)
+	_, err := db.sqldb.Exec(`delete from posts where postid = ?`, postID)
 	if err != nil {
 		log.Warn().Err(err).Msg("DeletePost can't execute delete post statement")
 	}
+
 }
 
 // getPostsForTags gets posts matching tags from DB
@@ -480,7 +432,6 @@ func (db *DB) getPostsForTags(tags []string) []int64 {
 			// we store it as json just so its easy to store in the database
 			json.Unmarshal([]byte(postsString), &posts)
 		}
-
 
 		if is {
 			// add to counter if its a positive
