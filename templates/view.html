@@ -63,7 +63,8 @@
                 {{end }}
               </div>
               <div class="tab-pane fade" id="fileinfo" role="tabpanel" aria-labelledby="fileinfo-tab">
-                <b>Uploaded by user:</b> {{ html .Author.Username }}<br>
+                <b>Uploaded by user: </b><a class="text-success"
+                href="/user/{{ html .Author.Username }}">{{ html .Author.Username }}</a><br>
                 <b>Sha265:</b> {{ .Post.Sha256 }}<br>
                 <b>Direct Download:</b> <a class="text-success"
                   href="/content/{{ .Post.Filename }}.{{ .Post.FileExtension }}">click me</a><br>

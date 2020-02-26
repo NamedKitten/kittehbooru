@@ -71,14 +71,7 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 	newTags := make([]string, 0)
 
 	for _, tag := range tags {
-		hasPermissionToUseTag := true
-		if v, ok := DB.LockedTags[tag]; ok {
-			if v != user.Username {
-				hasPermissionToUseTag = false
-			}
-		}
-
-		if !strings.HasPrefix(tag, "user:") && hasPermissionToUseTag {
+		if !strings.HasPrefix(tag, "user:") {
 			newTags = append(newTags, tag)
 		}
 	}

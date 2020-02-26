@@ -38,7 +38,7 @@ func (c *SearchCache) Start() {
 		c.lock.Lock()
 		for tags := range c.cache {
 			val, ok := c.times[tags]
-			if !ok || (time.Unix(val, 0).Add(time.Second).After(time.Now())) {
+			if !ok || (val <= time.Now().Add(time.Second).Unix()) {
 				log.Info().Msg(tags + " has expired, removing from cache.")
 				delete(c.cache, tags)
 				delete(c.times, tags)

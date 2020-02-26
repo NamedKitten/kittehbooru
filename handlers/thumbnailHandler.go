@@ -38,10 +38,10 @@ func createThumbnail(post types.Post) string {
 			defer os.Remove(tmpFile.Name())
 			err := exec.Command("ffmpegthumbnailer", "-c", "png", "-i", originalFilename, "-o", tmpFile.Name()).Run()
 			if err != nil {
-				return "img/video.jpg"
+				return "img/video.png"
 			}
 		} else {
-			return "img/video.jpg"
+			return "img/video.png"
 		}
 	} else if post.FileExtension == "pdf" {
 		if DB.Settings.PDFThumbnails {

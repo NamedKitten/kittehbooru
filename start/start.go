@@ -4,6 +4,7 @@ import (
 	"github.com/NamedKitten/kittehimageboard/database"
 	"github.com/NamedKitten/kittehimageboard/handlers"
 	"github.com/NamedKitten/kittehimageboard/template"
+	gorillaHandlers "github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
@@ -46,6 +47,7 @@ func Start() {
 	r.HandleFunc("/register", handlers.RegisterHandler).Methods("POST")
 	r.HandleFunc("/search", handlers.SearchHandler)
 	r.HandleFunc("/login", handlers.LoginPageHandler).Methods("GET")
+	r.HandleFunc("/logout", handlers.LogoutHandler).Methods("GET")
 	r.HandleFunc("/login", handlers.LoginHandler).Methods("POST")
 	r.HandleFunc("/upload", handlers.UploadHandler).Methods("POST")
 	r.HandleFunc("/upload", handlers.UploadPageHandler).Methods("GET")
@@ -61,7 +63,7 @@ func Start() {
 
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt)
-	go http.ListenAndServe("0.0.0.0:9090", r)
+	go http.ListenAndServe("0.0.0.0:80", gorillaHandlers.LoggingHandler(os.Stdout, r))
 	<-c
 	DB.Save()
 	log.Info().Msg("Exiting")

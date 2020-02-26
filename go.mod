@@ -3,6 +3,7 @@ module github.com/NamedKitten/kittehimageboard
 go 1.13
 
 require (
+	github.com/NamedKitten/hot v0.0.0-20190309114900-977428eba6c3
 	github.com/bwmarrin/snowflake v0.3.0
 	github.com/coreos/pkg v0.0.0-20180928190104-399ea9e2e55f // indirect
 	github.com/davecgh/go-spew v1.1.1
@@ -10,6 +11,7 @@ require (
 	github.com/godbus/dbus v4.1.0+incompatible // indirect
 	github.com/goji/param v0.0.0-20160927210335-d7f49fd7d1ed // indirect
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0
+	github.com/gorilla/handlers v1.4.2
 	github.com/gorilla/mux v1.7.3
 	github.com/h2non/filetype v1.0.10
 	github.com/hqbobo/text2pic v0.0.0-20180823042751-2479e146d720
@@ -23,5 +25,6 @@ require (
 	golang.org/x/crypto v0.0.0-20191206172530-e9b2fee46413
 	golang.org/x/image v0.0.0-20191214001246-9130b4cfad52
 	gopkg.in/check.v1 v1.0.0-20190902080502-41f04d3bba15 // indirect
+	gopkg.in/fsnotify.v1 v1.4.7 // indirect
 	gopkg.in/yaml.v1 v1.0.0-20140924161607-9f9df34309c0 // indirect
 )

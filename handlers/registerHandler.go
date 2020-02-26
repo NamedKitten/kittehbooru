@@ -30,16 +30,17 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	_, exist := DB.User(username)
-	if !exist {
+	if exist {
 		http.Redirect(w, r, "/register", 302)
 		return
 	}
-
-	DB.AddUser(types.User{
+	u := types.User{
 		Username:    username,
 		Description: "",
 		Posts:       []int64{},
-	})
+	}
+	DB.AddUser(u)
+
 	DB.SetPassword(username, password)
 	log.Info().Str("username", username).Msg("Register")
 	http.SetCookie(w, &http.Cookie{
