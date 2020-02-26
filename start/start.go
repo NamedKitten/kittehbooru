@@ -22,7 +22,7 @@ func init() {
 
 func cacheMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Cache-Control", "max-age=2592000")
+		w.Header().Set("Cache-Control", "public, immutable, max-age=2592000")
 		next.ServeHTTP(w, r)
 	})
 }

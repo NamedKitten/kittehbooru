@@ -156,6 +156,6 @@ func ThumbnailHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Set("Cache-Control", "max-age=2592000")
+	w.Header().Set("Cache-Control", "public, immutable, max-age=2592000")
 	io.Copy(w, cacheFile)
 }
