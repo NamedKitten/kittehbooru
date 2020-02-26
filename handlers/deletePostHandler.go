@@ -9,7 +9,7 @@ import (
 
 type DeletePostTemplate struct {
 	PostID int64
-	templates.TemplateTemplate
+	templates.T
 }
 
 func DeletePostPageHandler(w http.ResponseWriter, r *http.Request) {
@@ -23,7 +23,7 @@ func DeletePostPageHandler(w http.ResponseWriter, r *http.Request) {
 
 	templateInfo := DeletePostTemplate{
 		PostID: int64(postID),
-		TemplateTemplate: templates.TemplateTemplate{
+		T: templates.T{
 			LoggedIn:     loggedIn,
 			LoggedInUser: user,
 		},

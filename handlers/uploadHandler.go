@@ -102,7 +102,7 @@ func UploadPageHandler(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/login", 302)
 		return
 	}
-	err := templates.RenderTemplate(w, "upload.html", templates.TemplateTemplate{
+	err := templates.RenderTemplate(w, "upload.html", templates.T{
 		LoggedIn:     loggedIn,
 		LoggedInUser: user,
 	})

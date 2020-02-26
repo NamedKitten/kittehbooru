@@ -9,7 +9,7 @@ import (
 // We require LoggedIn and User to display text and more buttons if
 // a user is already logged in.
 type RootTemplateData struct {
-	templates.TemplateTemplate
+	templates.T
 }
 
 // rootHandler is the root endpoint where a index page is served.
@@ -20,7 +20,7 @@ func RootHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	user, loggedIn := DB.CheckForLoggedInUser(r)
 	x := RootTemplateData{
-		templates.TemplateTemplate{
+		templates.T{
 			LoggedIn:     loggedIn,
 			LoggedInUser: user,
 		},

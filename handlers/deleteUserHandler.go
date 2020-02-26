@@ -7,7 +7,7 @@ import (
 )
 
 type DeleteUserTemplate struct {
-	templates.TemplateTemplate
+	templates.T
 }
 
 func DeleteUserPageHandler(w http.ResponseWriter, r *http.Request) {
@@ -18,7 +18,7 @@ func DeleteUserPageHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	templateInfo := DeleteUserTemplate{
-		TemplateTemplate: templates.TemplateTemplate{
+		T: templates.T{
 			LoggedIn:     loggedIn,
 			LoggedInUser: user,
 		},

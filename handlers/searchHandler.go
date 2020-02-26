@@ -28,7 +28,7 @@ type SearchResultsTemplate struct {
 	// Tags is the tags from the search query args, used to refill
 	// the search bar.
 	Tags string
-	templates.TemplateTemplate
+	templates.T
 }
 
 // searchHandler is the search endpoint used for displaying results
@@ -71,7 +71,7 @@ func SearchHandler(w http.ResponseWriter, r *http.Request) {
 		NextLink:   nextLink,
 		PrevLink:   prevLink,
 		Tags:       tagsStr,
-		TemplateTemplate: templates.TemplateTemplate{
+		T: templates.T{
 			LoggedIn:     loggedIn,
 			LoggedInUser: user,
 		},

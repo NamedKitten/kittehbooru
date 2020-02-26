@@ -14,7 +14,7 @@ var DB *database.DBType
 
 // The base struct for all templating operations.
 // Includes stuff for logged in user and more for headers.
-type TemplateTemplate struct {
+type T struct {
 	// LoggedIn specifies whether a user is logged in or not.
 	LoggedIn bool
 	// LoggedInUser is the user struct of a logged in user.

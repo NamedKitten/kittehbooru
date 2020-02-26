@@ -11,7 +11,7 @@ type UserResultsTemplate struct {
 	AvatarPost   types.Post
 	User         types.User
 	IsAbleToEdit bool
-	templates.TemplateTemplate
+	templates.T
 }
 
 func UserHandler(w http.ResponseWriter, r *http.Request) {
@@ -33,7 +33,7 @@ func UserHandler(w http.ResponseWriter, r *http.Request) {
 		AvatarPost:   avatarPost,
 		User:         user,
 		IsAbleToEdit: (loggedInUser.Username == username) && loggedIn,
-		TemplateTemplate: templates.TemplateTemplate{
+		T: templates.T{
 			LoggedIn:     loggedIn,
 			LoggedInUser: loggedInUser,
 		},

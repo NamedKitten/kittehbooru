@@ -7,7 +7,7 @@ import (
 
 type RulesTemplateData struct {
 	RulesLineCount int
-	templates.TemplateTemplate
+	templates.T
 }
 
 func RulesHandler(w http.ResponseWriter, r *http.Request) {
@@ -18,7 +18,7 @@ func RulesHandler(w http.ResponseWriter, r *http.Request) {
 	user, loggedIn := DB.CheckForLoggedInUser(r)
 	x := RulesTemplateData{
 		len(DB.Settings.Rules),
-		templates.TemplateTemplate{
+		templates.T{
 			LoggedIn:     loggedIn,
 			LoggedInUser: user,
 		},

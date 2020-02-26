@@ -13,7 +13,7 @@ type ViewResultsTemplate struct {
 	Post         types.Post
 	Author       types.User
 	IsAbleToEdit bool
-	templates.TemplateTemplate
+	templates.T
 }
 
 func ViewHandler(w http.ResponseWriter, r *http.Request) {
@@ -37,7 +37,7 @@ func ViewHandler(w http.ResponseWriter, r *http.Request) {
 		Post:         post,
 		Author:       poster,
 		IsAbleToEdit: (user.Admin || post.Poster == user.Username) && loggedIn,
-		TemplateTemplate: templates.TemplateTemplate{
+		T: templates.T{
 			LoggedIn:     loggedIn,
 			LoggedInUser: user,
 		},
