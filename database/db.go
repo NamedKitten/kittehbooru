@@ -44,8 +44,8 @@ type Settings struct {
 	PDFView bool `json:"pdfView"`
 }
 
-// DBType is the type at which all things are stored in the database.
-type DBType struct {
+// DB is the type at which all things are stored in the database.
+type DB struct {
 	sqldb *sql.DB
 	// SetupCompleted is used to know when to run setup page.
 	SetupCompleted bool `json:"init"`
@@ -59,7 +59,7 @@ type DBType struct {
 }
 
 // Save saves the database.
-func (db *DBType) Save() {
+func (db *DB) Save() {
 	log.Info().Msg("Saving DB.")
 	data, err := json.Marshal(db)
 	if err != nil {
@@ -72,17 +72,17 @@ func (db *DBType) Save() {
 }
 
 // numOfPostsForTags returns the total number of posts for a list of tags.
-func (db *DBType) NumOfPostsForTags(searchTags []string) int {
+func (db *DB) NumOfPostsForTags(searchTags []string) int {
 	return len(db.cacheSearch(searchTags))
 }
 
 // numOfPagesForTags returns the total number of pages for a list of tags.
-func (db *DBType) NumOfPagesForTags(searchTags []string) int {
+func (db *DB) NumOfPagesForTags(searchTags []string) int {
 	return int(math.Ceil(float64(db.NumOfPostsForTags(searchTags)) / float64(20)))
 }
 
 // init creates all the database fields and starts cache and session management.
-func (db *DBType) init() {
+func (db *DB) init() {
 	snowflake.Epoch = 1551864242
 	var err error
 	db.sqldb, err = sql.Open("sqlite3", "file:db.sql")
@@ -121,8 +121,8 @@ func (db *DBType) init() {
 }
 
 // LoadDB loads the database from the db.json file and initializes it.
-func LoadDB() *DBType {
-	var db *DBType
+func LoadDB() *DB {
+	var db *DB
 	_, err := os.Stat("db.json")
 	if err != nil {
 		os.Create("db.json")
@@ -131,14 +131,14 @@ func LoadDB() *DBType {
 	err = json.Unmarshal(data, &db)
 	if err != nil {
 		log.Error().Err(err).Msg("Cannot unmarshal DB")
-		db = &DBType{}
+		db = &DB{}
 	}
 	db.init()
 	db.Save()
 	return db
 }
 
-func (db *DBType) SetPassword(username string, password string) (err error) {
+func (db *DB) SetPassword(username string, password string) (err error) {
 	stmt, err := db.sqldb.Prepare(`INSERT OR REPLACE INTO "passwords"("username", "password") VALUES (?, ?);`)
 	if err != nil {
 		log.Warn().Err(err).Msg("SetPassword can't prepare statement")
@@ -152,7 +152,7 @@ func (db *DBType) SetPassword(username string, password string) (err error) {
 	return nil
 }
 
-func (db *DBType) CheckPassword(username string, password string) bool {
+func (db *DB) CheckPassword(username string, password string) bool {
 	var encPasswd string
 	row := db.sqldb.QueryRow(`select password from passwords where username=?`, username)
 	switch err := row.Scan(&encPasswd); err {
@@ -166,7 +166,7 @@ func (db *DBType) CheckPassword(username string, password string) bool {
 	return false
 }
 
-func (db *DBType) AddUser(u types.User) {
+func (db *DB) AddUser(u types.User) {
 	stmt, err := db.sqldb.Prepare(`INSERT INTO "users"("avatarID","owner","admin","username","description") VALUES (?,?,?,?,?);`)
 	if err != nil {
 		log.Warn().Err(err).Msg("AddUser can't prepare statement")
@@ -178,7 +178,7 @@ func (db *DBType) AddUser(u types.User) {
 	}
 }
 
-func (db *DBType) User(username string) (types.User, bool) {
+func (db *DB) User(username string) (types.User, bool) {
 	u := types.User{}
 
 	rows, err := db.sqldb.Query(`select "avatarID","owner","admin","username","description" from users where username = ?`, username)
@@ -199,7 +199,7 @@ func (db *DBType) User(username string) (types.User, bool) {
 	return u, false
 }
 
-func (db *DBType) EditUser(u types.User) (err error) {
+func (db *DB) EditUser(u types.User) (err error) {
 	stmt, err := db.sqldb.Prepare(`update users set avatarID=?, owner=?, admin=?, description=? where username = ?`)
 	if err != nil {
 		log.Warn().Err(err).Msg("EditUser can't prepare statement")
@@ -215,7 +215,7 @@ func (db *DBType) EditUser(u types.User) (err error) {
 	return nil
 }
 
-func (db *DBType) DeleteUser(username string) error {
+func (db *DB) DeleteUser(username string) error {
 	stmt, err := db.sqldb.Prepare(`delete from users where username = ?`)
 	if err != nil {
 		log.Warn().Err(err).Msg("DeleteUser can't prepare delete user statement")
@@ -263,7 +263,7 @@ func (db *DBType) DeleteUser(username string) error {
 	return nil
 }
 
-func (db *DBType) Post(postID int64) (types.Post, bool) {
+func (db *DB) Post(postID int64) (types.Post, bool) {
 	p := types.Post{}
 	var tags string
 
@@ -289,7 +289,7 @@ func (db *DBType) Post(postID int64) (types.Post, bool) {
 }
 
 // AddPost adds a post to the DB and adds it to the author's post list.
-func (db *DBType) AddPost(post types.Post, postID int64, username string) int64 {
+func (db *DB) AddPost(post types.Post, postID int64, username string) int64 {
 	post.Poster = username
 	post.PostID = postID
 
@@ -340,11 +340,11 @@ func (db *DBType) AddPost(post types.Post, postID int64, username string) int64 
 	return postID
 }
 
-func (db *DBType) EditPost(postID int64, post types.Post) {
+func (db *DB) EditPost(postID int64, post types.Post) {
 
 }
 
-func (db *DBType) DeletePost(postID int64) {
+func (db *DB) DeletePost(postID int64) {
 
 	p, _ := db.Post(postID)
 	for _, tag := range p.Tags {
@@ -402,7 +402,7 @@ func (db *DBType) DeletePost(postID int64) {
 
 // getPostsForTags gets posts matching tags from DB
 // it uses a tags table which maps a tag to all the posts containing a tag
-func (db *DBType) getPostsForTags(tags []string) []int64 {
+func (db *DB) getPostsForTags(tags []string) []int64 {
 	// we need to make sure to keep track of how many times the post
 	// is seen and only get which posts appear for all of the positive posts
 	// basically a simple way of getting the intersection of all positive tags
@@ -525,7 +525,7 @@ func (db *DBType) getPostsForTags(tags []string) []int64 {
 
 // cacheSearch searches for posts matching tags and returns a
 // array of post IDs matching those tags.
-func (db *DBType) cacheSearch(searchTags []string) []int64 {
+func (db *DB) cacheSearch(searchTags []string) []int64 {
 	combinedTags := utils.TagsListToString(searchTags)
 
 	if val, ok := db.SearchCache.Get(combinedTags); ok {
@@ -539,7 +539,7 @@ func (db *DBType) cacheSearch(searchTags []string) []int64 {
 }
 
 // getSearchPage returns a paginated list of posts from a list of tags.
-func (db *DBType) GetSearchPage(searchTags []string, page int) []types.Post {
+func (db *DB) GetSearchPage(searchTags []string, page int) []types.Post {
 	matching := db.cacheSearch(searchTags)
 	var matchingPosts []types.Post
 	// TODO: add post per page for stuff
@@ -558,7 +558,7 @@ func (db *DBType) GetSearchPage(searchTags []string, page int) []types.Post {
 // HTTP request is from a logged in user.
 // It returns a types.User struct and a bool to tell if there was a logged in
 // user or not.
-func (db *DBType) CheckForLoggedInUser(r *http.Request) (types.User, bool) {
+func (db *DB) CheckForLoggedInUser(r *http.Request) (types.User, bool) {
 	c, err := r.Cookie("sessionToken")
 	if err == nil {
 		if sess, ok := db.Sessions.CheckToken(c.Value); ok {
@@ -571,7 +571,7 @@ func (db *DBType) CheckForLoggedInUser(r *http.Request) (types.User, bool) {
 	return types.User{}, false
 }
 
-func (db *DBType) VerifyRecaptcha(resp string) bool {
+func (db *DB) VerifyRecaptcha(resp string) bool {
 	if db.Settings.ReCaptcha {
 		err := captcha.Verify(resp)
 		if err != nil {

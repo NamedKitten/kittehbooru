@@ -10,7 +10,7 @@ import (
 	"github.com/NamedKitten/kittehimageboard/types"
 )
 
-var DB *database.DBType
+var DB *database.DB
 
 // The base struct for all templating operations.
 // Includes stuff for logged in user and more for headers.

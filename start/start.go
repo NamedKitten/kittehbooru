@@ -13,7 +13,7 @@ import (
 	"os/signal"
 )
 
-var DB *database.DBType
+var DB *database.DB
 
 func init() {
 	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
