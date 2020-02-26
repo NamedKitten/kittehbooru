@@ -88,11 +88,13 @@ func createThumbnail(post types.Post) string {
 		pic.Draw(tmpFile, text2pic.TypePng)
 		tmpFile.Close()
 		defer os.Remove(tmpFile.Name())
-	} else {
+	} else if strings.HasPrefix(post.MimeType, "image/"){
 		// Otherise just use the image file.
 		contentFilename = originalFilename
+	} else {
+		// we can't create anything for this format yet
+		return "frontend/img/preview-not-available.jpg"
 	}
-
 	contentFile, err := os.Open(contentFilename)
 	if err != nil {
 		log.Error().Err(err).Msg("Lost File?")
@@ -112,7 +114,7 @@ func createThumbnail(post types.Post) string {
 	if DB.Settings.ThumbnailFormat == "png" {
 		err = png.Encode(newCacheFile, image)
 	} else {
-		err = jpeg.Encode(newCacheFile, image, &jpeg.Options{70})
+		err = jpeg.Encode(newCacheFile, image, &jpeg.Options{50})
 	}
 	if err != nil {
 		log.Error().Err(err).Msg("Encode Fail")
