@@ -13,7 +13,7 @@ func init() {
 	config := &hot.Config{
 		Watch:          true,
 		BaseName:       "kittehimageboard",
-		Dir:            "templates",
+		Dir:            "frontend/templates",
 		FilesExtension: []string{".html"},
 		Funcs:          getTemplateFuncs(),
 	}

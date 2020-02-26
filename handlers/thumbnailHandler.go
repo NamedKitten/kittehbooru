@@ -29,7 +29,7 @@ func createThumbnail(post types.Post) string {
 	thumbnailFile := fmt.Sprintf("cache/%d", post.PostID)
 
 	if post.FileExtension == "swf" {
-		return "img/flash.jpg"
+		return "frontend/img/flash.jpg"
 	} else if strings.HasPrefix(post.MimeType, "video/") {
 		if DB.Settings.VideoThumbnails {
 			tmpFile, _ := ioutil.TempFile("", "video_thumbnail_")
@@ -38,10 +38,10 @@ func createThumbnail(post types.Post) string {
 			defer os.Remove(tmpFile.Name())
 			err := exec.Command("ffmpegthumbnailer", "-c", "png", "-i", originalFilename, "-o", tmpFile.Name()).Run()
 			if err != nil {
-				return "img/video.png"
+				return "frontend/img/video.png"
 			}
 		} else {
-			return "img/video.png"
+			return "frontend/img/video.png"
 		}
 	} else if post.FileExtension == "pdf" {
 		if DB.Settings.PDFThumbnails {
@@ -51,10 +51,10 @@ func createThumbnail(post types.Post) string {
 			defer os.Remove(tmpFile.Name())
 			err := exec.Command("convert", "-format", "png", "-thumbnail", "x300", "-background", "white", "-alpha", "remove", originalFilename+"[0]", contentFilename).Run()
 			if err != nil {
-				return "img/pdf.jpg"
+				return "frontend/img/pdf.jpg"
 			}
 		} else {
-			return "img/pdf.jpg"
+			return "frontend/img/pdf.jpg"
 		}
 
 	} else if post.FileExtension == "unknown" {
@@ -141,7 +141,7 @@ func ThumbnailHandler(w http.ResponseWriter, r *http.Request) {
 
 	var cacheFilename string
 	if !ok {
-		cacheFilename = "img/file-not-found.jpg"
+		cacheFilename = "frontend/img/file-not-found.jpg"
 	} else {
 		cacheFilename = "cache/" + post.Filename
 	}
