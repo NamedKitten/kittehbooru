@@ -107,7 +107,7 @@ func (db *DBType) init() {
 	}
 	_, err = db.sqldb.Exec(`CREATE TABLE IF NOT EXISTS "sessions" (  "token" string, "username" string, "expiry" integer, PRIMARY KEY("token"));`)
 	if err != nil {
-		log.Warn().Err(err).Msg("SQL Create Posts Table")
+		log.Warn().Err(err).Msg("SQL Create Sessions Table")
 	}
 	if !db.SetupCompleted {
 		log.Warn().Msg("You need to go to /setup in web browser to setup this imageboard.")
