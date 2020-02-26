@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"github.com/NamedKitten/kittehimageboard/template"
 	"github.com/NamedKitten/kittehimageboard/types"
 	"github.com/gorilla/mux"
@@ -24,14 +25,17 @@ func ViewHandler(w http.ResponseWriter, r *http.Request) {
 	user, loggedIn := DB.CheckForLoggedInUser(r)
 
 	postID, _ := strconv.Atoi(vars["postID"])
-	post, ok := DB.Posts[int64(postID)]
+	post, ok := DB.Post(int64(postID))
 	if !ok {
 		return
 	}
+	fmt.Println(post)
+
+	poster, _ := DB.User(post.Poster)
 
 	templateInfo := ViewResultsTemplate{
 		Post:         post,
-		Author:       DB.Users[post.Poster],
+		Author:       poster,
 		IsAbleToEdit: (user.Admin || post.Poster == user.Username) && loggedIn,
 		TemplateTemplate: templates.TemplateTemplate{
 			LoggedIn:     loggedIn,

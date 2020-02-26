@@ -23,13 +23,14 @@ func UserHandler(w http.ResponseWriter, r *http.Request) {
 	loggedInUser, loggedIn := DB.CheckForLoggedInUser(r)
 
 	username := vars["userID"]
-	user, err := DB.User(username)
-	if err != nil {
+	user, exist := DB.User(vars["userID"])
+	if !exist {
 		return
 	}
 
+	avatarPost, _ := DB.Post(user.AvatarID)
 	templateInfo := UserResultsTemplate{
-		AvatarPost:   DB.Posts[user.AvatarID],
+		AvatarPost:   avatarPost,
 		User:         user,
 		IsAbleToEdit: (loggedInUser.Username == username) && loggedIn,
 		TemplateTemplate: templates.TemplateTemplate{
@@ -38,7 +39,7 @@ func UserHandler(w http.ResponseWriter, r *http.Request) {
 		},
 	}
 
-	err = templates.RenderTemplate(w, "user.html", templateInfo)
+	err := templates.RenderTemplate(w, "user.html", templateInfo)
 	if err != nil {
 		panic(err)
 	}

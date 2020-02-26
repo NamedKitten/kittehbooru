@@ -3,7 +3,6 @@ package handlers
 import (
 	"github.com/NamedKitten/kittehimageboard/template"
 	"github.com/NamedKitten/kittehimageboard/types"
-	"github.com/NamedKitten/kittehimageboard/utils"
 	"net/http"
 	"time"
 )
@@ -47,7 +46,7 @@ func SetupHandler(w http.ResponseWriter, r *http.Request) {
 		Description: "",
 		Posts:       []int64{},
 	})
-	DB.Passwords[username] = utils.EncryptPassword(password)
+	DB.SetPassword(username, password)
 	DB.Settings.ThumbnailFormat = r.FormValue("thumbnailType")
 	DB.Settings.PDFView = formValueToBool(r.FormValue("enablePDFViewing"))
 	DB.Settings.VideoThumbnails = formValueToBool(r.FormValue("enableVideoThumbnails"))
@@ -62,7 +61,7 @@ func SetupHandler(w http.ResponseWriter, r *http.Request) {
 	DB.Save()
 	http.SetCookie(w, &http.Cookie{
 		Name:    "sessionToken",
-		Value:   DB.CreateSession(username),
+		Value:   DB.Sessions.CreateSession(username),
 		Expires: time.Now().Add(3 * time.Hour),
 	})
 	http.Redirect(w, r, "/", 302)

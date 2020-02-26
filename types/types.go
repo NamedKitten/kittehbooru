@@ -1,8 +1,8 @@
 package types
 
 type Session struct {
-	Username         string `json:"username"`
-	ExpirationTime int64 `json:"expirationTime"`
+	Username       string `json:"username"`
+	ExpirationTime int64  `json:"expirationTime"`
 }
 
 type User struct {

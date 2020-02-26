@@ -45,7 +45,7 @@ func DeletePostHandler(w http.ResponseWriter, r *http.Request) {
 
 	postID, _ := strconv.Atoi(vars["postID"])
 
-	post, postExists := DB.Posts[int64(postID)]
+	post, postExists := DB.Post(int64(postID))
 	if !postExists {
 		http.Redirect(w, r, "/", 302)
 		return

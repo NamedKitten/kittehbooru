@@ -19,7 +19,7 @@ func EditPostHandler(w http.ResponseWriter, r *http.Request) {
 
 	postID, _ := strconv.Atoi(vars["postID"])
 
-	post, postExists := DB.Posts[int64(postID)]
+	post, postExists := DB.Post(int64(postID))
 	if !postExists {
 		http.Redirect(w, r, "/", 302)
 		return
@@ -57,7 +57,7 @@ func EditPostHandler(w http.ResponseWriter, r *http.Request) {
 	post.Tags = newTags
 	post.Description = r.PostFormValue("description")
 
-	DB.Posts[int64(postID)] = post
+	DB.EditPost(int64(postID), post)
 
 	http.Redirect(w, r, "/view/"+vars["postID"], 302)
 }

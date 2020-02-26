@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"github.com/NamedKitten/kittehimageboard/utils"
 	"github.com/gorilla/mux"
 	"net/http"
 	"strconv"
@@ -16,8 +15,8 @@ func EditUserHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := DB.User(vars["userID"])
-	if err != nil {
+	user, exist := DB.User(vars["userID"])
+	if !exist {
 		http.Redirect(w, r, "/", 302)
 		return
 	}
@@ -28,15 +27,14 @@ func EditUserHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	r.ParseForm()
-
 	description := r.PostFormValue("description")
 	if !(len(description) == 0) {
-		user.Description = r.PostFormValue("description")
+		user.Description = description
 	}
 
 	password := r.PostFormValue("password")
 	if !(len(password) == 0) {
-		DB.Passwords[user.Username] = utils.EncryptPassword(password)
+		DB.SetPassword(user.Username, password)
 	}
 
 	avatarID := r.PostFormValue("avatarID")

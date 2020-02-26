@@ -52,7 +52,7 @@
                 {{ if .LoggedIn }}
                 <br>
                 <br>
-                <form class="form-signin" method="post" action="/editUser/{{ .LoggedInUser.ID }}">
+                <form class="form-signin" method="post" action="/editUser/{{ .LoggedInUser.Username }}">
                   <input type="hidden" name="avatarID" value="{{ .Post.PostID }}">
                   <button class="btn btn-lg btn-success btn-block text-uppercase" type="submit">Set as avatar</button>
                 </form>

@@ -136,7 +136,7 @@ func ThumbnailHandler(w http.ResponseWriter, r *http.Request) {
 	var err error
 	vars := mux.Vars(r)
 	postID, err := strconv.Atoi(vars["postID"])
-	post, ok := DB.Posts[int64(postID)]
+	post, ok := DB.Post(int64(postID))
 	var cacheFile *os.File
 
 	var cacheFilename string

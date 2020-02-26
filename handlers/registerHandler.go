@@ -3,7 +3,6 @@ package handlers
 import (
 	"github.com/NamedKitten/kittehimageboard/template"
 	"github.com/NamedKitten/kittehimageboard/types"
-	"github.com/NamedKitten/kittehimageboard/utils"
 	"github.com/rs/zerolog/log"
 	"net/http"
 	"time"
@@ -30,8 +29,8 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err := DB.User(username)
-	if err != nil {
+	_, exist := DB.User(username)
+	if !exist {
 		http.Redirect(w, r, "/register", 302)
 		return
 	}
@@ -41,11 +40,11 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 		Description: "",
 		Posts:       []int64{},
 	})
-	DB.Passwords[username] = utils.EncryptPassword(password)
+	DB.SetPassword(username, password)
 	log.Info().Str("username", username).Msg("Register")
 	http.SetCookie(w, &http.Cookie{
 		Name:    "sessionToken",
-		Value:   DB.CreateSession(username),
+		Value:   DB.Sessions.CreateSession(username),
 		Expires: time.Now().Add(3 * time.Hour),
 	})
 	http.Redirect(w, r, "/", 302)

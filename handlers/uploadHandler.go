@@ -94,7 +94,7 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 		FileExtension: strings.TrimPrefix(fileType.Extension, "."),
 		Tags:          tags,
 		Description:   description,
-		Poster:      user.Username,
+		Poster:        user.Username,
 		CreatedAt:     postID.Time(),
 		Sha256:        sha256sum,
 		MimeType:      fileType.MIME.Value,
