@@ -10,6 +10,7 @@ import (
 	_ "golang.org/x/image/webp"
 	"image"
 	_ "image/gif"
+	_ "github.com/biessek/golang-ico"
 	"image/jpeg"
 	"image/png"
 	"io"
@@ -148,6 +149,11 @@ func ThumbnailHandler(w http.ResponseWriter, r *http.Request) {
 
 	if !fileExists(cacheFilename) {
 		cacheFilename = createThumbnail(post)
+	}
+
+	// Return early if no cache file could be created.
+	if cacheFilename == "" {
+		return
 	}
 
 	cacheFile, err = os.Open(cacheFilename)

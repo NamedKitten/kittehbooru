@@ -3,7 +3,9 @@ module github.com/NamedKitten/kittehimageboard
 go 1.13
 
 require (
+	github.com/Kodeworks/golang-image-ico v0.0.0-20141118225523-73f0f4cfade9
 	github.com/NamedKitten/hot v0.0.0-20190309114900-977428eba6c3
+	github.com/biessek/golang-ico v0.0.0-20180326222316-d348d9ea4670
 	github.com/bwmarrin/snowflake v0.3.0
 	github.com/coreos/pkg v0.0.0-20180928190104-399ea9e2e55f // indirect
 	github.com/davecgh/go-spew v1.1.1
@@ -16,6 +18,7 @@ require (
 	github.com/h2non/filetype v1.0.10
 	github.com/hqbobo/text2pic v0.0.0-20180823042751-2479e146d720
 	github.com/jondot/goweight v1.0.5 // indirect
+	github.com/jsummers/gobmp v0.0.0-20151104160322-e2ba15ffa76e // indirect
 	github.com/kr/pretty v0.2.0 // indirect
 	github.com/mattn/go-sqlite3 v2.0.2+incompatible
 	github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646 // indirect
