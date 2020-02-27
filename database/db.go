@@ -32,8 +32,6 @@ type Settings struct {
 	ReCaptchaPrivkey string `json:"reCaptchaPrivKey"`
 	// Rules are the instance specific rules for this instance.
 	Rules string `json:"rules"`
-	// ThumbnailFormat can be either "jpeg" or "png"
-	ThumbnailFormat string `json:"thumbnailFormat"`
 	// VideoThumbnails is to enable/disable creating video thumbnails.
 	// This requires ffmpegthumbnailer to be installed.
 	VideoThumbnails bool `json:"videoThumbnails"`

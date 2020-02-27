@@ -56,7 +56,6 @@ func SetupHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	DB.Settings.ThumbnailFormat = r.FormValue("thumbnailType")
 	DB.Settings.PDFView = formValueToBool(r.FormValue("enablePDFViewing"))
 	DB.Settings.VideoThumbnails = formValueToBool(r.FormValue("enableVideoThumbnails"))
 	DB.Settings.PDFThumbnails = formValueToBool(r.FormValue("enablePDFThumbnails"))
