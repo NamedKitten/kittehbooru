@@ -20,7 +20,12 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/setup", 302)
 		return
 	}
-	r.ParseForm()
+	err := r.ParseForm()
+	if err != nil {
+		log.Error().Err(err).Msg("Parse Form")
+		renderError(w, "PARSE_FORM_ERR", http.StatusBadRequest)
+		return
+	}
 	username := r.FormValue("username")
 	password := r.FormValue("password")
 
@@ -41,7 +46,12 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	DB.AddUser(u)
 
-	DB.SetPassword(username, password)
+	err = DB.SetPassword(username, password)
+	if err != nil {
+		log.Error().Err(err).Msg("Register Password")
+		renderError(w, "SET_PASS_ERR", http.StatusBadRequest)
+		return
+	}
 	log.Info().Str("username", username).Msg("Register")
 	http.SetCookie(w, &http.Cookie{
 		Name:    "sessionToken",
@@ -49,6 +59,4 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 		Expires: time.Now().Add(3 * time.Hour),
 	})
 	http.Redirect(w, r, "/", 302)
-	return
-
 }

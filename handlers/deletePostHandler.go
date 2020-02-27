@@ -5,6 +5,7 @@ import (
 	"github.com/gorilla/mux"
 	"net/http"
 	"strconv"
+	"github.com/rs/zerolog/log"
 )
 
 type DeletePostTemplate struct {
@@ -56,7 +57,11 @@ func DeletePostHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	DB.DeletePost(int64(postID))
-
+	err := DB.DeletePost(int64(postID))
+	if err != nil {
+		log.Error().Err(err).Msg("Delete Post")
+		renderError(w, "DELETE_POST_ERR", http.StatusBadRequest)
+		return
+	}
 	http.Redirect(w, r, "/", 302)
 }

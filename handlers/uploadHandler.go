@@ -16,6 +16,21 @@ import (
 	"strings"
 )
 
+var whitelistedTypes = [...]string{
+	"image/jpeg",
+	"image/png",
+	"image/webp",
+	"image/gif",
+	"video/mp4",
+	"video/x-matroska",
+	"video/webm",
+	"audio/mpeg",
+	"audio/ogg",
+	"audio/x-flac",
+	"application/pdf",
+	"application/x-shockwave-flash",
+}
+
 // maxUploadSize is the maximum filesize for a post.
 // TODO: move to DB.Settings
 // Default: 64Mb
@@ -46,6 +61,18 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	fileType, _ := filetype.Match(fileBytes)
+
+	validType := false
+	for _, t := range whitelistedTypes {
+		if t == fileType.MIME.Value {
+			validType = true
+		}
+	}
+
+	if !validType {
+		renderError(w, "INVALID_FORMAT", http.StatusBadRequest)
+		return
+	}
 
 	node, _ := snowflake.NewNode(1)
 	postID := node.Generate()
@@ -81,7 +108,7 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 
 	sha256sum := utils.Sha256Bytes(fileBytes)
 
-	DB.AddPost(types.Post{
+	p := types.Post{
 		PostID:        postIDInt64,
 		Filename:      fileName,
 		FileExtension: strings.TrimPrefix(fileType.Extension, "."),
@@ -91,7 +118,16 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 		CreatedAt:     postID.Time(),
 		Sha256:        sha256sum,
 		MimeType:      fileType.MIME.Value,
-	}, postIDInt64, user.Username)
+	}
+	go createThumbnail(p, "jpg")
+	go createThumbnail(p, "webp")
+
+	err = DB.AddPost(p)
+	if err != nil {
+		log.Error().Err(err).Msg("Post Creation")
+		renderError(w, "POST_CREATE_ERR", http.StatusBadRequest)
+		return
+	}
 	http.Redirect(w, r, "/view/"+fileName, 302)
 }
 
@@ -109,9 +145,4 @@ func UploadPageHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		panic(err)
 	}
-}
-
-func renderError(w http.ResponseWriter, message string, statusCode int) {
-	w.WriteHeader(http.StatusBadRequest)
-	w.Write([]byte(message))
 }

@@ -4,6 +4,7 @@ import (
 	"github.com/gorilla/mux"
 	"net/http"
 	"strconv"
+	"github.com/rs/zerolog/log"
 )
 
 // EditUserHandler is the endpoint used to edit user settings.
@@ -26,7 +27,12 @@ func EditUserHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	r.ParseForm()
+	err := r.ParseForm()
+	if err != nil {
+		log.Error().Err(err).Msg("Parse Form")
+		renderError(w, "PARSE_FORM_ERR", http.StatusBadRequest)
+		return
+	}
 	description := r.PostFormValue("description")
 	if !(len(description) == 0) {
 		user.Description = description
@@ -34,7 +40,12 @@ func EditUserHandler(w http.ResponseWriter, r *http.Request) {
 
 	password := r.PostFormValue("password")
 	if !(len(password) == 0) {
-		DB.SetPassword(user.Username, password)
+		err = DB.SetPassword(user.Username, password)
+		if err != nil {
+			log.Error().Err(err).Msg("Set Password")
+			renderError(w, "SET_PASSWORD_ERR", http.StatusBadRequest)
+			return
+		}
 	}
 
 	avatarID := r.PostFormValue("avatarID")
@@ -43,7 +54,11 @@ func EditUserHandler(w http.ResponseWriter, r *http.Request) {
 		user.AvatarID = int64(avatarIDInt)
 	}
 
-	DB.EditUser(user)
-
+	err = DB.EditUser(user)
+	if err != nil {
+		log.Error().Err(err).Msg("Edit User")
+		renderError(w, "EDIT_USER_ERR", http.StatusBadRequest)
+		return
+	}
 	http.Redirect(w, r, "/user/"+vars["userID"], 302)
 }

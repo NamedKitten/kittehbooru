@@ -1,7 +1,6 @@
 package utils
 
 import "testing"
-import "github.com/NamedKitten/kittehimageboard/types"
 
 var tagsListToStringTests = []struct {
 	input  []string
@@ -30,78 +29,6 @@ func TestTagsListToString(t *testing.T) {
 		output := TagsListToString(test.input)
 		if output != test.output {
 			t.Errorf("Output was incorrect, got: %v, want: %v.", output, test.output)
-		}
-	}
-}
-
-var doesMatchTagsTests = []struct {
-	searchTags []string
-	post       types.Post
-	result     bool
-}{
-	{
-		[]string{"potato"},
-		types.Post{
-			Tags: []string{"tomato"},
-		},
-		false,
-	},
-	{
-		[]string{"-potato"},
-		types.Post{
-			Tags: []string{"potato"},
-		},
-		false,
-	},
-	{
-		[]string{"potato"},
-		types.Post{
-			Tags: []string{"potato"},
-		},
-		true,
-	},
-	{
-		[]string{"*"},
-		types.Post{
-			Tags: []string{"potato"},
-		},
-		true,
-	},
-	{
-		[]string{"-*"},
-		types.Post{
-			Tags: []string{"potato"},
-		},
-		false,
-	},
-	{
-		[]string{""},
-		types.Post{
-			Tags: []string{"potato"},
-		},
-		false,
-	},
-	{
-		[]string{"tomato"},
-		types.Post{
-			Tags: []string{"potato", "tomato"},
-		},
-		true,
-	},
-	{
-		[]string{"tomato"},
-		types.Post{
-			Tags: []string{"tomato", "potato"},
-		},
-		true,
-	},
-}
-
-func TestDoesMatchTags(t *testing.T) {
-	for i, test := range doesMatchTagsTests {
-		result := DoesMatchTags(test.searchTags, test.post)
-		if result != test.result {
-			t.Errorf("Test %d, Output was incorrect, got: %t, want: %t.", i, result, test.result)
 		}
 	}
 }

@@ -1,9 +1,10 @@
 package database
 
 import (
+	"crypto/rand"
 	"database/sql"
+	"encoding/hex"
 	"github.com/NamedKitten/kittehimageboard/types"
-	"github.com/NamedKitten/kittehimageboard/utils"
 	"github.com/rs/zerolog/log"
 	"time"
 )
@@ -12,25 +13,30 @@ type Sessions struct {
 	db *sql.DB
 }
 
-func (s *Sessions) CreateSession(username string) string {
-	sessionToken := utils.GenSessionToken()
-	stmt, err := s.db.Prepare(`INSERT INTO "sessions" ("token", "username", "expiry") VALUES (?,?,?);`)
+func GenSessionToken() (string, error) {
+	bytes := make([]byte, 16)
+	_, err := rand.Read(bytes)
 	if err != nil {
-		log.Error().Err(err).Msg("CreateSession can't prepare statement")
+		return "", err
 	}
-	_, err = stmt.Exec(sessionToken, username, time.Now().Add(time.Hour*3).Unix())
+	return hex.EncodeToString(bytes), nil
+}
+
+func (s *Sessions) CreateSession(username string) string {
+	sessionToken, err := GenSessionToken()
 	if err != nil {
-		log.Error().Err(err).Msg("CreateSession can't execute statement")
+		log.Error().Err(err).Msg("CreateSession can't generate token")
+		return ""
+	}
+	_, err = s.db.Exec(`INSERT INTO "sessions" ("token", "username", "expiry") VALUES (?,?,?);`, sessionToken, username, time.Now().Add(time.Hour*3).Unix())
+	if err != nil {
+		log.Error().Err(err).Msg("CreateSession can't exec statement")
 	}
 	return sessionToken
 }
 
 func (s *Sessions) InvalidateSession(username string) {
-	stmt, err := s.db.Prepare(`delete from sessions where username = ?`)
-	if err != nil {
-		log.Error().Err(err).Msg("InvalidateSession can't prepare statement")
-	}
-	_, err = stmt.Exec(username)
+	_, err := s.db.Exec(`delete from sessions where username = ?`, username)
 	if err != nil {
 		log.Error().Err(err).Msg("InvalidateSession can't exec statement")
 	}
@@ -39,7 +45,8 @@ func (s *Sessions) InvalidateSession(username string) {
 func (s *Sessions) CheckToken(token string) (types.Session, bool) {
 	rows, err := s.db.Query(`select "username", "expiry" from sessions where token = ?`, token)
 	if err != nil {
-		log.Error().Err(err).Msg("CheckToken can't prepare statement")
+		log.Error().Err(err).Msg("CheckToken can't query")
+		return types.Session{}, false
 	}
 
 	defer rows.Close()
@@ -47,20 +54,20 @@ func (s *Sessions) CheckToken(token string) (types.Session, bool) {
 	var username string
 	var expiry int64
 	for rows.Next() {
-		rows.Scan(&username, &expiry)
+		err = rows.Scan(&username, &expiry)
+		if err != nil {
+			log.Error().Err(err).Msg("CheckToken can't scan rows")
+			return types.Session{}, false
+		}
 	}
 
-	return types.Session{Username: username, ExpirationTime: expiry}, username != ""
+	return types.Session{Username: username, ExpirationTime: expiry}, true
 }
 
 func (s *Sessions) Start(db *sql.DB) {
 	s.db = db
-	for true {
-		stmt, err := s.db.Prepare(`delete from sessions where expiry < ?`)
-		if err != nil {
-			log.Error().Err(err).Msg("Sessions can't prepare statement")
-		}
-		_, err = stmt.Exec(time.Now().Unix())
+	for {
+		_, err := s.db.Exec(`delete from sessions where expiry < ?`, time.Now().Unix())
 		if err != nil {
 			log.Error().Err(err).Msg("Sessions can't exec statement")
 		}

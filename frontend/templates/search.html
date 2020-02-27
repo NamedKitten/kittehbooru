@@ -51,14 +51,18 @@
         {{range .Results }}
         <div class="grid__elem grid__brick mt-1 col-12 col-xs-12 col-md-6 col-xl-4">
           <a href="/view/{{ .PostID }}">
-            <img src="/thumbnail/{{ .PostID }}" width="100%"></a>
+            <picture>
+              <source srcset="/thumbnail/{{ .PostID }}.webp" width="100%">
+              <img src="/thumbnail/{{ .PostID }}.jpg" width="100%">
+            </picture> 
+          </a>
         </div>
         {{ end }}
         <div class="col-1 my-sizer-element"></div>
       </div>
     </div>
     <script>
-      window.shuffleInstance = new window.Shuffle(document.getElementById('grid'), { itemSelector: '.grid__elem', sizer: '.my-sizer-element', });
+      window.shuffleInstance = new window.Shuffle(document.getElementById('grid'), { itemSelector: '.grid__elem', sizer: '.my-sizer-element',   speed: 0, });
     </script>
   </body>
 

@@ -27,7 +27,12 @@ func LoginPageHandler(w http.ResponseWriter, r *http.Request) {
 // loginHandler is the API endpoint that handles checking if a login
 // is correct and giving the user a session token.
 func LoginHandler(w http.ResponseWriter, r *http.Request) {
-	r.ParseForm()
+	err := r.ParseForm()
+	if err != nil {
+		log.Error().Err(err).Msg("Parse Form")
+		renderError(w, "PARSE_FORM_ERR", http.StatusBadRequest)
+		return
+	}
 	username := r.FormValue("username")
 	password := r.FormValue("password")
 

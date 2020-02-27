@@ -12,9 +12,6 @@
 {{ else }}
 <a href="/content/{{ .Filename }}.{{ .FileExtension }}">Click to download PDF</a>
 {{ end }}
-{{ else if eq .FileExtension "unknown" }}
-<textarea class="text-view card-img-top form-control" id="content" name="content"
-    readonly>{{ readPostContent . }}</textarea>
 {{ else if startsWith .MimeType "video" }}
 <video class="video-view card-img-top" src="/content/{{ .Filename }}.{{ .FileExtension }}" controls></video>
 {{ else if startsWith .MimeType "audio" }}

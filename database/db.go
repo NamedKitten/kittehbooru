@@ -125,12 +125,16 @@ func LoadDB() *DB {
 	var db *DB
 	_, err := os.Stat("db.json")
 	if err != nil {
-		os.Create("db.json")
+		_, err = os.Create("db.json")
+		if err != nil {
+			log.Error().Err(err).Msg("Can't create DB json")
+			panic(err)
+		}
 	}
 	data, _ := ioutil.ReadFile("db.json")
 	err = json.Unmarshal(data, &db)
 	if err != nil {
-		log.Error().Err(err).Msg("Cannot unmarshal DB")
+		log.Error().Err(err).Msg("Can't unmarshal DB")
 		db = &DB{}
 	}
 	db.init()
@@ -158,7 +162,6 @@ func (db *DB) CheckPassword(username string, password string) bool {
 	default:
 		return false
 	}
-	return false
 }
 
 func (db *DB) AddUser(u types.User) {
@@ -181,7 +184,6 @@ func (db *DB) User(username string) (types.User, bool) {
 		err := rows.Scan(&u.AvatarID, &u.Owner, &u.Admin, &u.Username, &u.Description)
 		if err != nil {
 			log.Error().Err(err).Msg("User can't scan")
-			return u, false
 		} else {
 			return u, username == u.Username
 		}
@@ -211,9 +213,9 @@ func (db *DB) DeleteUser(username string) error {
 		return err
 	}
 
-	rows, err := db.sqldb.Query(`select "posts" from tags where tag = ?`, "user:"+username)
+	rows, err := db.sqldb.Query(`select "postid" from posts where poster = ?`, username)
 	if err != nil {
-		log.Error().Err(err).Msg("DeleteUser can't select tags")
+		log.Error().Err(err).Msg("DeleteUser can't select posts")
 	}
 	defer rows.Close()
 
@@ -221,12 +223,24 @@ func (db *DB) DeleteUser(username string) error {
 	var postsString string
 
 	for rows.Next() {
-		rows.Scan(&postsString)
+		err = rows.Scan(&postsString)
+		if err != nil {
+			log.Error().Err(err).Msg("DeleteUser can't scan row")
+			return err
+		}
 	}
 
 	err = json.Unmarshal([]byte(postsString), &posts)
+	if err != nil {
+		log.Error().Err(err).Msg("Can't unmarshal posts list")
+		return err
+	}
 	for _, post := range posts {
-		db.DeletePost(post)
+		err = db.DeletePost(post)
+		if err != nil {
+			log.Error().Err(err).Msg("Can't delete user's post")
+			return err
+		}
 	}
 
 	db.Sessions.InvalidateSession(username)
@@ -260,58 +274,68 @@ func (db *DB) Post(postID int64) (types.Post, bool) {
 }
 
 // AddPost adds a post to the DB and adds it to the author's post list.
-func (db *DB) AddPost(post types.Post, postID int64, username string) int64 {
-	post.Poster = username
-	post.PostID = postID
-
-	_, err := db.sqldb.Exec(`INSERT INTO "posts"("postid", "filename", "ext", "description", "tags", "poster", "timestamp", "sha256", "mimetype") VALUES (?,?,?,?,?,?,?,?,?);`, postID, post.Filename, post.FileExtension, post.Description, utils.TagsListToString(post.Tags), post.Poster, post.CreatedAt, post.Sha256, post.MimeType)
+func (db *DB) AddPost(post types.Post) error {
+	_, err := db.sqldb.Exec(`INSERT INTO "posts"("postid", "filename", "ext", "description", "tags", "poster", "timestamp", "sha256", "mimetype") VALUES (?,?,?,?,?,?,?,?,?);`, post.PostID, post.Filename, post.FileExtension, post.Description, utils.TagsListToString(post.Tags), post.Poster, post.CreatedAt, post.Sha256, post.MimeType)
 	if err != nil {
 		log.Warn().Err(err).Msg("AddPost can't execute insert post statement")
+		return err
 	}
 
 	for _, tag := range post.Tags {
-
 		rows, err := db.sqldb.Query(`select "posts" from tags where tag = ?`, tag)
 		if err != nil {
 			log.Error().Err(err).Msg("AddPost can't select tags")
+			return err
 		}
 		defer rows.Close()
 
-		var posts []int64
 		var postsString string
-
 		for rows.Next() {
-			rows.Scan(&postsString)
+			err = rows.Scan(&postsString)
+			if err != nil {
+				log.Error().Err(err).Msg("AddPost can't scan row")
+			}
 		}
 
+		var posts []int64
 		err = json.Unmarshal([]byte(postsString), &posts)
 		if err != nil {
-			posts = make([]int64, 0)
+			posts = []int64{post.PostID}
+		} else {
+			posts = append(posts, post.PostID)
 		}
-		posts = append(posts, postID)
 		x, _ := json.Marshal(posts)
 
 		_, err = db.sqldb.Exec(`INSERT OR REPLACE INTO "tags"("tag", "posts") VALUES (?, ?);`, tag, string(x))
 		if err != nil {
 			log.Warn().Err(err).Msg("AddPost Tags can't execute insert tags statement")
+			return err
 		}
 	}
 
-	//db.Posts[postID] = post
-	return postID
+	return nil
 }
 
 func (db *DB) EditPost(postID int64, post types.Post) {
-
+	err := db.DeletePost(postID)
+	if err != nil {
+		log.Error().Err(err).Msg("EditPost can't delete post")
+		return
+	}
+	err = db.AddPost(post)
+	if err != nil {
+		log.Error().Err(err).Msg("EditPost can't add post")
+		return
+	}
 }
 
-func (db *DB) DeletePost(postID int64) {
-
+func (db *DB) DeletePost(postID int64) error {
 	p, _ := db.Post(postID)
 	for _, tag := range p.Tags {
 		rows, err := db.sqldb.Query(`select "posts" from tags where tag = ?`, tag)
 		if err != nil {
 			log.Error().Err(err).Msg("DeletePost can't select tags")
+			return err
 		}
 		defer rows.Close()
 
@@ -323,33 +347,30 @@ func (db *DB) DeletePost(postID int64) {
 			err = rows.Scan(&postsString)
 			if err != nil {
 				log.Error().Err(err).Msg("DeletePost can't scan rows")
-				return
+				return err
 			}
 		}
 		err = json.Unmarshal([]byte(postsString), &posts)
 		if err != nil {
 			log.Error().Err(err).Msg("DeletePost Json Unmarshal Error")
-			return
+			return err
 		}
 
-		for _, post := range posts {
-			if post != postID {
-				newPosts = append(newPosts, post)
-			}
-		}
-
+		posts = utils.RemoveFromSlice(posts, postID)
 		x, _ := json.Marshal(newPosts)
 		_, err = db.sqldb.Exec(`INSERT OR REPLACE INTO "tags"("tag", "posts") VALUES (?, ?);`, tag, string(x))
 		if err != nil {
 			log.Warn().Err(err).Msg("AddPost Tags can't execute insert tags statement")
+			return err
 		}
 	}
 
 	_, err := db.sqldb.Exec(`delete from posts where postid = ?`, postID)
 	if err != nil {
 		log.Warn().Err(err).Msg("DeletePost can't execute delete post statement")
+		return err
 	}
-
+	return nil
 }
 
 // getPostsForTags gets posts matching tags from DB
@@ -400,37 +421,48 @@ func (db *DB) getPostsForTags(tags []string) []int64 {
 			posCount += 1
 		}
 
-		// get what posts match tag
-		var rows *sql.Rows
-		var err error
 		//posts will be all the posts that are tagged with `tag`
 		posts := make([]int64, 0)
 
 		if tag == "*" {
-			rows, err = db.sqldb.Query(`select "postid" from posts where true`)
+			rows, err := db.sqldb.Query(`select "postid" from posts where true`)
 			if err != nil {
 				log.Error().Err(err).Msg("GetPostsForTags can't query wildcard posts")
+				return []int64{}
 			}
 			defer rows.Close()
 			var pid int64
 			for rows.Next() {
-				rows.Scan(&pid)
+				err = rows.Scan(&pid)
+				if err != nil {
+					log.Error().Err(err).Msg("GetPostsForTags can't scan row")
+					return []int64{}
+				}
 				posts = append(posts, pid)
 			}
 
 		} else {
-			rows, err = db.sqldb.Query(`select "posts" from tags where tag = ?`, tag)
+			rows, err := db.sqldb.Query(`select "posts" from tags where tag = ?`, tag)
 			if err != nil {
 				log.Error().Err(err).Msg("GetPostsForTags can't query tag posts")
+				return []int64{}
 			}
 			var postsString string
 			defer rows.Close()
 
 			for rows.Next() {
-				rows.Scan(&postsString)
+				err = rows.Scan(&postsString)
+				if err != nil {
+					log.Error().Err(err).Msg("GetPostsForTags can't scan row")
+					return []int64{}
+				}
 			}
 			// we store it as json just so its easy to store in the database
-			json.Unmarshal([]byte(postsString), &posts)
+			err = json.Unmarshal([]byte(postsString), &posts)
+			if err != nil {
+				log.Error().Err(err).Msg("GetPostsForTags can't unmarshal JSON")
+				return []int64{}
+			}
 		}
 
 		if is {
@@ -493,7 +525,6 @@ func (db *DB) cacheSearch(searchTags []string) []int64 {
 func (db *DB) GetSearchPage(searchTags []string, page int) []types.Post {
 	matching := db.cacheSearch(searchTags)
 	var matchingPosts []types.Post
-	// TODO: add post per page for stuff
 	for _, post := range utils.Paginate(matching, page, 20) {
 		p, _ := db.Post(post)
 		matchingPosts = append(matchingPosts, p)
@@ -515,24 +546,17 @@ func (db *DB) CheckForLoggedInUser(r *http.Request) (types.User, bool) {
 		if sess, ok := db.Sessions.CheckToken(c.Value); ok {
 			u, _ := db.User(sess.Username)
 			return u, true
-		} else {
-			return types.User{}, false
 		}
 	}
 	return types.User{}, false
 }
 
 func (db *DB) VerifyRecaptcha(resp string) bool {
-	if db.Settings.ReCaptcha {
-		err := captcha.Verify(resp)
-		if err != nil {
-			log.Error().Err(err).Msg("Cannot verify recaptcha")
-			return false
-		} else {
-			return true
-		}
-	} else {
+	if !db.Settings.ReCaptcha {
 		return true
 	}
-
+	if err := captcha.Verify(resp); err != nil {
+		return false
+	}
+	return true
 }

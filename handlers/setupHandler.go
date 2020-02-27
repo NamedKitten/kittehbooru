@@ -5,6 +5,7 @@ import (
 	"github.com/NamedKitten/kittehimageboard/types"
 	"net/http"
 	"time"
+	"github.com/rs/zerolog/log"
 )
 
 // setupPageHandler takes you to the setup page for initial setup.
@@ -20,18 +21,20 @@ func SetupPageHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func formValueToBool(val string) bool {
-	if val == "on" {
-		return true
-	}
-	return false
+	return val == "on"
 }
 
 func SetupHandler(w http.ResponseWriter, r *http.Request) {
-	if DB.SetupCompleted == true {
+	if DB.SetupCompleted {
 		http.Redirect(w, r, "/", 302)
 		return
 	}
-	r.ParseForm()
+	err := r.ParseForm()
+	if err != nil {
+		log.Error().Err(err).Msg("Parse Form")
+		renderError(w, "PARSE_FORM_ERR", http.StatusBadRequest)
+		return
+	}
 	username := r.FormValue("adminUsername")
 	password := r.FormValue("adminPassword")
 	siteTitle := r.FormValue("siteTitle")
@@ -46,7 +49,13 @@ func SetupHandler(w http.ResponseWriter, r *http.Request) {
 		Description: "",
 		Posts:       []int64{},
 	})
-	DB.SetPassword(username, password)
+	err = DB.SetPassword(username, password)
+	if err != nil {
+		log.Error().Err(err).Msg("Setup Password")
+		renderError(w, "SET_PASS_ERR", http.StatusBadRequest)
+		return
+	}
+
 	DB.Settings.ThumbnailFormat = r.FormValue("thumbnailType")
 	DB.Settings.PDFView = formValueToBool(r.FormValue("enablePDFViewing"))
 	DB.Settings.VideoThumbnails = formValueToBool(r.FormValue("enableVideoThumbnails"))

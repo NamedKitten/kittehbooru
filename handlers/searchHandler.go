@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"github.com/rs/zerolog/log"
 )
 
 // SearchResultsTemplate contains data to be used in the template.
@@ -79,6 +80,8 @@ func SearchHandler(w http.ResponseWriter, r *http.Request) {
 
 	err := templates.RenderTemplate(w, "search.html", searchResults)
 	if err != nil {
-		panic(err)
+		log.Error().Err(err).Msg("Render Search")
+		renderError(w, "SEARCH_RENDER_ERR", http.StatusBadRequest)
+		return
 	}
 }

@@ -34,7 +34,7 @@ func (c *SearchCache) Add(tags string, values []int64) {
 
 func (c *SearchCache) Start() {
 	c.init()
-	for true {
+	for {
 		c.lock.Lock()
 		for tags := range c.cache {
 			val, ok := c.times[tags]

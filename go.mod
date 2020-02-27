@@ -7,6 +7,8 @@ require (
 	github.com/NamedKitten/hot v0.0.0-20190309114900-977428eba6c3
 	github.com/biessek/golang-ico v0.0.0-20180326222316-d348d9ea4670
 	github.com/bwmarrin/snowflake v0.3.0
+	github.com/chai2010/webp v1.1.0
+	github.com/chrisfelesoid/go-flif v0.3.0
 	github.com/coreos/pkg v0.0.0-20180928190104-399ea9e2e55f // indirect
 	github.com/davecgh/go-spew v1.1.1
 	github.com/ezzarghili/recaptcha-go v3.0.1+incompatible
