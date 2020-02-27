@@ -523,10 +523,11 @@ func (db *DB) cacheSearch(searchTags []string) []int64 {
 // getSearchPage returns a paginated list of posts from a list of tags.
 func (db *DB) GetSearchPage(searchTags []string, page int) []types.Post {
 	matching := db.cacheSearch(searchTags)
-	matchingPosts := make([]types.Post, 20)
-	for _, post := range utils.Paginate(matching, page, 20) {
+	pageContent := utils.Paginate(matching, page, 20)
+	matchingPosts := make([]types.Post, len(pageContent))
+	for i, post := range pageContent {
 		p, _ := db.Post(post)
-		matchingPosts = append(matchingPosts, p)
+		matchingPosts[i] = p
 	}
 
 	sort.Slice(matchingPosts, func(i, j int) bool {
