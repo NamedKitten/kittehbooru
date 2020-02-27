@@ -1,9 +1,10 @@
 package handlers
 
 import (
-	"github.com/gorilla/mux"
 	"net/http"
 	"strconv"
+
+	"github.com/gorilla/mux"
 	"github.com/rs/zerolog/log"
 )
 

@@ -1,9 +1,10 @@
 package handlers
 
 import (
-	"github.com/NamedKitten/kittehimageboard/template"
-	"github.com/rs/zerolog/log"
 	"net/http"
+
+	templates "github.com/NamedKitten/kittehimageboard/template"
+	"github.com/rs/zerolog/log"
 )
 
 type DeleteUserTemplate struct {

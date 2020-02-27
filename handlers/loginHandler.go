@@ -1,10 +1,11 @@
 package handlers
 
 import (
-	"github.com/NamedKitten/kittehimageboard/template"
-	"github.com/rs/zerolog/log"
 	"net/http"
 	"time"
+
+	templates "github.com/NamedKitten/kittehimageboard/template"
+	"github.com/rs/zerolog/log"
 )
 
 // LoginPageHandler takes you to the login page or the root page if you are already logged in.

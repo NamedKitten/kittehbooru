@@ -1,9 +1,10 @@
 package handlers
 
 import (
+	"net/http"
+
 	"github.com/NamedKitten/kittehimageboard/database"
 	"github.com/rs/zerolog/log"
-	"net/http"
 )
 
 var DB *database.DB

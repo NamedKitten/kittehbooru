@@ -3,12 +3,6 @@ package database
 import (
 	"database/sql"
 	json "encoding/json"
-	"github.com/NamedKitten/kittehimageboard/types"
-	"github.com/NamedKitten/kittehimageboard/utils"
-	"github.com/bwmarrin/snowflake"
-	"github.com/ezzarghili/recaptcha-go"
-	_ "github.com/mattn/go-sqlite3"
-	"github.com/rs/zerolog/log"
 	"io/ioutil"
 	"math"
 	"net/http"
@@ -16,6 +10,13 @@ import (
 	"sort"
 	"strings"
 	"time"
+
+	"github.com/NamedKitten/kittehimageboard/types"
+	"github.com/NamedKitten/kittehimageboard/utils"
+	"github.com/bwmarrin/snowflake"
+	"github.com/ezzarghili/recaptcha-go"
+	_ "github.com/mattn/go-sqlite3"
+	"github.com/rs/zerolog/log"
 )
 
 var captcha recaptcha.ReCAPTCHA
@@ -522,7 +523,7 @@ func (db *DB) cacheSearch(searchTags []string) []int64 {
 // getSearchPage returns a paginated list of posts from a list of tags.
 func (db *DB) GetSearchPage(searchTags []string, page int) []types.Post {
 	matching := db.cacheSearch(searchTags)
-	var matchingPosts []types.Post
+	matchingPosts := make([]types.Post, 20)
 	for _, post := range utils.Paginate(matching, page, 20) {
 		p, _ := db.Post(post)
 		matchingPosts = append(matchingPosts, p)

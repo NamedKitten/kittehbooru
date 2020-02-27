@@ -1,16 +1,17 @@
 package start
 
 import (
+	"net/http"
+	"os"
+	"os/signal"
+
 	"github.com/NamedKitten/kittehimageboard/database"
 	"github.com/NamedKitten/kittehimageboard/handlers"
-	"github.com/NamedKitten/kittehimageboard/template"
+	templates "github.com/NamedKitten/kittehimageboard/template"
 	gorillaHandlers "github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
-	"net/http"
-	"os"
-	"os/signal"
 )
 
 var DB *database.DB

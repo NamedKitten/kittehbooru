@@ -2,10 +2,6 @@ package handlers
 
 import (
 	"fmt"
-	"github.com/NamedKitten/kittehimageboard/types"
-	"github.com/chai2010/webp"
-	"github.com/gorilla/mux"
-	"github.com/rs/zerolog/log"
 	"image"
 	_ "image/gif"
 	"image/jpeg"
@@ -17,6 +13,11 @@ import (
 	"os/exec"
 	"strconv"
 	"strings"
+
+	"github.com/NamedKitten/kittehimageboard/types"
+	"github.com/chai2010/webp"
+	"github.com/gorilla/mux"
+	"github.com/rs/zerolog/log"
 )
 
 func createThumbnail(post types.Post, ext string) string {

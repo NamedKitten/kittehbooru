@@ -1,10 +1,11 @@
 package handlers
 
 import (
-	"github.com/NamedKitten/kittehimageboard/template"
-	"github.com/gorilla/mux"
 	"net/http"
 	"strconv"
+
+	templates "github.com/NamedKitten/kittehimageboard/template"
+	"github.com/gorilla/mux"
 	"github.com/rs/zerolog/log"
 )
 

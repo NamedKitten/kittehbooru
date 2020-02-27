@@ -2,11 +2,12 @@ package handlers
 
 import (
 	"fmt"
-	"github.com/NamedKitten/kittehimageboard/template"
-	"github.com/NamedKitten/kittehimageboard/types"
-	"github.com/gorilla/mux"
 	"net/http"
 	"strconv"
+
+	templates "github.com/NamedKitten/kittehimageboard/template"
+	"github.com/NamedKitten/kittehimageboard/types"
+	"github.com/gorilla/mux"
 )
 
 type ViewResultsTemplate struct {

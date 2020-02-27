@@ -1,11 +1,12 @@
 package handlers
 
 import (
-	"github.com/NamedKitten/kittehimageboard/utils"
-	"github.com/gorilla/mux"
 	"net/http"
 	"strconv"
 	"strings"
+
+	"github.com/NamedKitten/kittehimageboard/utils"
+	"github.com/gorilla/mux"
 )
 
 // EditPostHandler is the endpoint used to edit posts.

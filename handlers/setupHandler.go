@@ -1,10 +1,11 @@
 package handlers
 
 import (
-	"github.com/NamedKitten/kittehimageboard/template"
-	"github.com/NamedKitten/kittehimageboard/types"
 	"net/http"
 	"time"
+
+	templates "github.com/NamedKitten/kittehimageboard/template"
+	"github.com/NamedKitten/kittehimageboard/types"
 	"github.com/rs/zerolog/log"
 )
 

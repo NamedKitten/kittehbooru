@@ -3,8 +3,9 @@
 package templates
 
 import (
-	"github.com/NamedKitten/hot"
 	"io"
+
+	"github.com/NamedKitten/hot"
 )
 
 var templateEngine *hot.Template

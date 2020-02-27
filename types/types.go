@@ -25,7 +25,7 @@ type Post struct {
 	// Filename of the file.
 	// TODO: Deprecate this field as filename == ID.
 	Filename string `json:"filename"`
-	// FileExtension is the extension of the file, infered from mime type.
+	// FileExtension is the extension of the file, inferred from mime type.
 	FileExtension string `json:"ext"`
 	// Description used when viewing the post.
 	Description string `json:"description"`

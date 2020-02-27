@@ -4,9 +4,10 @@ import (
 	"crypto/rand"
 	"database/sql"
 	"encoding/hex"
+	"time"
+
 	"github.com/NamedKitten/kittehimageboard/types"
 	"github.com/rs/zerolog/log"
-	"time"
 )
 
 type Sessions struct {

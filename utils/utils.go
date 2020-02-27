@@ -3,9 +3,10 @@ package utils
 import (
 	"crypto/sha256"
 	"fmt"
-	"golang.org/x/crypto/bcrypt"
 	"sort"
 	"strings"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 func EncryptPassword(password string) string {

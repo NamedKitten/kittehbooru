@@ -1,19 +1,21 @@
 package handlers
 
 import (
-	"github.com/bwmarrin/snowflake"
-	"github.com/rs/zerolog/log"
 	"io/ioutil"
 
-	"github.com/NamedKitten/kittehimageboard/template"
-	"github.com/NamedKitten/kittehimageboard/types"
-	"github.com/NamedKitten/kittehimageboard/utils"
-	"github.com/h2non/filetype"
+	"github.com/bwmarrin/snowflake"
+	"github.com/rs/zerolog/log"
+
 	"net/http"
 	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
+
+	templates "github.com/NamedKitten/kittehimageboard/template"
+	"github.com/NamedKitten/kittehimageboard/types"
+	"github.com/NamedKitten/kittehimageboard/utils"
+	"github.com/h2non/filetype"
 )
 
 var whitelistedTypes = [...]string{

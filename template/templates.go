@@ -1,11 +1,12 @@
 package templates
 
 import (
-	"github.com/NamedKitten/kittehimageboard/database"
 	tmplHTML "html/template"
 	"io/ioutil"
 	"strings"
 	tmpl "text/template"
+
+	"github.com/NamedKitten/kittehimageboard/database"
 
 	"github.com/NamedKitten/kittehimageboard/types"
 )

@@ -1,9 +1,10 @@
 package database
 
 import (
-	"github.com/rs/zerolog/log"
 	"sync"
 	"time"
+
+	"github.com/rs/zerolog/log"
 )
 
 type SearchCache struct {
