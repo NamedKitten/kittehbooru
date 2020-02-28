@@ -18,18 +18,18 @@
         <div class="col-sm-9 col-md-7 col-lg-5 mx-auto">
           <div class="card card-signin my-5 bg-light">
             <div class="card-body ">
-              <h5 class="card-title text-center">Sign In</h5>
+              <h5 class="card-title text-center">{{ .Translator.Localize "Login" }}</h5>
               <form class="form-signin" method="post">
                 <div class="form-label-group">
-                  <input type="text" id="inputEmail" class="form-control" placeholder="Username" required=""
+                  <input type="text" id="inputEmail" class="form-control" placeholder="{{ .Translator.Localize "Username" }}" required=""
                     autofocus="" name="username">
                 </div>
                 <br>
                 <div class="form-label-group">
-                  <input type="password" id="inputPassword" class="form-control" placeholder="Password" required=""
+                  <input type="password" id="inputPassword" class="form-control" placeholder="{{ .Translator.Localize "Password" }}" required=""
                     name="password">
                   <br>
-                </div><button class="btn btn-lg btn-primary btn-block text-uppercase" type="submit">Sign in</button>
+                </div><button class="btn btn-lg btn-primary btn-block text-uppercase" type="submit">{{ .Translator.Localize "Login" }}</button>
               </form>
             </div>
           </div>

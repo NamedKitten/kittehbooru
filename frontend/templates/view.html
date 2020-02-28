@@ -27,20 +27,20 @@
             <ul class="nav nav-tabs card-header-tabs pull-right infoSection" id="myTab" role="tablist">
               <li class="nav-item">
                 <a class="nav-link active" id="info-tab" data-toggle="tab" href="#info" role="tab" aria-controls="info"
-                  aria-selected="true">Info</a>
+                  aria-selected="true">{{ .Translator.Localize "Info" }}</a>
               </li>
               <li class="nav-item">
                 <a class="nav-link" id="tags-tab" data-toggle="tab" href="#tags" role="tab" aria-controls="tags"
-                  aria-selected="false">Tags</a>
+                  aria-selected="false">{{ .Translator.Localize "Tags" }}</a>
               </li>
               <li class="nav-item">
                 <a class="nav-link" id="fileinfo-tab" data-toggle="tab" href="#fileinfo" role="tab"
-                  aria-controls="fileinfo" aria-selected="false">Extra Info</a>
+                  aria-controls="fileinfo" aria-selected="false">{{ .Translator.Localize "ExtraInfo" }}</a>
               </li>
               {{ if .IsAbleToEdit }}
               <li class="nav-item">
                 <a class="nav-link" id="settings-tab" data-toggle="tab" href="#settings" role="tab"
-                  aria-controls="settings" aria-selected="false">Settings</a>
+                  aria-controls="settings" aria-selected="false">{{ .Translator.Localize "Settings" }}</a>
               </li>
               {{ end }}
             </ul>
@@ -54,7 +54,7 @@
                 <br>
                 <form class="form-signin" method="post" action="/editUser/{{ .LoggedInUser.Username }}">
                   <input type="hidden" name="avatarID" value="{{ .Post.PostID }}">
-                  <button class="btn btn-lg btn-success btn-block text-uppercase" type="submit">Set as avatar</button>
+                  <button class="btn btn-lg btn-success btn-block text-uppercase" type="submit">{{ .Translator.Localize "SetAsAvatar" }}</button>
                 </form>
                 {{ end }}
               </div>
@@ -63,11 +63,12 @@
                 {{end }}
               </div>
               <div class="tab-pane fade" id="fileinfo" role="tabpanel" aria-labelledby="fileinfo-tab">
-                <b>Uploaded by user: </b><a class="text-success"
-                href="/user/{{ html .Author.Username }}">{{ html .Author.Username }}</a><br>
-                <b>Sha265:</b> {{ .Post.Sha256 }}<br>
-                <b>Direct Download:</b> <a class="text-success"
-                  href="/content/{{ .Post.Filename }}.{{ .Post.FileExtension }}">click me</a><br>
+                {{ $userNameData := newStringInterfaceMap }}
+                {{ $userNameData = addToStringInterfaceMap $userNameData "Name" .Author.Username }}
+                <b><a class="text-success"
+                href="/user/{{ html .Author.Username }}">{{ .Translator.LocalizeWithData "UploadedBy" $userNameData }}</a></b><br>
+                <b><a class="text-success"
+                  href="/content/{{ .Post.Filename }}.{{ .Post.FileExtension }}">{{ .Translator.Localize "Download" }}</a></b><br>
               </div>
 
               {{ if .IsAbleToEdit }}
@@ -75,22 +76,22 @@
                 <form enctype="multipart/form-data" class="form-signin" method="post"
                   action="/editPost/{{ .Post.PostID }}">
                   <div class="form-label-group">
-                    <label for="tags">Tags</label>
+                    <label for="tags">{{ .Translator.Localize "Tags" }}</label>
                     <input type="text" class="form-control" id="tags" name="tags" required
                       value="{{ range .Post.Tags }}{{ html .}} {{end}}">
                   </div>
                   <br>
                   <div class="form-label-group">
-                    <label for="description">Description</label>
+                    <label for="description">{{ .Translator.Localize "Description" }}</label>
                     <textarea class="form-control" id="description" name="description"
                       rows="6">{{ nlhtml .Post.Description }}</textarea>
                   </div>
                   <br>
-                  <button class="btn btn-lg btn-primary btn-block text-uppercase" type="submit">Edit</button>
+                  <button class="btn btn-lg btn-primary btn-block text-uppercase" type="submit">{{ .Translator.Localize "Edit" }}</button>
                   <br>
                 </form>
                 <form class="form-signin" method="get" action="/deletePost/{{ .Post.PostID }}">
-                  <button class="btn btn-lg btn-danger btn-block text-uppercase" type="submit">Delete</button>
+                  <button class="btn btn-lg btn-danger btn-block text-uppercase" type="submit">{{ .Translator.Localize "Delete" }}</button>
                 </form>
               </div>
               {{ end }}

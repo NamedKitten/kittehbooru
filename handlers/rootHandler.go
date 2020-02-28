@@ -4,6 +4,8 @@ import (
 	"net/http"
 
 	templates "github.com/NamedKitten/kittehimageboard/template"
+	"github.com/NamedKitten/kittehimageboard/i18n"
+
 )
 
 // RootTemplateData contains data to be used in the template.
@@ -24,6 +26,7 @@ func RootHandler(w http.ResponseWriter, r *http.Request) {
 		templates.T{
 			LoggedIn:     loggedIn,
 			LoggedInUser: user,
+			Translator: i18n.GetTranslator(r),
 		},
 	}
 	err := templates.RenderTemplate(w, "index.html", x)

@@ -5,12 +5,14 @@ import (
 	"time"
 
 	templates "github.com/NamedKitten/kittehimageboard/template"
+	"github.com/NamedKitten/kittehimageboard/i18n"
+
 	"github.com/NamedKitten/kittehimageboard/types"
 	"github.com/rs/zerolog/log"
 )
 
 func RegisterPageHandler(w http.ResponseWriter, r *http.Request) {
-	err := templates.RenderTemplate(w, "register.html", nil)
+	err := templates.RenderTemplate(w, "register.html", templates.T{Translator: i18n.GetTranslator(r),})
 	if err != nil {
 		panic(err)
 	}

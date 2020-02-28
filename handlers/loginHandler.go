@@ -5,8 +5,15 @@ import (
 	"time"
 
 	templates "github.com/NamedKitten/kittehimageboard/template"
+	"github.com/NamedKitten/kittehimageboard/i18n"
 	"github.com/rs/zerolog/log"
 )
+/* 
+templates.T{Translator: i18n.GetTranslator(r),}
+Translator: i18n.GetTranslator(r),
+"github.com/NamedKitten/kittehimageboard/i18n"
+
+*/
 
 // LoginPageHandler takes you to the login page or the root page if you are already logged in.
 func LoginPageHandler(w http.ResponseWriter, r *http.Request) {
@@ -19,7 +26,7 @@ func LoginPageHandler(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/", 302)
 		return
 	}
-	err := templates.RenderTemplate(w, "login.html", nil)
+	err := templates.RenderTemplate(w, "login.html", templates.T{Translator: i18n.GetTranslator(r),})
 	if err != nil {
 		panic(err)
 	}

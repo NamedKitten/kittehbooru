@@ -17,13 +17,12 @@
 {{ else if startsWith .MimeType "audio" }}
     <audio controls class="video-view card-img-top">
     <source src="/content/{{ .Filename }}.{{ .FileExtension }}">
-    Your browser does not support the audio tag.
   </audio> 
 {{ else if startsWith .MimeType "image"  }}
 <img class="card-img-top" src="/content/{{ .Filename }}.{{ .FileExtension }}" height="70%">
 {{ else  }}
-Preview unavailable
-<a href="/content/{{ .Filename }}.{{ .FileExtension }}">Click to download</a>
+{{ .Translator.Localize "CantPreviewPost" }}
+<a href="/content/{{ .Filename }}.{{ .FileExtension }}">{{ .Translator.Localize "ClickHereToDownloadInstead" }}</a>
 
 {{ end }}
 {{ end }}

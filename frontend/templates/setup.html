@@ -17,84 +17,86 @@
           <div class="col-sm-9 col-md-7 col-lg-7 mx-auto">
             <div class="card card-signin my-5 bg-light">
               <div class="card-body">
-                <h5 class="card-title text-center">Setup</h5>
+                <h5 class="card-title text-center">{{ .Translator.Localize "Setup" }}</h5>
                 <div class="form-row">
                   <div class="form-group col-md-6">
-                    <label for="username">Admin Username</label>
+                    <label for="username">{{ .Translator.Localize "AdminUsername" }}</label>
                     <input type="text" class="form-control" id="username" name="adminUsername"
-                      placeholder="Admin Username">
+                      placeholder="{{ .Translator.Localize "Username" }}">
                     <small class="form-text text-muted">
-                      This is the first admin user that will be created.
+                      {{ .Translator.Localize "ThisIsFirstAdminAccount" }}
                     </small>
                   </div>
                   <div class="form-group col-md-6">
-                    <label for="password">Admin Password</label>
+                    <label for="password">{{ .Translator.Localize "AdminPassword" }}</label>
                     <input type="password" class="form-control" id="password" name="adminPassword"
-                      placeholder="Password">
+                      placeholder="{{ .Translator.Localize "Password" }}">
                     <small class="form-text text-muted">
-                      Please use a strong password...
+                      {{ .Translator.Localize "PleaseStrongPassword" }}
                     </small>
                   </div>
                 </div>
                 <div class="form-group">
-                  <label for="site-title">Site Title</label>
+                  <label for="site-title">{{ .Translator.Localize "SiteTitle" }}</label>
                   <input type="text" class="form-control" id="site-title" name="siteTitle" value="Kitteh's Imageboard">
                   <small class="form-text text-muted">
-                    The title displayed in the navigation bar.
+                    {{ .Translator.Localize "Title" }}
                   </small>
                 </div>
                 <div class="custom-control custom-checkbox">
                   <input type="checkbox" class="custom-control-input" id="enablereCaptcha" name="enablereCaptcha">
-                  <label class="custom-control-label" for="enablereCaptcha">Enable reCaptcha</label>
+                  <label class="custom-control-label" for="enablereCaptcha">
+                    {{ .Translator.Localize "EnablereCaptcha" }}
+                  </label>
                 </div>
                 <small class="form-text text-muted">
-                  We highly recommend using reCaptcha to help prevent registration spam from bots.
+                  {{ .Translator.Localize "RecommendreCaptcha" }}
                 </small>
                 <br>
                 <div class="form-row">
                   <div class="col-md-6 mb-3">
-                    <label for="reCaptchaPublicKey">reCaptcha Public Key</label>
+                    <label for="reCaptchaPublicKey">{{ .Translator.Localize "PublicKeyreCaptcha" }}</label>
                     <input type="text" class="form-control" id="reCaptchaPublicKey" name="reCaptchaPublicKey">
                   </div>
                   <div class="col-md-6 mb-3">
-                    <label for="reCaptchaPrivateKey">reCaptcha Private Key</label>
+                    <label for="reCaptchaPrivateKey">{{ .Translator.Localize "PrivateKeyreCaptcha" }}</label>
                     <input type="text" class="form-control" id="reCaptchaPrivateKey" name="reCaptchaPrivateKey">
                   </div>
                 </div>
                 <div class="form-label-group">
-                  <label for="rules">Rules</label>
+                  <label for="rules">{{ .Translator.Localize "Rules" }}</label>
                   <textarea class="form-control" id="rules" name="rules" rows="10"></textarea>
                 </div>
                 <br>
                 <div class="custom-control custom-checkbox">
                   <input type="checkbox" class="custom-control-input" id="enablePDFViewing" name="enablePDFViewing">
-                  <label class="custom-control-label" for="enablePDFViewing">Enable PDF Viewing</label>
+                  <label class="custom-control-label" for="enablePDFViewing">{{ .Translator.Localize "EnablePdfViewing" }}</label>
                 </div>
                 <small class="form-text text-muted">
-                  PDF Viewing requires PDF.js.
-                  You may prefer to offer a download link for the PDF instead of embedding it in the site.
+                  {{ .Translator.Localize "RequiresPdfJs" }}
+                  {{ .Translator.Localize "OfferDownloadLinkInstead" }}
                 </small>
                 <br>
                 <div class="custom-control custom-checkbox">
                   <input type="checkbox" class="custom-control-input" id="enablePDFThumbnails"
                     name="enablePDFThumbnails">
-                  <label class="custom-control-label" for="enablePDFThumbnails">Enable PDF Thumbnails</label>
+                  <label class="custom-control-label" for="enablePDFThumbnails"> {{ .Translator.Localize "EnablePdfThumbnails" }}</label>
                 </div>
                 <small class="form-text text-muted">
-                  This will require imagemagick installed to generate thumnails.
-                  Keep in mind that imagemagick may contain vulnerabilities that could put your server at risk.
+                  {{ .Translator.Localize "WillRequireImagemagick" }}
+                  {{ .Translator.Localize "ImagemagickSecurity" }}
                 </small>
                 <br>
                 <div class="custom-control custom-checkbox">
                   <input type="checkbox" class="custom-control-input" id="enableVideoThumbnails"
                     name="enableVideoThumbnails">
-                  <label class="custom-control-label" for="enableVideoThumbnails">Enable Video Thumbnails</label>
+                  <label class="custom-control-label" for="enableVideoThumbnails">{{ .Translator.Localize "EnableVideoThumbnails" }}</label>
                 </div>
                 <small class="form-text text-muted">
-                  This will require ffmpegthumbnailer installed to generate thumnails.
+                  {{ .Translator.Localize "WillRequireFFmpegthumbnailer" }}
                 </small>
                 <br>
-                <button type="submit" class="btn btn-success">Submit</button>
+                <button type="submit" class="btn btn-success">{{ .Translator.Localize "Submit" }}</button>
               </div>
             </div>
           </div>

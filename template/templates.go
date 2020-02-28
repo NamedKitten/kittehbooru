@@ -7,7 +7,7 @@ import (
 	tmpl "text/template"
 
 	"github.com/NamedKitten/kittehimageboard/database"
-
+	"github.com/NamedKitten/kittehimageboard/i18n"
 	"github.com/NamedKitten/kittehimageboard/types"
 )
 
@@ -21,6 +21,8 @@ type T struct {
 	// LoggedInUser is the user struct of a logged in user.
 	// If no user is logged in, all fields will be blank.
 	LoggedInUser types.User
+
+	Translator *i18n.Translator
 }
 
 func getTemplateFuncs() tmpl.FuncMap {
@@ -53,6 +55,13 @@ func getTemplateFuncs() tmpl.FuncMap {
 		},
 		"settings": func() database.Settings {
 			return DB.Settings
+		},
+		"newStringInterfaceMap": func() map[string]interface{} {
+			return make(map[string]interface{})
+		},
+		"addToStringInterfaceMap": func(d map[string]interface{}, s string, i interface{}) map[string]interface{}  {
+			d[s] = i
+			return d
 		},
 	}
 

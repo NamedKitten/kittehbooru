@@ -18,17 +18,17 @@
         <div class="col-sm-9 col-md-7 col-lg-6 mx-auto my-auto">
           <div class="my-5"> </div>
           <div class="alert alert-warning" style="margin-top: 33%; margin-bottom: 33%;" role="alert">
-            <h4 class="alert-heading">Warning!</h4>
-            <p>Are you sure you want to delete this post, there is no way to undelete it.</p>
+            <h4 class="alert-heading">{{ .Translator.Localize "Warning" }}</h4>
+            <p>{{ .Translator.Localize "ConfirmDeletePost" }}</p>
             <hr>
             <div class="btn-group d-flex flex-row-reverse">
               <form method="post">
-                <button type="submit" class="btn btn-danger">Delete</button>
+                <button type="submit" class="btn btn-danger">{{ .Translator.Localize "Delete" }}</button>
               </form>
 
 
               <form action="/view/{{.PostID}}" method="get">
-                <button type="submit" class="btn btn-dark">Back</button>
+                <button type="submit" class="btn btn-dark">{{ .Translator.Localize "GoBack" }}</button>
               </form>
             </div>
 

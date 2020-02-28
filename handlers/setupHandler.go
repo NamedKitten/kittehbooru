@@ -6,6 +6,7 @@ import (
 
 	templates "github.com/NamedKitten/kittehimageboard/template"
 	"github.com/NamedKitten/kittehimageboard/types"
+	"github.com/NamedKitten/kittehimageboard/i18n"
 	"github.com/rs/zerolog/log"
 )
 
@@ -15,7 +16,7 @@ func SetupPageHandler(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/", 302)
 		return
 	}
-	err := templates.RenderTemplate(w, "setup.html", nil)
+	err := templates.RenderTemplate(w, "setup.html", templates.T{Translator: i18n.GetTranslator(r),})
 	if err != nil {
 		panic(err)
 	}

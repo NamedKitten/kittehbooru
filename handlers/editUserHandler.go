@@ -41,6 +41,21 @@ func EditUserHandler(w http.ResponseWriter, r *http.Request) {
 
 	password := r.PostFormValue("password")
 	if !(len(password) == 0) {
+		passwordPrevious := r.PostFormValue("passwordPrevious")
+		log.Error().Msg(passwordPrevious)
+		if !DB.CheckPassword(user.Username, passwordPrevious) {
+			renderError(w, "PASSWORD_INCORRECT", http.StatusBadRequest)
+			return
+		}
+
+
+		passwordConfirm := r.PostFormValue("passwordConfirm")
+		if password != passwordConfirm {
+			renderError(w, "PASSWORD_MISMATCH", http.StatusBadRequest)
+			return
+		}
+
+
 		err = DB.SetPassword(user.Username, password)
 		if err != nil {
 			log.Error().Err(err).Msg("Set Password")

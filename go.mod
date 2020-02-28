@@ -3,6 +3,7 @@ module github.com/NamedKitten/kittehimageboard
 go 1.13
 
 require (
+	github.com/BurntSushi/toml v0.3.1
 	github.com/Kodeworks/golang-image-ico v0.0.0-20141118225523-73f0f4cfade9
 	github.com/NamedKitten/hot v0.0.0-20190309114900-977428eba6c3
 	github.com/biessek/golang-ico v0.0.0-20180326222316-d348d9ea4670
@@ -24,12 +25,14 @@ require (
 	github.com/kr/pretty v0.2.0 // indirect
 	github.com/mattn/go-sqlite3 v2.0.2+incompatible
 	github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646 // indirect
+	github.com/nicksnyder/go-i18n/v2 v2.0.3
 	github.com/pytimer/mux-logrus v0.0.0-20190126083416-4024cdba0357
 	github.com/rs/zerolog v1.17.2
 	github.com/sirupsen/logrus v1.4.2
 	golang.org/x/crypto v0.0.0-20191206172530-e9b2fee46413
 	golang.org/x/image v0.0.0-20191214001246-9130b4cfad52
+	golang.org/x/text v0.3.2
 	gopkg.in/check.v1 v1.0.0-20190902080502-41f04d3bba15 // indirect
-	gopkg.in/fsnotify.v1 v1.4.7 // indirect
+	gopkg.in/fsnotify.v1 v1.4.7
 	gopkg.in/yaml.v1 v1.0.0-20140924161607-9f9df34309c0 // indirect
 )

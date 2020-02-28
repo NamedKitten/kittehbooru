@@ -21,30 +21,30 @@
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
             <ul class="navbar-nav mr-auto">
                 <li class="nav-item">
-                    <a class="nav-link" href="/">Home</a>
+                    <a class="nav-link" href="/">{{ .Translator.Localize "Home" }}</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="/rules">Rules</a>
+                    <a class="nav-link" href="/rules">{{ .Translator.Localize "Rules" }}</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="/search">Search</a>
+                    <a class="nav-link" href="/search">{{ .Translator.Localize "SearchButton" }}</a>
                 </li>
                 {{ if .LoggedIn }}
                 <li class="nav-item">
-                    <a class="nav-link" href="/logout">Logout</a>
+                    <a class="nav-link" href="/logout">{{ .Translator.Localize "Logout" }}</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="/upload">Create a post</a>
+                    <a class="nav-link" href="/upload">{{ .Translator.Localize "Upload" }}</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="/user/{{.LoggedInUser.Username}}">User Profile and Account Settings</a>
+                    <a class="nav-link" href="/user/{{.LoggedInUser.Username}}">{{ .Translator.Localize "UserProfileAccountSettings" }}</a>
                 </li>
                 {{ else }}
                 <li class="nav-item">
-                    <a class="nav-link" href="/login">Log In</a>
+                    <a class="nav-link" href="/login">{{ .Translator.Localize "Login" }}</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="/register">Create an account</a>
+                    <a class="nav-link" href="/register">{{ .Translator.Localize "Register" }}</a>
                 </li>
                 {{end}}
 

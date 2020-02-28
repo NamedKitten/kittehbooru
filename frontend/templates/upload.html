@@ -23,29 +23,28 @@
         <div class="col-sm-9 col-md-7 col-lg-5 mx-auto">
           <div class="card card-signin my-3 bg-primary">
             <div class="card-body">
-              <h5 class="card-title text-center">Upload a file</h5>
+              <h5 class="card-title text-center">{{ .Translator.Localize "Upload" }}</h5>
               <form enctype="multipart/form-data" class="form-signin" method="post">
                 <div class="form-group">
                   <div class="input-group mb-3">
                     <div class="custom-file bg-primary">
                       <div class="input-group-prepend"></div>
                       <input type="file" class="custom-file-input" id="inputGroupFile02" name="uploadFile">
-                      <label class="custom-file-label" for="inputGroupFile02">Choose
-                        file</label>
+                      <label class="custom-file-label" for="inputGroupFile02">{{ .Translator.Localize "Choose File" }}</label>
                         </div>
                     </div>
                   </div>
                 </div>
                 <div class="form-label-group">
-                  <label for="tags">Tags</label> <input type="text" class="form-control" id="tags" name="tags"
+                  <label for="tags">{{ .Translator.Localize "Tags" }}</label> <input type="text" class="form-control" id="tags" name="tags"
                     required="">
                 </div>
                 <div class="form-label-group">
-                  <label for="description">Description</label>
+                  <label for="description">{{ .Translator.Localize "Description" }}</label>
                   <textarea class="form-control" id="description" name="description" rows="6"></textarea>
                 </div>
                 <br>
-                <button class="btn btn-lg btn-success btn-block text-uppercase" type="submit">Upload</button>
+                <button class="btn btn-lg btn-success btn-block text-uppercase" type="submit">{{ .Translator.Localize "Upload" }}</button>
               </form>
             </div>
           </div>

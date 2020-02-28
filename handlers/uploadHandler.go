@@ -15,6 +15,8 @@ import (
 	templates "github.com/NamedKitten/kittehimageboard/template"
 	"github.com/NamedKitten/kittehimageboard/types"
 	"github.com/NamedKitten/kittehimageboard/utils"
+	"github.com/NamedKitten/kittehimageboard/i18n"
+
 	"github.com/h2non/filetype"
 )
 
@@ -143,6 +145,7 @@ func UploadPageHandler(w http.ResponseWriter, r *http.Request) {
 	err := templates.RenderTemplate(w, "upload.html", templates.T{
 		LoggedIn:     loggedIn,
 		LoggedInUser: user,
+		Translator: i18n.GetTranslator(r),
 	})
 	if err != nil {
 		panic(err)

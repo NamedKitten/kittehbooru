@@ -5,6 +5,7 @@ import (
 	"strconv"
 
 	templates "github.com/NamedKitten/kittehimageboard/template"
+	"github.com/NamedKitten/kittehimageboard/i18n"
 	"github.com/gorilla/mux"
 	"github.com/rs/zerolog/log"
 )
@@ -28,6 +29,7 @@ func DeletePostPageHandler(w http.ResponseWriter, r *http.Request) {
 		T: templates.T{
 			LoggedIn:     loggedIn,
 			LoggedInUser: user,
+			Translator: i18n.GetTranslator(r),
 		},
 	}
 
