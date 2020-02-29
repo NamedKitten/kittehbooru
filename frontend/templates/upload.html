@@ -30,11 +30,12 @@
                     <div class="custom-file bg-primary">
                       <div class="input-group-prepend"></div>
                       <input type="file" class="custom-file-input" id="inputGroupFile02" name="uploadFile">
-                      <label class="custom-file-label" for="inputGroupFile02">{{ .Translator.Localize "Choose File" }}</label>
+                      <label class="custom-file-label" for="inputGroupFile02">{{ .Translator.Localize "ChooseFile" }}</label>
                         </div>
                     </div>
                   </div>
                 </div>
+
                 <div class="form-label-group">
                   <label for="tags">{{ .Translator.Localize "Tags" }}</label> <input type="text" class="form-control" id="tags" name="tags"
                     required="">
@@ -43,6 +44,7 @@
                   <label for="description">{{ .Translator.Localize "Description" }}</label>
                   <textarea class="form-control" id="description" name="description" rows="6"></textarea>
                 </div>
+                <br>
                 <br>
                 <button class="btn btn-lg btn-success btn-block text-uppercase" type="submit">{{ .Translator.Localize "Upload" }}</button>
               </form>

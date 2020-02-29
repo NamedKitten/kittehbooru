@@ -17,13 +17,15 @@ func init() {
 	bundle.RegisterUnmarshalFunc("toml", toml.Unmarshal)
 	bundle.MustLoadMessageFile("i18n/translations/active.en.toml")
 	bundle.MustLoadMessageFile("i18n/translations/active.sv.toml")
+        bundle.MustLoadMessageFile("i18n/translations/active.fr.toml")
 
 	go func() {
 		for {
 			select {
 			case <-w.Events:
 				bundle.MustLoadMessageFile("i18n/translations/active.en.toml")
-				bundle.MustLoadMessageFile("i18n/translations/active.sv.toml")
+                                bundle.MustLoadMessageFile("i18n/translations/active.sv.toml")
+				bundle.MustLoadMessageFile("i18n/translations/active.fr.toml")
 			}
 
 		}

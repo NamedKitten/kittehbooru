@@ -1,0 +1,115 @@
+SearchText = "Recherche:"
+
+SearchButton = "Recherche"
+
+Tags = "Mots Clés"
+
+Home = "Accueil"
+
+Rules = "Règles"
+
+Login = "Connexion"
+
+Logout = "Deconnexion"
+
+Register = "Inscription"
+
+Upload = "Télécharger"
+
+UserProfileAccountSettings = "Profil d'Utilisateur et Paramètres du compte"
+
+ConfirmDeletePost = "Est-ce que vous êtes sûr(e) de vouloir annuler cette publication? Cette action ne peut pas être annulée."
+
+Delete = "Annuler"
+
+GoBack = "Retour"
+
+ConfirmDeleteAccount = "Est-ce que vous êtes sur(e) de vouloir supprimer votre compte? Cette action ne peut pas être annulée."
+
+WillDeleteAllPosts = "Cela supprimera toutes vos publications."
+
+Username = "Nom d'Utilisateur"
+
+Password = "Mot de Passe"
+
+Warning = "Attention!"
+
+ThisWillBeUsername = "Cela sera votre nom d'Utilisateur sur le site. Vous ne pouvez pas le changer"
+
+ThisWillBePassword = "Cela sera votre nom d'utilisateur sur le site. Choisissez un mot de pass sécurisé."
+
+PrevPage = "Page Précédente"
+
+NextPage = "Page Suivante"
+
+Setup = "Mise en Place"
+
+AdminUsername = "Nom d'Utilisateur Administrateur"
+
+ThisIsFirstAdminAccount = "Cela est le premier compte administrateur qui sera crée."
+
+AdminPassword = "Mot de Passe Administrateur"
+
+PleaseStrongPassword = "Utilisez un mot de pass sécurisé."
+
+SiteTitle = "Titre du Site"
+
+Title = "Le titre affiché dans la barre de navigation."
+
+EnablereCaptcha = "Activer reCaptcha"
+
+RecommendreCaptcha = "Nous recommendons fortement l'utilisation de reCaptcha pour éviter l'insciption de robots spammeurs."
+
+PublicKeyreCaptcha = "Clé Publique de reCaptcha"
+
+PrivateKeyreCaptcha = "Clé Privé de reCaptcha"
+
+EnablePdfViewing = "Activer la visualisation PDF."
+
+RequiresPdfJs = "La visualisation PDF nécessite PDF.js."
+
+OfferDownloadLinkInstead = "Vous préférez peut-être donner un lien pour télécharger le PDF, au lieu de l'intégrer dans le site."
+
+EnablePDFThumbnails = "Activer les Vignettes PDF"
+
+WillRequireImagemagick = "Pour générer des vignettes, il faut que imagemagick soit téléchargée."
+
+ImagemagickSecurity = "Prenez en compte le fait que imagemagick peut contenir des vulnérabilités, et mettre votre serveur en danger."
+
+EnableVideoThumbnails = "Activer les Vignettes Video"
+
+WillRequireFFmpegthumbnailer = "Pour générer des Vignettes, il faut que ffmpegthumbnailer soit téléchargé."
+
+Submit = "Soumettre"
+
+ChooseFile = "Choisir un Fichier"
+
+Description = "Description"
+
+UsersProfile = "Le Profil de {{.Name}}"
+
+Settings = "Paramètres"
+
+Info = "Info"
+
+Edit = "Editer"
+
+DeleteAccount = "Supprimer le Compte"
+
+PasswordChange = "Vous devez vous connecter après un changement de mot de pass."
+
+ExtraInfo = "Info Supplémentaire"
+
+SetAsAvatar = "Mettre comme avatar"
+
+Download = "Télécharger"
+
+UploadedBy = "Téléchargé par: {{.Name}}"
+
+CantPreviewPost = "Pas d'apperçu de la publication"
+
+ClickHereToDownloadInstead = "Autrement, cliquez ici pour télécharger."
+
+PreviousPassword = "Mot de Pass actuel"
+
+ConfirmPassword = "Confirmer le Mot de Pass"
