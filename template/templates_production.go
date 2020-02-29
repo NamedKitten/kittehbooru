@@ -10,9 +10,13 @@ import (
 var templateEngine *tmpl.Template
 
 func init() {
-	templateEngine, _ = tmpl.New("").Funcs(getTemplateFuncs()).ParseGlob(
+	var err error
+	templateEngine, err = tmpl.New("").Funcs(getTemplateFuncs()).ParseGlob(
 		"templates/*.html",
 	)
+	if err != nil {
+		panic(err)
+	}
 }
 
 func RenderTemplate(w io.Writer, name string, ctx interface{}) error {

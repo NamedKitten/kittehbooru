@@ -11,7 +11,10 @@ import (
 
 func EncryptPassword(password string) string {
 	passwordBytes := []byte(password)
-	bytes, _ := bcrypt.GenerateFromPassword(passwordBytes, 12)
+	bytes, err := bcrypt.GenerateFromPassword(passwordBytes, 12)
+	if err != nil {
+		panic(err)
+	}
 	return string(bytes)
 }
 

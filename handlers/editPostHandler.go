@@ -7,6 +7,7 @@ import (
 
 	"github.com/NamedKitten/kittehimageboard/utils"
 	"github.com/gorilla/mux"
+	"github.com/rs/zerolog/log"
 )
 
 // EditPostHandler is the endpoint used to edit posts.
@@ -14,20 +15,23 @@ func EditPostHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	user, loggedIn := DB.CheckForLoggedInUser(r)
 	if !loggedIn {
-		http.Redirect(w, r, "/login", 302)
+		http.Redirect(w, r, "/login", http.StatusFound)
 		return
 	}
 
-	postID, _ := strconv.Atoi(vars["postID"])
-
+	postID, err := strconv.Atoi(vars["postID"])
+	if err != nil {
+		log.Error().Err(err).Msg("Can't convert postID to string")
+		return
+	}
 	post, postExists := DB.Post(int64(postID))
 	if !postExists {
-		http.Redirect(w, r, "/", 302)
+		http.Redirect(w, r, "/", http.StatusFound)
 		return
 	}
 
 	if !(user.Admin || post.Poster == user.Username) {
-		http.Redirect(w, r, "/", 302)
+		http.Redirect(w, r, "/", http.StatusFound)
 		return
 	}
 
@@ -53,5 +57,5 @@ func EditPostHandler(w http.ResponseWriter, r *http.Request) {
 
 	DB.EditPost(int64(postID), post)
 
-	http.Redirect(w, r, "/view/"+vars["postID"], 302)
+	http.Redirect(w, r, "/view/"+vars["postID"], http.StatusFound)
 }

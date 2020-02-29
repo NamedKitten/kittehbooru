@@ -20,26 +20,25 @@ func RegisterPageHandler(w http.ResponseWriter, r *http.Request) {
 
 func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	if !DB.SetupCompleted {
-		http.Redirect(w, r, "/setup", 302)
+		http.Redirect(w, r, "/setup", http.StatusFound)
 		return
 	}
 	err := r.ParseForm()
 	if err != nil {
 		log.Error().Err(err).Msg("Parse Form")
-		renderError(w, "PARSE_FORM_ERR", http.StatusBadRequest)
 		return
 	}
 	username := r.FormValue("username")
 	password := r.FormValue("password")
 
 	if !DB.VerifyRecaptcha(r.FormValue("recaptchaResponse")) {
-		http.Redirect(w, r, "/register", 302)
+		http.Redirect(w, r, "/register", http.StatusFound)
 		return
 	}
 
 	_, exist := DB.User(username)
 	if exist {
-		http.Redirect(w, r, "/register", 302)
+		http.Redirect(w, r, "/register", http.StatusFound)
 		return
 	}
 	u := types.User{
@@ -52,7 +51,6 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	err = DB.SetPassword(username, password)
 	if err != nil {
 		log.Error().Err(err).Msg("Register Password")
-		renderError(w, "SET_PASS_ERR", http.StatusBadRequest)
 		return
 	}
 	log.Info().Str("username", username).Msg("Register")
@@ -61,5 +59,5 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 		Value:   DB.Sessions.CreateSession(username),
 		Expires: time.Now().Add(3 * time.Hour),
 	})
-	http.Redirect(w, r, "/", 302)
+	http.Redirect(w, r, "/", http.StatusFound)
 }

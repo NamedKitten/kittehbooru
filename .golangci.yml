@@ -1,3 +1,16 @@
+linters-settings:
+  dupl:
+    threshold: 100
+  errcheck:
+    check-type-assertions: true
+    check-blank: true
+  govet:
+    check-shadowing: true
+  golint:
+    min-confidence: 0
+  gocyclo:
+    min-complecity: 10
+
 linters:
   enable:
   - gosimple
@@ -14,3 +27,4 @@ linters:
   - prealloc
   - unconvert
   - misspell
+  - dupl

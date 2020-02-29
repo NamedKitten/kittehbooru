@@ -66,11 +66,15 @@ func createThumbnail(post types.Post, ext string, size string) string {
 		return "frontend/img/flash.jpg"
 	} else if strings.HasPrefix(post.MimeType, "video/") {
 		if DB.Settings.VideoThumbnails {
-			tmpFile, _ := ioutil.TempFile("", "video_thumbnail_")
+			tmpFile, err := ioutil.TempFile("", "video_thumbnail_")
+			if err != nil {
+				log.Error().Err(err).Msg("Can't create temp file")
+				return "frontend/img/video.png"
+			}
 			contentFilename = tmpFile.Name()
 			tmpFile.Close()
 			defer os.Remove(tmpFile.Name())
-			err := exec.Command("ffmpegthumbnailer", "-c", "png", "-i", originalFilename, "-o", tmpFile.Name()).Run()
+			err = exec.Command("ffmpegthumbnailer", "-c", "png", "-i", originalFilename, "-o", tmpFile.Name()).Run()
 			if err != nil {
 				contentFilename = "frontend/img/video.png"
 			}
@@ -79,11 +83,15 @@ func createThumbnail(post types.Post, ext string, size string) string {
 		}
 	} else if post.FileExtension == "pdf" {
 		if DB.Settings.PDFThumbnails {
-			tmpFile, _ := ioutil.TempFile("", "pdf_thumbnail_")
+			tmpFile, err := ioutil.TempFile("", "pdf_thumbnail_")
+			if err != nil {
+				log.Error().Err(err).Msg("Can't create temp file")
+				return "frontend/img/pdf.jpg"
+			}
 			contentFilename = tmpFile.Name()
 			tmpFile.Close()
 			defer os.Remove(tmpFile.Name())
-			err := exec.Command("convert", "-format", "png", "-thumbnail", "x300", "-background", "white", "-alpha", "remove", originalFilename+"[0]", contentFilename).Run()
+			err = exec.Command("convert", "-format", "png", "-thumbnail", "x300", "-background", "white", "-alpha", "remove", originalFilename+"[0]", contentFilename).Run()
 			if err != nil {
 				contentFilename = "frontend/img/pdf.jpg"
 			}

@@ -18,7 +18,7 @@ type UserResultsTemplate struct {
 
 func UserHandler(w http.ResponseWriter, r *http.Request) {
 	if !DB.SetupCompleted {
-		http.Redirect(w, r, "/setup", 302)
+		http.Redirect(w, r, "/setup", http.StatusFound)
 		return
 	}
 	vars := mux.Vars(r)

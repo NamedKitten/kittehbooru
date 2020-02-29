@@ -13,7 +13,7 @@ import (
 // setupPageHandler takes you to the setup page for initial setup.
 func SetupPageHandler(w http.ResponseWriter, r *http.Request) {
 	if DB.SetupCompleted {
-		http.Redirect(w, r, "/", 302)
+		http.Redirect(w, r, "/", http.StatusFound)
 		return
 	}
 	err := templates.RenderTemplate(w, "setup.html", templates.T{Translator: i18n.GetTranslator(r)})
@@ -28,13 +28,12 @@ func formValueToBool(val string) bool {
 
 func SetupHandler(w http.ResponseWriter, r *http.Request) {
 	if DB.SetupCompleted {
-		http.Redirect(w, r, "/", 302)
+		http.Redirect(w, r, "/", http.StatusFound)
 		return
 	}
 	err := r.ParseForm()
 	if err != nil {
 		log.Error().Err(err).Msg("Parse Form")
-		renderError(w, "PARSE_FORM_ERR", http.StatusBadRequest)
 		return
 	}
 	username := r.FormValue("adminUsername")
@@ -54,7 +53,6 @@ func SetupHandler(w http.ResponseWriter, r *http.Request) {
 	err = DB.SetPassword(username, password)
 	if err != nil {
 		log.Error().Err(err).Msg("Setup Password")
-		renderError(w, "SET_PASS_ERR", http.StatusBadRequest)
 		return
 	}
 
@@ -74,5 +72,5 @@ func SetupHandler(w http.ResponseWriter, r *http.Request) {
 		Value:   DB.Sessions.CreateSession(username),
 		Expires: time.Now().Add(3 * time.Hour),
 	})
-	http.Redirect(w, r, "/", 302)
+	http.Redirect(w, r, "/", http.StatusFound)
 }

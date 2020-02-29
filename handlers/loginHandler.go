@@ -19,12 +19,12 @@ Translator: i18n.GetTranslator(r),
 // LoginPageHandler takes you to the login page or the root page if you are already logged in.
 func LoginPageHandler(w http.ResponseWriter, r *http.Request) {
 	if !DB.SetupCompleted {
-		http.Redirect(w, r, "/setup", 302)
+		http.Redirect(w, r, "/setup", http.StatusFound)
 		return
 	}
 	_, loggedIn := DB.CheckForLoggedInUser(r)
 	if loggedIn {
-		http.Redirect(w, r, "/", 302)
+		http.Redirect(w, r, "/", http.StatusFound)
 		return
 	}
 	err := templates.RenderTemplate(w, "login.html", templates.T{Translator: i18n.GetTranslator(r)})
@@ -39,7 +39,6 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
 		log.Error().Err(err).Msg("Parse Form")
-		renderError(w, "PARSE_FORM_ERR", http.StatusBadRequest)
 		return
 	}
 	username := r.FormValue("username")
@@ -57,7 +56,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 				Value:   DB.Sessions.CreateSession(username),
 				Expires: time.Now().Add(2 * time.Hour),
 			})
-			http.Redirect(w, r, "/", 302)
+			http.Redirect(w, r, "/", http.StatusFound)
 			return
 		} else {
 			log.Info().Str("username", username).Msg("Invalid Password")

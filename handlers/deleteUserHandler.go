@@ -15,7 +15,7 @@ type DeleteUserTemplate struct {
 func DeleteUserPageHandler(w http.ResponseWriter, r *http.Request) {
 	user, loggedIn := DB.CheckForLoggedInUser(r)
 	if !loggedIn {
-		http.Redirect(w, r, "/login", 302)
+		http.Redirect(w, r, "/login", http.StatusFound)
 		return
 	}
 
@@ -36,12 +36,12 @@ func DeleteUserPageHandler(w http.ResponseWriter, r *http.Request) {
 func DeleteUserHandler(w http.ResponseWriter, r *http.Request) {
 	user, loggedIn := DB.CheckForLoggedInUser(r)
 	if !loggedIn {
-		http.Redirect(w, r, "/login", 302)
+		http.Redirect(w, r, "/login", http.StatusFound)
 		return
 	}
 
 	if user.Owner {
-		http.Redirect(w, r, "/", 302)
+		http.Redirect(w, r, "/", http.StatusFound)
 		return
 	}
 	log.Info().Str("username", user.Username).Msg("Account Deletion")
@@ -49,9 +49,8 @@ func DeleteUserHandler(w http.ResponseWriter, r *http.Request) {
 	err := DB.DeleteUser(user.Username)
 	if err != nil {
 		log.Error().Err(err).Msg("Delete User")
-		renderError(w, "DELETE_USER_ERR", http.StatusBadRequest)
 		return
 	}
 
-	http.Redirect(w, r, "/", 302)
+	http.Redirect(w, r, "/", http.StatusFound)
 }

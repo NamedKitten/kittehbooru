@@ -13,25 +13,24 @@ func EditUserHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	loggedInUser, loggedIn := DB.CheckForLoggedInUser(r)
 	if !loggedIn {
-		http.Redirect(w, r, "/login", 302)
+		http.Redirect(w, r, "/login", http.StatusFound)
 		return
 	}
 
 	user, exist := DB.User(vars["userID"])
 	if !exist {
-		http.Redirect(w, r, "/", 302)
+		http.Redirect(w, r, "/", http.StatusFound)
 		return
 	}
 
 	if !(user.Admin || loggedInUser.Username == user.Username) {
-		http.Redirect(w, r, "/", 302)
+		http.Redirect(w, r, "/", http.StatusFound)
 		return
 	}
-
-	err := r.ParseForm()
+	var err error
+	err = r.ParseForm()
 	if err != nil {
 		log.Error().Err(err).Msg("Parse Form")
-		renderError(w, "PARSE_FORM_ERR", http.StatusBadRequest)
 		return
 	}
 	description := r.PostFormValue("description")
@@ -44,27 +43,28 @@ func EditUserHandler(w http.ResponseWriter, r *http.Request) {
 		passwordPrevious := r.PostFormValue("passwordPrevious")
 		log.Error().Msg(passwordPrevious)
 		if !DB.CheckPassword(user.Username, passwordPrevious) {
-			renderError(w, "PASSWORD_INCORRECT", http.StatusBadRequest)
 			return
 		}
 
 		passwordConfirm := r.PostFormValue("passwordConfirm")
 		if password != passwordConfirm {
-			renderError(w, "PASSWORD_MISMATCH", http.StatusBadRequest)
 			return
 		}
 
 		err = DB.SetPassword(user.Username, password)
 		if err != nil {
 			log.Error().Err(err).Msg("Set Password")
-			renderError(w, "SET_PASSWORD_ERR", http.StatusBadRequest)
 			return
 		}
 	}
 
 	avatarID := r.PostFormValue("avatarID")
 	if !(len(avatarID) == 0) {
-		avatarIDInt, _ := strconv.Atoi(avatarID)
+		avatarIDInt, aerr := strconv.Atoi(avatarID)
+		if aerr != nil {
+			log.Error().Err(aerr).Msg("Can't convert avatarID to string")
+			return
+		}
 		user.AvatarID = int64(avatarIDInt)
 	}
 
@@ -74,5 +74,5 @@ func EditUserHandler(w http.ResponseWriter, r *http.Request) {
 		renderError(w, "EDIT_USER_ERR", http.StatusBadRequest)
 		return
 	}
-	http.Redirect(w, r, "/user/"+vars["userID"], 302)
+	http.Redirect(w, r, "/user/"+vars["userID"], http.StatusFound)
 }

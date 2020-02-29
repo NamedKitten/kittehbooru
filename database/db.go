@@ -112,7 +112,11 @@ func (db *DB) init() {
 		log.Warn().Msg("You need to go to /setup in web browser to setup this imageboard.")
 	}
 	if db.Settings.ReCaptcha {
-		captcha, _ = recaptcha.NewReCAPTCHA(db.Settings.ReCaptchaPrivkey, recaptcha.V3, 10*time.Second)
+		captcha, err = recaptcha.NewReCAPTCHA(db.Settings.ReCaptchaPrivkey, recaptcha.V3, 10*time.Second)
+		if err != nil {
+			log.Error().Err(err).Msg("Can't init ReCAPTCHA")
+			panic(err)
+		}
 	}
 
 	go db.SearchCache.Start()
@@ -130,7 +134,11 @@ func LoadDB() *DB {
 			panic(err)
 		}
 	}
-	data, _ := ioutil.ReadFile("db.json")
+	data, err := ioutil.ReadFile("db.json")
+	if err != nil {
+		log.Error().Err(err).Msg("Can't read DB")
+	}
+
 	err = json.Unmarshal(data, &db)
 	if err != nil {
 		log.Error().Err(err).Msg("Can't unmarshal DB")
@@ -303,7 +311,11 @@ func (db *DB) AddPost(post types.Post) error {
 		} else {
 			posts = append(posts, post.PostID)
 		}
-		x, _ := json.Marshal(posts)
+		x, err := json.Marshal(posts)
+		if err != nil {
+			log.Error().Err(err).Msg("AddPost can't marshal posts list")
+			return err
+		}
 
 		_, err = db.sqldb.Exec(`INSERT OR REPLACE INTO "tags"("tag", "posts") VALUES (?, ?);`, tag, string(x))
 		if err != nil {
@@ -356,7 +368,11 @@ func (db *DB) DeletePost(postID int64) error {
 		}
 
 		posts = utils.RemoveFromSlice(posts, postID)
-		x, _ := json.Marshal(newPosts)
+		x, err := json.Marshal(newPosts)
+		if err != nil {
+			log.Error().Err(err).Msg("DeletePost can't unmarshal posts list")
+			return err
+		}
 		_, err = db.sqldb.Exec(`INSERT OR REPLACE INTO "tags"("tag", "posts") VALUES (?, ?);`, tag, string(x))
 		if err != nil {
 			log.Warn().Err(err).Msg("AddPost Tags can't execute insert tags statement")

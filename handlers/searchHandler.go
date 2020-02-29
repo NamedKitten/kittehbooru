@@ -38,7 +38,7 @@ type SearchResultsTemplate struct {
 // of a search query.
 func SearchHandler(w http.ResponseWriter, r *http.Request) {
 	if !DB.SetupCompleted {
-		http.Redirect(w, r, "/setup", 302)
+		http.Redirect(w, r, "/setup", http.StatusFound)
 		return
 	}
 	user, loggedIn := DB.CheckForLoggedInUser(r)
@@ -51,7 +51,11 @@ func SearchHandler(w http.ResponseWriter, r *http.Request) {
 	if len(pageStr) == 0 {
 		pageStr = "0"
 	}
-	page, _ := strconv.Atoi(pageStr)
+	page, err := strconv.Atoi(pageStr)
+	if err != nil {
+		log.Error().Err(err).Msg("Can't convert pageStr to string")
+		return
+	}
 	matchingPosts := DB.GetSearchPage(tags, page)
 	var prevPage int
 	if page <= 0 {
@@ -59,7 +63,11 @@ func SearchHandler(w http.ResponseWriter, r *http.Request) {
 	} else {
 		prevPage = page - 1
 	}
-	query, _ := url.ParseQuery(r.URL.RawQuery)
+	query, err := url.ParseQuery(r.URL.RawQuery)
+	if err != nil {
+		log.Error().Err(err).Msg("Can't parse query")
+		return
+	}
 	query.Set("page", strconv.Itoa(page+1))
 	nextLink := "/search?" + query.Encode()
 	query.Set("page", strconv.Itoa(prevPage))
@@ -81,10 +89,9 @@ func SearchHandler(w http.ResponseWriter, r *http.Request) {
 		},
 	}
 
-	err := templates.RenderTemplate(w, "search.html", searchResults)
+	err = templates.RenderTemplate(w, "search.html", searchResults)
 	if err != nil {
 		log.Error().Err(err).Msg("Render Search")
-		renderError(w, "SEARCH_RENDER_ERR", http.StatusBadRequest)
 		return
 	}
 }

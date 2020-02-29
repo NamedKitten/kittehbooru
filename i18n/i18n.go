@@ -15,26 +15,28 @@ var bundle *gi18n.Bundle
 func init() {
 	bundle = gi18n.NewBundle(language.English)
 	bundle.RegisterUnmarshalFunc("toml", toml.Unmarshal)
-	w, _ := fsnotify.NewWatcher()
-	err := w.Add("i18n/translations")
+	w, err := fsnotify.NewWatcher()
 	if err != nil {
-		log.Error().Err(err).Msg("Can't auto reload translations")
+		log.Error().Err(err).Msg("Can't start translation watcher")
 	} else {
-		go func() {
-			for {
-				<-w.Events
-				log.Info().Msg("Reloading Translations")
-				bundle.MustLoadMessageFile("i18n/translations/active.en.toml")
-				bundle.MustLoadMessageFile("i18n/translations/active.sv.toml")
-				bundle.MustLoadMessageFile("i18n/translations/active.fr.toml")
-
-			}
-		}()
+		err := w.Add("i18n/translations")
+		if err != nil {
+			log.Error().Err(err).Msg("Can't auto reload translations")
+		} else {
+			go func() {
+				for {
+					<-w.Events
+					log.Info().Msg("Reloading Translations")
+					bundle.MustLoadMessageFile("i18n/translations/active.en.toml")
+					bundle.MustLoadMessageFile("i18n/translations/active.sv.toml")
+					bundle.MustLoadMessageFile("i18n/translations/active.fr.toml")
+				}
+			}()
+		}
 	}
 	bundle.MustLoadMessageFile("i18n/translations/active.en.toml")
 	bundle.MustLoadMessageFile("i18n/translations/active.sv.toml")
 	bundle.MustLoadMessageFile("i18n/translations/active.fr.toml")
-
 }
 
 type Translator struct {

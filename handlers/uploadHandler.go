@@ -44,7 +44,7 @@ const maxUploadSize = 64 * 1024 * 1024
 func UploadHandler(w http.ResponseWriter, r *http.Request) {
 	user, loggedIn := DB.CheckForLoggedInUser(r)
 	if !loggedIn {
-		http.Redirect(w, r, "/login", 302)
+		http.Redirect(w, r, "/login", http.StatusFound)
 		return
 	}
 	r.Body = http.MaxBytesReader(w, r.Body, maxUploadSize)
@@ -64,7 +64,12 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 		renderError(w, "INVALID_FILE", http.StatusBadRequest)
 		return
 	}
-	fileType, _ := filetype.Match(fileBytes)
+	fileType, err := filetype.Match(fileBytes)
+	if err != nil {
+		log.Error().Err(err).Msg("Can't match fileType")
+		renderError(w, "INVALID_FILE", http.StatusBadRequest)
+		return
+	}
 
 	validType := false
 	for _, t := range whitelistedTypes {
@@ -78,7 +83,10 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	node, _ := snowflake.NewNode(1)
+	node, err := snowflake.NewNode(1)
+	if err != nil {
+		panic(err)
+	}
 	postID := node.Generate()
 	postIDInt64 := postID.Int64()
 	fileName := strconv.Itoa(int(postIDInt64))
@@ -93,7 +101,7 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer newFile.Close()
-	if _, err := newFile.Write(fileBytes); err != nil || newFile.Close() != nil {
+	if _, err = newFile.Write(fileBytes); err != nil || newFile.Close() != nil {
 		log.Error().Err(err).Msg("File Write")
 		renderError(w, "CANT_WRITE_FILE", http.StatusInternalServerError)
 		return
@@ -131,14 +139,14 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 		renderError(w, "POST_CREATE_ERR", http.StatusBadRequest)
 		return
 	}
-	http.Redirect(w, r, "/view/"+fileName, 302)
+	http.Redirect(w, r, "/view/"+fileName, http.StatusFound)
 }
 
 // uploadPageHandler is the endpoint where the file upload page is served.
 func UploadPageHandler(w http.ResponseWriter, r *http.Request) {
 	user, loggedIn := DB.CheckForLoggedInUser(r)
 	if !loggedIn {
-		http.Redirect(w, r, "/login", 302)
+		http.Redirect(w, r, "/login", http.StatusFound)
 		return
 	}
 	err := templates.RenderTemplate(w, "upload.html", templates.T{
