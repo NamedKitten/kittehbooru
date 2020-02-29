@@ -50,7 +50,7 @@ func EditPostHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	newTags = append(newTags, "user:"+user.Username)
+	newTags = append(newTags, "user:"+post.Poster)
 
 	post.Tags = newTags
 	post.Description = r.PostFormValue("description")

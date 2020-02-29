@@ -17,62 +17,35 @@
   <body>
     {{ template "header.html" . }}
 
-    <center>
       <div class="container">
 
-        <div class="card">
-          {{ template "viewPostInclude.html" .Post }}
+ 
+          <div class="row">
+            <div class="col-md-9 order-sm-2">
+              {{ template "viewPostInclude.html" .Post }}
+              <div class="form-label-group">
+                <textarea class="form-control" id="description" name="description"
+                  rows="6" readonly>{{ nlhtml .Post.Description }}</textarea>
+              </div>
+            </div>
+            <div class="col-md-3 order-sm-1" >
 
-          <div class="card-header">
-            <ul class="nav nav-tabs card-header-tabs pull-right infoSection" id="myTab" role="tablist">
-              <li class="nav-item">
-                <a class="nav-link active" id="info-tab" data-toggle="tab" href="#info" role="tab" aria-controls="info"
-                  aria-selected="true">{{ .Translator.Localize "Info" }}</a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" id="tags-tab" data-toggle="tab" href="#tags" role="tab" aria-controls="tags"
-                  aria-selected="false">{{ .Translator.Localize "Tags" }}</a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" id="fileinfo-tab" data-toggle="tab" href="#fileinfo" role="tab"
-                  aria-controls="fileinfo" aria-selected="false">{{ .Translator.Localize "ExtraInfo" }}</a>
-              </li>
-              {{ if .IsAbleToEdit }}
-              <li class="nav-item">
-                <a class="nav-link" id="settings-tab" data-toggle="tab" href="#settings" role="tab"
-                  aria-controls="settings" aria-selected="false">{{ .Translator.Localize "Settings" }}</a>
-              </li>
-              {{ end }}
-            </ul>
-          </div>
-          <div class="card-body">
-            <div class="tab-content" id="myTabContent">
-              <div class="tab-pane fade show active" id="info" role="tabpanel" aria-labelledby="info-tab">
-                {{ nl2br .Post.Description }}
-                {{ if .LoggedIn }}
-                <br>
-                <br>
-                <form class="form-signin" method="post" action="/editUser/{{ .LoggedInUser.Username }}">
-                  <input type="hidden" name="avatarID" value="{{ .Post.PostID }}">
-                  <button class="btn btn-lg btn-success btn-block text-uppercase" type="submit">{{ .Translator.Localize "SetAsAvatar" }}</button>
-                </form>
-                {{ end }}
+              <h5>Tags</h5>
+              <div style="margin-left: 1em">
+                {{ range .Post.Tags }}{{if not (eq . "")}}<a href="/search?tags={{ html .}}">{{ html .}}</a><br>{{end}}{{end}}
               </div>
-              <div class="tab-pane fade" id="tags" role="tabpanel" aria-labelledby="tags-tab">
-                {{ range .Post.Tags }} <a class="text-success" href="/search?page=0&tags={{ html . }}">{{ html . }}</a>
-                {{end }}
-              </div>
-              <div class="tab-pane fade" id="fileinfo" role="tabpanel" aria-labelledby="fileinfo-tab">
+              <h5>{{ .Translator.Localize "ExtraInfo" }}</h5>
+              <div style="margin-left: 1em">
                 {{ $userNameData := newStringInterfaceMap }}
-                {{ $userNameData = addToStringInterfaceMap $userNameData "Name" .Author.Username }}
-                <b><a class="text-success"
-                href="/user/{{ html .Author.Username }}">{{ .Translator.LocalizeWithData "UploadedBy" $userNameData }}</a></b><br>
-                <b><a class="text-success"
-                  href="/content/{{ .Post.Filename }}.{{ .Post.FileExtension }}">{{ .Translator.Localize "Download" }}</a></b><br>
-              </div>
+                {{ $un := html .Author.Username }}
+                {{ $userNameData = addToStringInterfaceMap $userNameData "Name" $un }}
+                <a href="/user/{{ html .Author.Username }}">{{ .Translator.LocalizeWithData "UploadedBy" $userNameData }}</a><br>
 
+              </div>
               {{ if .IsAbleToEdit }}
-              <div class="tab-pane fade" id="settings" role="tabpanel" aria-labelledby="settings-tab">
+              <h5>{{ .Translator.Localize "Edit" }}</h5>
+              <div style="margin-left: 1em">
+             
                 <form enctype="multipart/form-data" class="form-signin" method="post"
                   action="/editPost/{{ .Post.PostID }}">
                   <div class="form-label-group">
@@ -95,11 +68,19 @@
                 </form>
               </div>
               {{ end }}
+              <br>
+              {{ if .LoggedIn }}
+              <form class="form-signin" method="post" action="/editUser/{{ .LoggedInUser.Username }}">
+                <input type="hidden" name="avatarID" value="{{ .Post.PostID }}">
+                <button class="btn btn-lg btn-success btn-block text-uppercase" type="submit">{{ .Translator.Localize "SetAsAvatar" }}</button>
+              </form>
+              {{ end }}
+
             </div>
           </div>
-        </div>
+
+
       </div>
-    </center>
   </body>
 
 </html>

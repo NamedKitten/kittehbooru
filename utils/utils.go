@@ -43,6 +43,9 @@ func TagsListToString(tags []string) string {
 
 func Paginate(x []int64, page int, pageSize int) []int64 {
 	skip := pageSize * page
+	if skip <= 0 {
+		skip = 0
+	}
 	numItems := len(x)
 	limit := func() int {
 

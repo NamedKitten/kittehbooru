@@ -8,36 +8,7 @@
 
       .card-img-top {
         width: 100%;
-        object-fit: contain;
+        float: left;
       }
 
 
-      @media (min-width: 10px) {
-        .card-img-top {
-          max-height: 90vw;
-        }
-      }
-
-      @media (min-width: 576px) {
-        .card-img-top {
-          max-height: 80vw;
-        }
-      }
-
-      @media (min-width: 768px) {
-        .card-img-top {
-          max-height: 70vw;
-        }
-      }
-
-      @media (min-width: 992px) {
-        .card-img-top {
-          max-height: 60vw;
-        }
-      }
-
-      @media (min-width: 992px) {
-        .card-img-top {
-          max-height: 70vw;
-        }
-      }

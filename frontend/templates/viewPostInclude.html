@@ -19,7 +19,7 @@
     <source src="/content/{{ .Filename }}.{{ .FileExtension }}">
   </audio> 
 {{ else if startsWith .MimeType "image"  }}
-<img class="card-img-top" src="/content/{{ .Filename }}.{{ .FileExtension }}" height="70%">
+<img class="card-img-top" src="/content/{{ .Filename }}.{{ .FileExtension }}">
 {{ else  }}
 {{ .Translator.Localize "CantPreviewPost" }}
 <a href="/content/{{ .Filename }}.{{ .FileExtension }}">{{ .Translator.Localize "ClickHereToDownloadInstead" }}</a>

@@ -44,23 +44,27 @@ const maxUploadSize = 64 * 1024 * 1024
 func UploadHandler(w http.ResponseWriter, r *http.Request) {
 	user, loggedIn := DB.CheckForLoggedInUser(r)
 	if !loggedIn {
+		log.Error().Msg("Not Logged In")
 		http.Redirect(w, r, "/login", http.StatusFound)
 		return
 	}
 	r.Body = http.MaxBytesReader(w, r.Body, maxUploadSize)
 	if err := r.ParseMultipartForm(maxUploadSize); err != nil {
+		log.Error().Err(err).Msg("File Too Big")
 		renderError(w, "FILE_TOO_BIG", http.StatusBadRequest)
 		return
 	}
 
 	file, _, err := r.FormFile("uploadFile")
 	if err != nil {
+		log.Error().Err(err).Msg("File can't be found in form.")
 		renderError(w, "INVALID_FILE", http.StatusBadRequest)
 		return
 	}
 	defer file.Close()
 	fileBytes, err := ioutil.ReadAll(file)
 	if err != nil {
+		log.Error().Err(err).Msg("Can't read file")
 		renderError(w, "INVALID_FILE", http.StatusBadRequest)
 		return
 	}
@@ -70,10 +74,12 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 		renderError(w, "INVALID_FILE", http.StatusBadRequest)
 		return
 	}
+	mimeType := fileType.MIME.Value
+	extension := fileType.Extension
 
 	validType := false
 	for _, t := range whitelistedTypes {
-		if t == fileType.MIME.Value {
+		if t == mimeType {
 			validType = true
 		}
 	}
@@ -93,7 +99,9 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 	tags := utils.SplitTagsString(r.PostFormValue("tags"))
 	description := r.PostFormValue("description")
 
-	newPath := filepath.Join("content/", fileName+"."+fileType.Extension)
+
+
+	newPath := filepath.Join("content/", fileName+"."+extension)
 	newFile, err := os.Create(newPath)
 	if err != nil {
 		log.Error().Err(err).Msg("File Create")
@@ -123,13 +131,13 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 	p := types.Post{
 		PostID:        postIDInt64,
 		Filename:      fileName,
-		FileExtension: strings.TrimPrefix(fileType.Extension, "."),
+		FileExtension: strings.TrimPrefix(extension, "."),
 		Tags:          tags,
 		Description:   description,
 		Poster:        user.Username,
 		CreatedAt:     postID.Time(),
 		Sha256:        sha256sum,
-		MimeType:      fileType.MIME.Value,
+		MimeType:      mimeType,
 	}
 	go createThumbnails(p)
 

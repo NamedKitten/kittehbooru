@@ -31,6 +31,10 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	username := r.FormValue("username")
 	password := r.FormValue("password")
 
+	if (len(username) <= 0) || (len(password) <= 0) {
+		http.Redirect(w, r, "/register", http.StatusFound)
+	}
+
 	if !DB.VerifyRecaptcha(r.FormValue("recaptchaResponse")) {
 		http.Redirect(w, r, "/register", http.StatusFound)
 		return

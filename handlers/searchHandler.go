@@ -56,6 +56,9 @@ func SearchHandler(w http.ResponseWriter, r *http.Request) {
 		log.Error().Err(err).Msg("Can't convert pageStr to string")
 		return
 	}
+	if page <= 0 {
+		page = 0
+	}
 	matchingPosts := DB.GetSearchPage(tags, page)
 	var prevPage int
 	if page <= 0 {

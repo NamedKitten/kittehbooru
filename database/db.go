@@ -560,8 +560,10 @@ func (db *DB) CheckForLoggedInUser(r *http.Request) (types.User, bool) {
 	c, err := r.Cookie("sessionToken")
 	if err == nil {
 		if sess, ok := db.Sessions.CheckToken(c.Value); ok {
-			u, _ := db.User(sess.Username)
-			return u, true
+			u, exists := db.User(sess.Username)
+			if exists  {
+				return u, true
+			}
 		}
 	}
 	return types.User{}, false
