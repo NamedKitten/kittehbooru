@@ -49,11 +49,16 @@
     <div class="container-fluid">
       <div id="grid" class="msc row">
         {{range .Results }}
-        <div class="grid__elem grid__brick mt-1 col-12 col-xs-12 col-md-6 col-xl-4">
+        <div class="grid__elem grid__brick mt-1 col-12 col-sm-6 col-md-4 col-xl-3">
           <a href="/view/{{ .PostID }}">
             <picture>
-              <source srcset="/thumbnail/{{ .PostID }}.webp" width="100%">
-              <img src="/thumbnail/{{ .PostID }}.jpg" width="100%">
+              <source media="(max-width: 400px)" srcset="/thumbnail/{{ .PostID }}-small.webp" type="image/webp" width="100%">
+              <source media="(max-width: 800px)" srcset="/thumbnail/{{ .PostID }}-medium.webp" type="image/webp" width="100%">
+              <source media="(min-width: 800px)" srcset="/thumbnail/{{ .PostID }}-large.webp" type="image/webp" width="100%">
+              <source media="(max-width: 400px)" srcset="/thumbnail/{{ .PostID }}-small.jpg" type="image/jpeg" width="100%">
+              <source media="(max-width: 800px)" srcset="/thumbnail/{{ .PostID }}-medium.jpg" type="image/jpeg" width="100%">
+              <source media="(min-width: 800px)" srcset="/thumbnail/{{ .PostID }}-large.jpg" type="image/jpeg" width="100%">
+              <img src="/thumbnail/{{ .PostID }}-large.jpg" width="100%">
             </picture> 
           </a>
         </div>

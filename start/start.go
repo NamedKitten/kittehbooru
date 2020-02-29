@@ -60,7 +60,7 @@ func Start() {
 	r.PathPrefix("/content/").Handler(cacheMiddleware(http.StripPrefix("/content/", http.FileServer(http.Dir("content")))))
 	r.PathPrefix("/css/").Handler(cacheMiddleware(http.StripPrefix("/css/", http.FileServer(http.Dir("frontend/css")))))
 	r.PathPrefix("/js/").Handler(cacheMiddleware(http.StripPrefix("/js/", http.FileServer(http.Dir("frontend/js")))))
-	r.HandleFunc("/thumbnail/{postID}.{ext}", handlers.ThumbnailHandler)
+	r.HandleFunc("/thumbnail/{postID}-{size}.{ext}", handlers.ThumbnailHandler)
 
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt)

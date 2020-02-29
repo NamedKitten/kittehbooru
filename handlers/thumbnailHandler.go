@@ -21,11 +21,47 @@ import (
 	"github.com/nfnt/resize"
 )
 
-func createThumbnail(post types.Post, ext string) string {
+func sizeToWidth(s string) int {
+	switch s {
+	case "small":
+		return 200
+	case "medium":
+		return 400
+	case "large":
+		return 800
+	default:
+		return 400
+	}
+}
+
+func sanitisedSize(s string) string {
+	switch s {
+	case "small":
+		return "small"
+	case "medium":
+		return "medium"
+	case "large":
+		return "large"
+	default:
+		return "large"
+	}
+}
+
+func createThumbnails(post types.Post) {
+	createThumbnail(post, "jpeg", "small")
+	createThumbnail(post, "jpeg", "medium")
+	createThumbnail(post, "jpeg", "large")
+	createThumbnail(post, "webp", "small")
+	createThumbnail(post, "webp", "medium")
+	createThumbnail(post, "webp", "large")
+}
+
+
+func createThumbnail(post types.Post, ext string, size string) string {
 	originalFilename := fmt.Sprintf("content/%s.%s", post.Filename, post.FileExtension)
 	// The file where the generated thumbnail is stored.
 	var contentFilename string
-	thumbnailFile := fmt.Sprintf("cache/%d.%s", post.PostID, ext)
+	thumbnailFile := fmt.Sprintf("cache/%d-%s.%s", post.PostID, size, ext)
 
 	if post.FileExtension == "swf" {
 		return "frontend/img/flash.jpg"
@@ -80,7 +116,7 @@ func createThumbnail(post types.Post, ext string) string {
 		return ""
 	}
 
-	resizedImage := resize.Resize(200, 0, image, resize.Lanczos3)
+	resizedImage := resize.Resize(uint(sizeToWidth(size)), 0, image, resize.Lanczos3)
 
 	if ext == "webp" {
 		err = webp.Encode(newCacheFile, resizedImage, &webp.Options{Quality: 70})
@@ -118,15 +154,17 @@ func ThumbnailHandler(w http.ResponseWriter, r *http.Request) {
 	post, ok := DB.Post(int64(postID))
 	var cacheFile *os.File
 
+	size := sanitisedSize(vars["size"])
+
 	var cacheFilename string
 	if !ok {
 		cacheFilename = "frontend/img/file-not-found.jpg"
 	} else {
-		cacheFilename = "cache/" + post.Filename
+		cacheFilename = "cache/" + fmt.Sprintf("cache/%d-%s.%s", post.PostID, size, ext)
 	}
 
 	if !fileExists(cacheFilename) {
-		cacheFilename = createThumbnail(post, ext)
+		cacheFilename = createThumbnail(post, ext, size)
 	}
 
 	// Return early if no cache file could be created.
