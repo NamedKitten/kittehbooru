@@ -18,6 +18,7 @@ import (
 	"github.com/chai2010/webp"
 	"github.com/gorilla/mux"
 	"github.com/rs/zerolog/log"
+	"github.com/nfnt/resize"
 )
 
 func createThumbnail(post types.Post, ext string) string {
@@ -79,10 +80,12 @@ func createThumbnail(post types.Post, ext string) string {
 		return ""
 	}
 
+	resizedImage := resize.Resize(200, 0, image, resize.Lanczos3)
+
 	if ext == "webp" {
-		err = webp.Encode(newCacheFile, image, &webp.Options{Quality: 70})
+		err = webp.Encode(newCacheFile, resizedImage, &webp.Options{Quality: 70})
 	} else {
-		err = jpeg.Encode(newCacheFile, image, &jpeg.Options{Quality: 50})
+		err = jpeg.Encode(newCacheFile, resizedImage, &jpeg.Options{Quality: 50})
 	}
 
 	if err != nil {
