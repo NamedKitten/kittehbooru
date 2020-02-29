@@ -3,8 +3,8 @@ package handlers
 import (
 	"net/http"
 
-	templates "github.com/NamedKitten/kittehimageboard/template"
 	"github.com/NamedKitten/kittehimageboard/i18n"
+	templates "github.com/NamedKitten/kittehimageboard/template"
 	"github.com/rs/zerolog/log"
 )
 
@@ -23,7 +23,7 @@ func DeleteUserPageHandler(w http.ResponseWriter, r *http.Request) {
 		T: templates.T{
 			LoggedIn:     loggedIn,
 			LoggedInUser: user,
-			Translator: i18n.GetTranslator(r),
+			Translator:   i18n.GetTranslator(r),
 		},
 	}
 

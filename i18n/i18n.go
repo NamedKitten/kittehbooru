@@ -2,8 +2,10 @@ package i18n
 
 import (
 	"net/http"
+
 	"github.com/BurntSushi/toml"
 	gi18n "github.com/nicksnyder/go-i18n/v2/i18n"
+	"github.com/rs/zerolog/log"
 	"golang.org/x/text/language"
 	"gopkg.in/fsnotify.v1"
 )
@@ -11,25 +13,27 @@ import (
 var bundle *gi18n.Bundle
 
 func init() {
-	w, _ := fsnotify.NewWatcher()
-	w.Add("i18n/translations")
 	bundle = gi18n.NewBundle(language.English)
 	bundle.RegisterUnmarshalFunc("toml", toml.Unmarshal)
+	w, _ := fsnotify.NewWatcher()
+	err := w.Add("i18n/translations")
+	if err != nil {
+		log.Error().Err(err).Msg("Can't auto reload translations")
+	} else {
+		go func() {
+			for {
+				<-w.Events
+				log.Info().Msg("Reloading Translations")
+				bundle.MustLoadMessageFile("i18n/translations/active.en.toml")
+				bundle.MustLoadMessageFile("i18n/translations/active.sv.toml")
+				bundle.MustLoadMessageFile("i18n/translations/active.fr.toml")
+
+			}
+		}()
+	}
 	bundle.MustLoadMessageFile("i18n/translations/active.en.toml")
 	bundle.MustLoadMessageFile("i18n/translations/active.sv.toml")
-        bundle.MustLoadMessageFile("i18n/translations/active.fr.toml")
-
-	go func() {
-		for {
-			select {
-			case <-w.Events:
-				bundle.MustLoadMessageFile("i18n/translations/active.en.toml")
-                                bundle.MustLoadMessageFile("i18n/translations/active.sv.toml")
-				bundle.MustLoadMessageFile("i18n/translations/active.fr.toml")
-			}
-
-		}
-	}()
+	bundle.MustLoadMessageFile("i18n/translations/active.fr.toml")
 
 }
 
@@ -50,7 +54,7 @@ func (t *Translator) Localize(s string) string {
 }
 
 func (t *Translator) LocalizeWithData(s string, d map[string]interface{}) string {
-	return t.localizeFromConfig(&gi18n.LocalizeConfig{MessageID: s, TemplateData: d,})
+	return t.localizeFromConfig(&gi18n.LocalizeConfig{MessageID: s, TemplateData: d})
 }
 
 func GetTranslator(r *http.Request) *Translator {

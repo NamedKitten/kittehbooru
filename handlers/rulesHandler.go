@@ -3,9 +3,8 @@ package handlers
 import (
 	"net/http"
 
-	templates "github.com/NamedKitten/kittehimageboard/template"
 	"github.com/NamedKitten/kittehimageboard/i18n"
-
+	templates "github.com/NamedKitten/kittehimageboard/template"
 )
 
 type RulesTemplateData struct {
@@ -24,7 +23,7 @@ func RulesHandler(w http.ResponseWriter, r *http.Request) {
 		templates.T{
 			LoggedIn:     loggedIn,
 			LoggedInUser: user,
-			Translator: i18n.GetTranslator(r),
+			Translator:   i18n.GetTranslator(r),
 		},
 	}
 	err := templates.RenderTemplate(w, "rules.html", x)

@@ -59,7 +59,7 @@ func getTemplateFuncs() tmpl.FuncMap {
 		"newStringInterfaceMap": func() map[string]interface{} {
 			return make(map[string]interface{})
 		},
-		"addToStringInterfaceMap": func(d map[string]interface{}, s string, i interface{}) map[string]interface{}  {
+		"addToStringInterfaceMap": func(d map[string]interface{}, s string, i interface{}) map[string]interface{} {
 			d[s] = i
 			return d
 		},

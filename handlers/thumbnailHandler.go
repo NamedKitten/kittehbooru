@@ -17,8 +17,8 @@ import (
 	"github.com/NamedKitten/kittehimageboard/types"
 	"github.com/chai2010/webp"
 	"github.com/gorilla/mux"
-	"github.com/rs/zerolog/log"
 	"github.com/nfnt/resize"
+	"github.com/rs/zerolog/log"
 )
 
 func sizeToWidth(s string) int {
@@ -55,7 +55,6 @@ func createThumbnails(post types.Post) {
 	createThumbnail(post, "webp", "medium")
 	createThumbnail(post, "webp", "large")
 }
-
 
 func createThumbnail(post types.Post, ext string, size string) string {
 	originalFilename := fmt.Sprintf("content/%s.%s", post.Filename, post.FileExtension)

@@ -14,4 +14,3 @@ linters:
   - prealloc
   - unconvert
   - misspell
-  - gosec

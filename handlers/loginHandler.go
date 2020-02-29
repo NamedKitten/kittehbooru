@@ -4,11 +4,12 @@ import (
 	"net/http"
 	"time"
 
-	templates "github.com/NamedKitten/kittehimageboard/template"
 	"github.com/NamedKitten/kittehimageboard/i18n"
+	templates "github.com/NamedKitten/kittehimageboard/template"
 	"github.com/rs/zerolog/log"
 )
-/* 
+
+/*
 templates.T{Translator: i18n.GetTranslator(r),}
 Translator: i18n.GetTranslator(r),
 "github.com/NamedKitten/kittehimageboard/i18n"
@@ -26,7 +27,7 @@ func LoginPageHandler(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/", 302)
 		return
 	}
-	err := templates.RenderTemplate(w, "login.html", templates.T{Translator: i18n.GetTranslator(r),})
+	err := templates.RenderTemplate(w, "login.html", templates.T{Translator: i18n.GetTranslator(r)})
 	if err != nil {
 		panic(err)
 	}
