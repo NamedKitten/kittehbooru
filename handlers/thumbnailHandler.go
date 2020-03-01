@@ -109,6 +109,7 @@ func createThumbnail(post types.Post, ext string, size string) string {
 	contentFile, err := os.Open(contentFilename)
 	if err != nil {
 		log.Error().Err(err).Msg("Lost File?")
+		DB.DeletePost(post.PostID)
 		return ""
 	}
 

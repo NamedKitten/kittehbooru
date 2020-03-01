@@ -22,6 +22,7 @@ require (
 	github.com/h2non/go-is-svg v0.0.0-20160927212452-35e8c4b0612c
 	github.com/hqbobo/text2pic v0.0.0-20180823042751-2479e146d720
 	github.com/jondot/goweight v1.0.5 // indirect
+	github.com/json-iterator/go v1.1.9
 	github.com/jsummers/gobmp v0.0.0-20151104160322-e2ba15ffa76e // indirect
 	github.com/kr/pretty v0.2.0 // indirect
 	github.com/mattn/go-sqlite3 v2.0.2+incompatible
