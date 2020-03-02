@@ -9,7 +9,7 @@ import (
 
 type SearchCache struct {
 	cache map[string][]int64
-	lock  sync.Mutex
+	lock  sync.RWMutex
 	times map[string]int64
 }
 
@@ -39,7 +39,7 @@ func (c *SearchCache) Start() {
 		c.lock.Lock()
 		for tags := range c.cache {
 			val, ok := c.times[tags]
-			if !ok || (val <= time.Now().Add(time.Second).Unix()) {
+			if !ok || (val <= time.Now().Add(time.Minute).Unix()) {
 				log.Info().Msg(tags + " has expired, removing from cache.")
 				delete(c.cache, tags)
 				delete(c.times, tags)
