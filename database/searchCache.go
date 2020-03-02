@@ -10,13 +10,13 @@ import (
 type SearchCache struct {
 	cache map[string][]int64
 	lock  sync.RWMutex
-	times map[string]int64
+	times map[string]time.Time
 }
 
 func (c *SearchCache) init() {
 	if c.cache == nil {
 		c.cache = make(map[string][]int64)
-		c.times = make(map[string]int64)
+		c.times = make(map[string]time.Time)
 	}
 }
 
@@ -29,7 +29,7 @@ func (c *SearchCache) Get(tags string) ([]int64, bool) {
 func (c *SearchCache) Add(tags string, values []int64) {
 	c.lock.Lock()
 	c.cache[tags] = values
-	c.times[tags] = time.Now().Unix()
+	c.times[tags] = time.Now()
 	c.lock.Unlock()
 }
 
@@ -39,7 +39,7 @@ func (c *SearchCache) Start() {
 		c.lock.Lock()
 		for tags := range c.cache {
 			val, ok := c.times[tags]
-			if !ok || (val <= time.Now().Add(time.Minute).Unix()) {
+			if !ok || (time.Now().After(val.Add(time.Second * 5))) {
 				log.Info().Msg(tags + " has expired, removing from cache.")
 				delete(c.cache, tags)
 				delete(c.times, tags)
@@ -47,6 +47,6 @@ func (c *SearchCache) Start() {
 		}
 		c.lock.Unlock()
 
-		time.Sleep(time.Second * 2)
+		time.Sleep(time.Second * 1)
 	}
 }

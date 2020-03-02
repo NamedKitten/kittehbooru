@@ -57,6 +57,8 @@ func createThumbnails(post types.Post) {
 }
 
 func createThumbnail(post types.Post, ext string, size string) string {
+	log.Error().Msg("Creating Thumbnail")
+
 	originalFilename := fmt.Sprintf("content/%s.%s", post.Filename, post.FileExtension)
 	// The file where the generated thumbnail is stored.
 	var contentFilename string
@@ -168,7 +170,7 @@ func ThumbnailHandler(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		cacheFilename = "frontend/img/file-not-found.jpg"
 	} else {
-		cacheFilename = "cache/" + fmt.Sprintf("cache/%d-%s.%s", post.PostID, size, ext)
+		cacheFilename = fmt.Sprintf("cache/%d-%s.%s", post.PostID, size, ext)
 	}
 
 	if !fileExists(cacheFilename) {

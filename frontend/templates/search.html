@@ -22,7 +22,9 @@
       <center>
         <div class="row">
           <div class="col-md-3 mb-3">
-            <form action="{{ .PrevLink }}">
+            <form method="GET" action="/search">
+              <input type="hidden" name="page" value="{{ .Prev }}">
+              <input type="hidden" name="tags" value="{{ .Tags }}">
               <button class="btn btn-success btn-block" type="submit">{{ .Translator.Localize "PrevPage" }}</button>
             </form>
           </div>
@@ -37,9 +39,12 @@
                     style="border-width: 0px; border-top-left-radius: 0px; border-bottom-left-radius: 0px;">{{ .Translator.Localize "SearchButton" }}</button>
                 </div>
               </div>
+            </form>
           </div>
           <div class="col-md-3 mb-3">
-            <form action="{{ .NextLink }}">
+            <form action="/search">
+              <input type="hidden" name="page" value="{{ .Next }}">
+              <input type="hidden" name="tags" value="{{ .Tags }}">
               <button class="btn btn-success btn-block" type="submit">{{ .Translator.Localize "NextPage" }}</button>
             </form>
           </div>

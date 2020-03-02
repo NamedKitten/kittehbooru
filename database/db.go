@@ -516,7 +516,6 @@ func (db *DB) getPostsForTags(tags []string) []int64 {
 			}
 		}
 	}
-
 	return finalPostIDs
 
 }
@@ -524,16 +523,19 @@ func (db *DB) getPostsForTags(tags []string) []int64 {
 // cacheSearch searches for posts matching tags and returns a
 // array of post IDs matching those tags.
 func (db *DB) cacheSearch(searchTags []string) []int64 {
+	var result []int64
 	combinedTags := utils.TagsListToString(searchTags)
-
 	if val, ok := db.SearchCache.Get(combinedTags); ok {
-		return val
+		result = val
 	} else {
 		matching := db.getPostsForTags(searchTags)
-		sort.Slice(matching, func(i, j int) bool { return snowflake.ID(i).Time() < snowflake.ID(j).Time() })
-		db.SearchCache.Add(combinedTags, matching)
-		return matching
+		go db.SearchCache.Add(combinedTags, matching)
+		result = matching
 	}
+	sort.Slice(result, func(i, j int) bool {
+		return snowflake.ID(result[i]).Time() > snowflake.ID(result[j]).Time()
+	})
+	return result
 }
 
 // getSearchPage returns a paginated list of posts from a list of tags.
@@ -545,10 +547,6 @@ func (db *DB) GetSearchPage(searchTags []string, page int) []types.Post {
 		p, _ := db.Post(post)
 		matchingPosts[i] = p
 	}
-
-	sort.Slice(matchingPosts, func(i, j int) bool {
-		return snowflake.ID(matchingPosts[i].PostID).Time() > snowflake.ID(matchingPosts[j].PostID).Time()
-	})
 	return matchingPosts
 }
 

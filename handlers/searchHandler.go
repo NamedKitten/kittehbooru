@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"net/http"
-	"net/url"
 	"strconv"
 
 	"github.com/NamedKitten/kittehimageboard/i18n"
@@ -22,10 +21,10 @@ type SearchResultsTemplate struct {
 	Page int
 	// TotalPages is the total number of pages for a given search query
 	TotalPages int
-	// NextLink is the link that will take you to the next page.
-	NextLink string
-	// PrevLink is the link that will take you to the previous page.
-	PrevLink string
+	// Next is the next page
+	Next int
+	// Prev is the previous page
+	Prev int
 	// NumPosts is the total number of posts for a search query
 	NumPosts int
 	// Tags is the tags from the search query args, used to refill
@@ -56,9 +55,6 @@ func SearchHandler(w http.ResponseWriter, r *http.Request) {
 		log.Error().Err(err).Msg("Can't convert pageStr to string")
 		return
 	}
-	if page <= 0 {
-		page = 0
-	}
 	matchingPosts := DB.GetSearchPage(tags, page)
 	var prevPage int
 	if page <= 0 {
@@ -66,15 +62,6 @@ func SearchHandler(w http.ResponseWriter, r *http.Request) {
 	} else {
 		prevPage = page - 1
 	}
-	query, err := url.ParseQuery(r.URL.RawQuery)
-	if err != nil {
-		log.Error().Err(err).Msg("Can't parse query")
-		return
-	}
-	query.Set("page", strconv.Itoa(page+1))
-	nextLink := "/search?" + query.Encode()
-	query.Set("page", strconv.Itoa(prevPage))
-	prevLink := "/search?" + query.Encode()
 
 	searchResults := SearchResultsTemplate{
 		Results:    matchingPosts,
@@ -82,8 +69,8 @@ func SearchHandler(w http.ResponseWriter, r *http.Request) {
 		Page:       page + 1,
 		NumPosts:   DB.NumOfPostsForTags(tags),
 		TotalPages: DB.NumOfPagesForTags(tags),
-		NextLink:   nextLink,
-		PrevLink:   prevLink,
+		Next:       page + 1,
+		Prev:       prevPage,
 		Tags:       tagsStr,
 		T: templates.T{
 			LoggedIn:     loggedIn,
