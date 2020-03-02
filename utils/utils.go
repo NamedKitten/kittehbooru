@@ -6,8 +6,9 @@ import (
 	"sort"
 	"strings"
 
-	"golang.org/x/crypto/bcrypt"
 	"regexp"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 func FilterString(s string) string {
@@ -16,7 +17,6 @@ func FilterString(s string) string {
 	s = strings.TrimSpace(s)
 	return s
 }
-
 
 func EncryptPassword(password string) string {
 	passwordBytes := []byte(password)

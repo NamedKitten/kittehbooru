@@ -561,7 +561,7 @@ func (db *DB) CheckForLoggedInUser(r *http.Request) (types.User, bool) {
 	if err == nil {
 		if sess, ok := db.Sessions.CheckToken(c.Value); ok {
 			u, exists := db.User(sess.Username)
-			if exists  {
+			if exists {
 				return u, true
 			}
 		}

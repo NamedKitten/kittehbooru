@@ -96,11 +96,8 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 	postID := node.Generate()
 	postIDInt64 := postID.Int64()
 	fileName := strconv.Itoa(int(postIDInt64))
-	tags := utils.SplitTagsString(r.PostFormValue("tags"))
-	description := r.PostFormValue("description")
 
-
-
+	sha256sum := utils.Sha256Bytes(fileBytes)
 	newPath := filepath.Join("content/", fileName+"."+extension)
 	newFile, err := os.Create(newPath)
 	if err != nil {
@@ -115,6 +112,9 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	tags := utils.SplitTagsString(r.PostFormValue("tags"))
+	description := r.PostFormValue("description")
+
 	newTags := make([]string, 0)
 
 	for _, tag := range tags {
@@ -125,8 +125,6 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 	tags = newTags
 
 	tags = append(tags, "user:"+user.Username)
-
-	sha256sum := utils.Sha256Bytes(fileBytes)
 
 	p := types.Post{
 		PostID:        postIDInt64,

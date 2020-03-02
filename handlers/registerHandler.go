@@ -3,9 +3,10 @@ package handlers
 import (
 	"net/http"
 	"time"
-	"github.com/NamedKitten/kittehimageboard/utils"
+
 	"github.com/NamedKitten/kittehimageboard/i18n"
 	templates "github.com/NamedKitten/kittehimageboard/template"
+	"github.com/NamedKitten/kittehimageboard/utils"
 
 	"github.com/NamedKitten/kittehimageboard/types"
 	"github.com/rs/zerolog/log"
