@@ -7,7 +7,16 @@ import (
 	"strings"
 
 	"golang.org/x/crypto/bcrypt"
+	"regexp"
 )
+
+func FilterString(s string) string {
+	re := regexp.MustCompile("[[:^ascii:]]")
+	s = re.ReplaceAllLiteralString(s, "")
+	s = strings.TrimSpace(s)
+	return s
+}
+
 
 func EncryptPassword(password string) string {
 	passwordBytes := []byte(password)
@@ -37,6 +46,9 @@ func SplitTagsString(tags string) []string {
 }
 
 func TagsListToString(tags []string) string {
+	for i, s := range tags {
+		tags[i] = FilterString(s)
+	}
 	sort.Strings(tags)
 	return strings.Join(tags, "+")
 }

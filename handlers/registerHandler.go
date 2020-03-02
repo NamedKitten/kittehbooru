@@ -3,7 +3,7 @@ package handlers
 import (
 	"net/http"
 	"time"
-
+	"github.com/NamedKitten/kittehimageboard/utils"
 	"github.com/NamedKitten/kittehimageboard/i18n"
 	templates "github.com/NamedKitten/kittehimageboard/template"
 
@@ -28,8 +28,8 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 		log.Error().Err(err).Msg("Parse Form")
 		return
 	}
-	username := r.FormValue("username")
-	password := r.FormValue("password")
+	username := utils.FilterString(r.FormValue("username"))
+	password := utils.FilterString(r.FormValue("password"))
 
 	if (len(username) <= 0) || (len(password) <= 0) {
 		http.Redirect(w, r, "/register", http.StatusFound)
