@@ -3,6 +3,7 @@ package database
 import (
 	"database/sql"
 	json "encoding/json"
+	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"math"
 	"net/http"
@@ -24,49 +25,52 @@ var captcha recaptcha.ReCAPTCHA
 // Settings are instance-specific settings.
 type Settings struct {
 	// Title is the name of this instance.
-	SiteName string `json:"siteName"`
+	SiteName string `yaml:"siteName"`
 	// ReCaptcha tells if Google's reCaptcha should be used for registration.
-	ReCaptcha bool `json:"reCaptcha"`
+	ReCaptcha bool `yaml:"reCaptcha"`
 	// ReCaptchaPubkey is the public key for the reCaptcha API.
-	ReCaptchaPubkey string `json:"reCaptchaPubKey"`
+	ReCaptchaPubkey string `yaml:"reCaptchaPubKey"`
 	// ReCaptchaPrivkey is the private key for the reCaptcha API.
-	ReCaptchaPrivkey string `json:"reCaptchaPrivKey"`
+	ReCaptchaPrivkey string `yaml:"reCaptchaPrivKey"`
 	// Rules are the instance specific rules for this instance.
-	Rules string `json:"rules"`
+	Rules string `yaml:"rules"`
 	// VideoThumbnails is to enable/disable creating video thumbnails.
 	// This requires ffmpegthumbnailer to be installed.
-	VideoThumbnails bool `json:"videoThumbnails"`
+	VideoThumbnails bool `yaml:"videoThumbnails"`
 	// PDFThumbnails is to enable/disable creating PDF thumbnails.
 	// This requires imagemagick's convert tool to be installed.
-	PDFThumbnails bool `json:"pdfThumbnails"`
+	PDFThumbnails bool `yaml:"pdfThumbnails"`
 	// PDFView is to enable/disable the viewing of PDFs in the browser using pdf.js.
-	PDFView bool `json:"pdfView"`
+	PDFView bool `yaml:"pdfView"`
+	// Database URI
+	DatabaseURI string `yaml:"databaseURI"`
+
 }
 
 // DB is the type at which all things are stored in the database.
 type DB struct {
 	sqldb *sql.DB
 	// SetupCompleted is used to know when to run setup page.
-	SetupCompleted bool `json:"init"`
+	SetupCompleted bool `yaml:"init"`
 	// Sessions handles logged in user sessions
-	Sessions Sessions
+	Sessions Sessions `yaml:"-"`
 	// SearchCache is a cache of search strings and the post IDs
 	// that match the result.
-	SearchCache SearchCache
+	SearchCache SearchCache `yaml:"-"`
 	// Settings contains instance-specific settings for this instance.
-	Settings Settings `json:"settings"`
+	Settings Settings `yaml:"settings"`
 }
 
-// Save saves the database.
+// Save saves the settings.
 func (db *DB) Save() {
-	log.Info().Msg("Saving DB.")
-	data, err := json.Marshal(db)
+	log.Info().Msg("Saving settings.")
+	data, err := yaml.Marshal(db)
 	if err != nil {
-		log.Error().Err(err).Msg("Can't encode DB to json")
+		log.Error().Err(err).Msg("Can't encode settings to yaml")
 	}
-	err = ioutil.WriteFile("db.json", data, 0644)
+	err = ioutil.WriteFile("settings.yaml", data, 0644)
 	if err != nil {
-		log.Error().Err(err).Msg("Can't save DB")
+		log.Error().Err(err).Msg("Can't save settings")
 	}
 }
 
@@ -84,7 +88,7 @@ func (db *DB) NumOfPagesForTags(searchTags []string) int {
 func (db *DB) init() {
 	snowflake.Epoch = 1551864242
 	var err error
-	db.sqldb, err = sql.Open("sqlite3", "file:db.sql")
+	db.sqldb, err = sql.Open("sqlite3", db.Settings.DatabaseURI)
 	if err != nil {
 		log.Warn().Err(err).Msg("SQL Open")
 	}
@@ -125,23 +129,22 @@ func (db *DB) init() {
 
 // LoadDB loads the database from the db.json file and initializes it.
 func LoadDB() *DB {
-	var db *DB
-	_, err := os.Stat("db.json")
+	db := &DB{}
+	_, err := os.Stat("settings.yaml")
 	if err != nil {
-		_, err = os.Create("db.json")
 		if err != nil {
-			log.Error().Err(err).Msg("Can't create DB json")
+			log.Fatal().Err(err).Msg("Please copy over settings_example.yaml to settings.yaml.")
 			panic(err)
 		}
 	}
-	data, err := ioutil.ReadFile("db.json")
+	data, err := ioutil.ReadFile("settings.yaml")
 	if err != nil {
-		log.Error().Err(err).Msg("Can't read DB")
+		log.Error().Err(err).Msg("Can't read settings")
 	}
 
-	err = json.Unmarshal(data, &db)
+	err = yaml.Unmarshal(data, &db)
 	if err != nil {
-		log.Error().Err(err).Msg("Can't unmarshal DB")
+		log.Error().Err(err).Msg("Can't unmarshal settings")
 		db = &DB{}
 	}
 	db.init()

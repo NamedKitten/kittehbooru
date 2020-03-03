@@ -1,0 +1,11 @@
+init: false
+settings:
+  siteName: "Imageboard"
+  reCaptcha: false
+  reCaptchaPubKey: ""
+  reCaptchaPrivKey: ""
+  rules: ""
+  videoThumbnails: false
+  pdfThumbnails: false
+  pdfView: false
+  databaseURI: "file:db.sql"
