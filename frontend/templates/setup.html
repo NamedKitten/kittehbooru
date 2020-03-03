@@ -38,63 +38,15 @@
                 </div>
                 <div class="form-group">
                   <label for="site-title">{{ .Translator.Localize "SiteTitle" }}</label>
-                  <input type="text" class="form-control" id="site-title" name="siteTitle" value="Kitteh's Imageboard">
+                  <input type="text" class="form-control" id="site-title" name="siteTitle" value="Imageboard">
                   <small class="form-text text-muted">
                     {{ .Translator.Localize "Title" }}
                   </small>
-                </div>
-                <div class="custom-control custom-checkbox">
-                  <input type="checkbox" class="custom-control-input" id="enablereCaptcha" name="enablereCaptcha">
-                  <label class="custom-control-label" for="enablereCaptcha">
-                    {{ .Translator.Localize "EnablereCaptcha" }}
-                  </label>
-                </div>
-                <small class="form-text text-muted">
-                  {{ .Translator.Localize "RecommendreCaptcha" }}
-                </small>
-                <br>
-                <div class="form-row">
-                  <div class="col-md-6 mb-3">
-                    <label for="reCaptchaPublicKey">{{ .Translator.Localize "PublicKeyreCaptcha" }}</label>
-                    <input type="text" class="form-control" id="reCaptchaPublicKey" name="reCaptchaPublicKey">
-                  </div>
-                  <div class="col-md-6 mb-3">
-                    <label for="reCaptchaPrivateKey">{{ .Translator.Localize "PrivateKeyreCaptcha" }}</label>
-                    <input type="text" class="form-control" id="reCaptchaPrivateKey" name="reCaptchaPrivateKey">
-                  </div>
                 </div>
                 <div class="form-label-group">
                   <label for="rules">{{ .Translator.Localize "Rules" }}</label>
                   <textarea class="form-control" id="rules" name="rules" rows="10"></textarea>
                 </div>
-                <br>
-                <div class="custom-control custom-checkbox">
-                  <input type="checkbox" class="custom-control-input" id="enablePDFViewing" name="enablePDFViewing">
-                  <label class="custom-control-label" for="enablePDFViewing">{{ .Translator.Localize "EnablePdfViewing" }}</label>
-                </div>
-                <small class="form-text text-muted">
-                  {{ .Translator.Localize "RequiresPdfJs" }}
-                  {{ .Translator.Localize "OfferDownloadLinkInstead" }}
-                </small>
-                <br>
-                <div class="custom-control custom-checkbox">
-                  <input type="checkbox" class="custom-control-input" id="enablePDFThumbnails"
-                    name="enablePDFThumbnails">
-                  <label class="custom-control-label" for="enablePDFThumbnails"> {{ .Translator.Localize "EnablePDFThumbnails" }}</label>
-                </div>
-                <small class="form-text text-muted">
-                  {{ .Translator.Localize "WillRequireImagemagick" }}
-                  {{ .Translator.Localize "ImagemagickSecurity" }}
-                </small>
-                <br>
-                <div class="custom-control custom-checkbox">
-                  <input type="checkbox" class="custom-control-input" id="enableVideoThumbnails"
-                    name="enableVideoThumbnails">
-                  <label class="custom-control-label" for="enableVideoThumbnails">{{ .Translator.Localize "EnableVideoThumbnails" }}</label>
-                </div>
-                <small class="form-text text-muted">
-                  {{ .Translator.Localize "WillRequireFFmpegthumbnailer" }}
-                </small>
                 <br>
                 <button type="submit" class="btn btn-success">{{ .Translator.Localize "Submit" }}</button>
               </div>

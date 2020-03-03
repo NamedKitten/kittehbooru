@@ -7,8 +7,6 @@ import (
 	"github.com/rs/zerolog/log"
 
 	"net/http"
-	"os"
-	"path/filepath"
 	"strconv"
 	"strings"
 
@@ -98,8 +96,8 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 	fileName := strconv.Itoa(int(postIDInt64))
 
 	sha256sum := utils.Sha256Bytes(fileBytes)
-	newPath := filepath.Join("content/", fileName+"."+extension)
-	newFile, err := os.Create(newPath)
+	newPath := fileName+"."+extension
+	newFile, err := DB.ContentStorage.NewFile(newPath)
 	if err != nil {
 		log.Error().Err(err).Msg("File Create")
 		renderError(w, "CANT_WRITE_FILE", http.StatusInternalServerError)

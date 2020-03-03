@@ -9,3 +9,6 @@ settings:
   pdfThumbnails: false
   pdfView: false
   databaseURI: "file:db.sql"
+  contentStorage: "file://$CWD/data/content/"
+  cacheStorage: "file://$CWD/data/cache/"
+

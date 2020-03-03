@@ -8,6 +8,7 @@ require (
 	github.com/NamedKitten/hot v0.0.0-20190309114900-977428eba6c3
 	github.com/biessek/golang-ico v0.0.0-20180326222316-d348d9ea4670
 	github.com/bwmarrin/snowflake v0.3.0
+	github.com/c2fo/vfs/v5 v5.5.0
 	github.com/chai2010/webp v1.1.0
 	github.com/chrisfelesoid/go-flif v0.3.0
 	github.com/coreos/pkg v0.0.0-20180928190104-399ea9e2e55f // indirect
@@ -37,6 +38,6 @@ require (
 	gopkg.in/check.v1 v1.0.0-20190902080502-41f04d3bba15 // indirect
 	gopkg.in/fsnotify.v1 v1.4.7
 	gopkg.in/yaml.v1 v1.0.0-20140924161607-9f9df34309c0 // indirect
-	gopkg.in/yaml.v2 v2.2.1
+	gopkg.in/yaml.v2 v2.2.2
 	honnef.co/go/tools v0.0.1-2020.1.3 // indirect
 )
