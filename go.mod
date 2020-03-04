@@ -6,6 +6,7 @@ require (
 	github.com/BurntSushi/toml v0.3.1
 	github.com/Kodeworks/golang-image-ico v0.0.0-20141118225523-73f0f4cfade9
 	github.com/NamedKitten/hot v0.0.0-20190309114900-977428eba6c3
+	github.com/aws/aws-sdk-go v1.19.10
 	github.com/biessek/golang-ico v0.0.0-20180326222316-d348d9ea4670
 	github.com/bwmarrin/snowflake v0.3.0
 	github.com/c2fo/vfs/v5 v5.5.0

@@ -10,5 +10,9 @@ settings:
   pdfView: false
   databaseURI: "file:db.sql"
   contentStorage: "file://$CWD/data/content/"
-  cacheStorage: "file://$CWD/data/cache/"
-
+  thumbnailsStorage: "file://$CWD/data/cache/"
+  #for S3
+  #contentStorage: s3://kitcontent/content/
+  #thumbnailsStorage: s3://kitcontent/cache/
+  #contentURL: https://kitcontent.s3.amazonaws.com/content/
+  #thumbnailURL: https://kitcontent.s3.amazonaws.com/cache/

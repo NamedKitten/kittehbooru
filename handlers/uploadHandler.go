@@ -96,17 +96,24 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 	fileName := strconv.Itoa(int(postIDInt64))
 
 	sha256sum := utils.Sha256Bytes(fileBytes)
-	newPath := fileName+"."+extension
-	newFile, err := DB.ContentStorage.NewFile(newPath)
+	newPath := fileName + "." + extension
+	newFile, err := DB.ContentStorage.File(newPath)
 	if err != nil {
 		log.Error().Err(err).Msg("File Create")
 		renderError(w, "CANT_WRITE_FILE", http.StatusInternalServerError)
 		return
 	}
 	defer newFile.Close()
-	if _, err = newFile.Write(fileBytes); err != nil || newFile.Close() != nil {
+	if _, err = newFile.Write(fileBytes); err != nil {
 		log.Error().Err(err).Msg("File Write")
 		renderError(w, "CANT_WRITE_FILE", http.StatusInternalServerError)
+		return
+	}
+
+	err = newFile.Close()
+	if err != nil {
+		log.Error().Err(err).Msg("File Close")
+		renderError(w, "CANT_CLOSE_FILE", http.StatusInternalServerError)
 		return
 	}
 

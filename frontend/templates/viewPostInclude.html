@@ -8,25 +8,25 @@
 {{ else if eq .MimeType "application/pdf" }}
 {{ if settings.PDFView}}
 <iframe class="card-img-top pdf-view"
-    src="/js/pdfjs/web/viewer.html?file=/content/{{ .Filename }}.{{ .FileExtension }}"></iframe>
+    src="/js/pdfjs/web/viewer.html?file={{ contentURL }}{{ .Filename }}.{{ .FileExtension }}"></iframe>
 {{ else }}
-<a href="/content/{{ .Filename }}.{{ .FileExtension }}">Click to download PDF</a>
+<a href="{{ contentURL }}{{ .Filename }}.{{ .FileExtension }}">Click to download PDF</a>
 {{ end }}
 {{ else if startsWith .MimeType "video" }}
-<video class="video-view card-img-top" src="/content/{{ .Filename }}.{{ .FileExtension }}" controls></video>
+<video class="video-view card-img-top" src="{{ contentURL }}{{ .Filename }}.{{ .FileExtension }}" controls></video>
 {{ else if startsWith .MimeType "audio" }}
     <audio controls class="video-view card-img-top">
-    <source src="/content/{{ .Filename }}.{{ .FileExtension }}">
+    <source src="{{ contentURL }}{{ .Filename }}.{{ .FileExtension }}">
   </audio> 
 {{ else if startsWith .MimeType "image"  }}
-<img class="card-img-top" src="/content/{{ .Filename }}.{{ .FileExtension }}">
+<img class="card-img-top" src="{{ contentURL }}{{ .Filename }}.{{ .FileExtension }}">
 {{ else  }}
 {{ .Translator.Localize "CantPreviewPost" }}
-<a href="/content/{{ .Filename }}.{{ .FileExtension }}">{{ .Translator.Localize "ClickHereToDownloadInstead" }}</a>
+<a href="{{ contentURL }}{{ .Filename }}.{{ .FileExtension }}">{{ .Translator.Localize "ClickHereToDownloadInstead" }}</a>
 
 {{ end }}
 {{ end }}
 
 {{ if eq .FileExtension "swf" }}
-<script>shuobject.embedSWF('/content/{{ .Filename }}.{{ .FileExtension }}', 'swfEmbedDiv', "100%", "500", ''); </script>
+<script>shuobject.embedSWF('{{ contentURL }}{{ .Filename }}.{{ .FileExtension }}', 'swfEmbedDiv', "100%", "500", ''); </script>
 {{end}}

@@ -3,6 +3,8 @@ package database
 import (
 	"database/sql"
 	json "encoding/json"
+	"github.com/NamedKitten/kittehimageboard/storage"
+	"github.com/NamedKitten/kittehimageboard/storage/types"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"math"
@@ -11,8 +13,6 @@ import (
 	"sort"
 	"strings"
 	"time"
-	"github.com/c2fo/vfs/v5/vfssimple"
-	"github.com/c2fo/vfs/v5"
 
 	"github.com/NamedKitten/kittehimageboard/types"
 	"github.com/NamedKitten/kittehimageboard/utils"
@@ -48,8 +48,12 @@ type Settings struct {
 	DatabaseURI string `yaml:"databaseURI"`
 	// Content Storage URI
 	ContentStorage string `yaml:"contentStorage"`
-	// Cache Storage URI
-	CacheStorage string `yaml:"cacheStorage"`
+	// Thumbnails Storage URI
+	ThumbnailsStorage string `yaml:"thumbnailsStorage"`
+	// Content URL
+	ContentURL string `yaml:"contentURL"`
+	// Thumbnail URL
+	ThumbnailURL string `yaml:"thumbnailURL"`
 }
 
 // DB is the type at which all things are stored in the database.
@@ -65,9 +69,8 @@ type DB struct {
 	// Settings contains instance-specific settings for this instance.
 	Settings Settings `yaml:"settings"`
 
-	ContentStorage vfs.Location `yaml:"-"`
-	CacheStorage vfs.Location `yaml:"-"`
-
+	ContentStorage storageTypes.Storage `yaml:"-"`
+	ThumbnailsStorage   storageTypes.Storage `yaml:"-"`
 }
 
 // Save saves the settings.
@@ -96,25 +99,16 @@ func (db *DB) NumOfPagesForTags(searchTags []string) int {
 // init creates all the database fields and starts cache and session management.
 func (db *DB) init() {
 	snowflake.Epoch = 1551864242
-
 	path, err := os.Getwd()
 	if err != nil {
 		log.Panic().Err(err).Msg("Can't get working dir")
 	}
 
 	contentStoragePath := strings.ReplaceAll(db.Settings.ContentStorage, "$CWD", path)
-	cacheStoragePath := strings.ReplaceAll(db.Settings.CacheStorage, "$CWD", path)
+	thumbnailsStoragePath := strings.ReplaceAll(db.Settings.ThumbnailsStorage, "$CWD", path)
+	db.ContentStorage = storage.GetStorage(contentStoragePath)
+	db.ThumbnailsStorage = storage.GetStorage(thumbnailsStoragePath)
 
-	db.ContentStorage, err = vfssimple.NewLocation(contentStoragePath)
-	if err != nil {
-		log.Panic().Err(err).Msg("ContentStorage")
-	}
-	db.CacheStorage, err = vfssimple.NewLocation(cacheStoragePath)
-	if err != nil {
-		log.Panic().Err(err).Msg("CacheStorage")
-	}
-
-	
 	db.sqldb, err = sql.Open("sqlite3", db.Settings.DatabaseURI)
 	if err != nil {
 		log.Warn().Err(err).Msg("SQL Open")

@@ -1,9 +1,6 @@
 package start
 
 import (
-	"net/http"
-	"os"
-	"os/signal"
 	"github.com/NamedKitten/kittehimageboard/database"
 	"github.com/NamedKitten/kittehimageboard/handlers"
 	templates "github.com/NamedKitten/kittehimageboard/template"
@@ -11,6 +8,9 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
+	"net/http"
+	"os"
+	"os/signal"
 )
 
 var DB *database.DB
@@ -56,7 +56,7 @@ func Start() {
 	r.HandleFunc("/view/{postID}", handlers.ViewHandler)
 	r.HandleFunc("/user/{userID}", handlers.UserHandler)
 
-	r.PathPrefix("/content/").Handler(cacheMiddleware(http.StripPrefix("/content2/", http.FileServer(VFSFileSystem{}))))
+	r.PathPrefix("/content/").Handler(cacheMiddleware(http.StripPrefix("/content/", http.FileServer(DB.ContentStorage))))
 	r.PathPrefix("/css/").Handler(cacheMiddleware(http.StripPrefix("/css/", http.FileServer(http.Dir("frontend/css")))))
 	r.PathPrefix("/js/").Handler(cacheMiddleware(http.StripPrefix("/js/", http.FileServer(http.Dir("frontend/js")))))
 	r.HandleFunc("/thumbnail/{postID}-{size}.{ext}", handlers.ThumbnailHandler)

@@ -53,6 +53,12 @@ func getTemplateFuncs() tmpl.FuncMap {
 			d[s] = i
 			return d
 		},
+		"contentURL": func() string {
+			return DB.Settings.ContentURL
+		},
+		"thumbnailURL": func() string {
+			return DB.Settings.ThumbnailURL
+		},
 	}
 
 }
