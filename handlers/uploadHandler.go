@@ -97,7 +97,7 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 
 	sha256sum := utils.Sha256Bytes(fileBytes)
 	newPath := fileName + "." + extension
-	newFile, err := DB.ContentStorage.File(newPath)
+	newFile, err := DB.ContentStorage.WriteFile(newPath)
 	if err != nil {
 		log.Error().Err(err).Msg("File Create")
 		renderError(w, "CANT_WRITE_FILE", http.StatusInternalServerError)

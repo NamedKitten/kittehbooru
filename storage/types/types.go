@@ -3,14 +3,18 @@ package storageTypes
 import "net/http"
 import "io"
 
-type File interface {
+type ReadableFile interface {
+	http.File
+}
+
+type WriteableFile interface {
 	io.Writer
 	http.File
 }
 
-
 type Storage interface {
 	Exists(string) bool
-	File(string) (File, error)
+	ReadFile(string) (ReadableFile, error)
+	WriteFile(string) (WriteableFile, error)
 	Open(string) (http.File, error) 
 }

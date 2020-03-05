@@ -11,12 +11,16 @@ type FileBackend struct {
 }
 
 func (fb FileBackend) Open(s string) (http.File, error) {
-	return fb.File(s)
+	return fb.ReadFile(s)
 }
 
-func (fb FileBackend) File(s string) (storageTypes.File, error) {
-	f, e := os.OpenFile(fb.path + s, os.O_RDWR|os.O_CREATE, 0666)
-	return f, e
+func (fb FileBackend) ReadFile(s string) (storageTypes.ReadableFile, error) {
+	return os.OpenFile(fb.path + s, os.O_RDONLY|os.O_CREATE, 0666)
+}
+
+
+func (fb FileBackend) WriteFile(s string) (storageTypes.WriteableFile, error) {
+	return os.OpenFile(fb.path + s, os.O_WRONLY|os.O_CREATE, 0666)
 }
 
 func (fb FileBackend) Exists(s string) bool {

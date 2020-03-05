@@ -109,7 +109,7 @@ func createThumbnail(post types.Post, ext string, size string) string {
 		contentFilename = "frontend/img/preview-not-available.jpg"
 	}
 
-	var contentFile io.ReadWriteCloser
+	var contentFile io.ReadCloser
 	var err error
 	if strings.HasPrefix(contentFilename, "frontend/") {
 		contentFile, err = os.Open(contentFilename)
@@ -118,7 +118,7 @@ func createThumbnail(post types.Post, ext string, size string) string {
 			log.Error().Msg("Content File Does Not Exist")
 			return ""
 		}
-		contentFile, err = DB.ContentStorage.File(contentFilename)
+		contentFile, err = DB.ContentStorage.ReadFile(contentFilename)
 	}
 	defer contentFile.Close()
 	if err != nil {
@@ -132,7 +132,7 @@ func createThumbnail(post types.Post, ext string, size string) string {
 		log.Error().Err(err).Msg("Image Decode")
 		return "frontend/img/preview-not-available.jpg"
 	}
-	newCacheFile, err := DB.ThumbnailsStorage.File(thumbnailFile)
+	newCacheFile, err := DB.ThumbnailsStorage.WriteFile(thumbnailFile)
 	if err != nil {
 		log.Error().Err(err).Msg("Cache Create")
 		return ""
@@ -189,7 +189,7 @@ func ThumbnailHandler(w http.ResponseWriter, r *http.Request) {
 		log.Error().Msg("Cache File Not Exist")
 		return
 	}
-	cacheFile, err = DB.ThumbnailsStorage.File(cacheFilename)
+	cacheFile, err = DB.ThumbnailsStorage.WriteFile(cacheFilename)
 	if err != nil {
 		log.Error().Err(err).Msg("Open Cache File")
 		return
