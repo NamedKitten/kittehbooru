@@ -30,6 +30,7 @@ require (
 	github.com/mattn/go-sqlite3 v2.0.2+incompatible
 	github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646
 	github.com/nicksnyder/go-i18n/v2 v2.0.3
+	github.com/pkg/profile v1.4.0
 	github.com/pytimer/mux-logrus v0.0.0-20190126083416-4024cdba0357
 	github.com/rs/zerolog v1.17.2
 	github.com/sirupsen/logrus v1.4.2

@@ -1,8 +1,8 @@
 package storage
 
 import (
-	"github.com/NamedKitten/kittehimageboard/storage/types"
 	"github.com/NamedKitten/kittehimageboard/storage/backends/file"
+	"github.com/NamedKitten/kittehimageboard/storage/types"
 	"strings"
 )
 

@@ -165,7 +165,7 @@ func ThumbnailHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	ext := vars["ext"]
 	post, ok := DB.Post(int64(postID))
-	var cacheFile io.ReadWriteCloser
+	var cacheFile io.ReadCloser
 
 	size := sanitisedSize(vars["size"])
 
@@ -189,7 +189,7 @@ func ThumbnailHandler(w http.ResponseWriter, r *http.Request) {
 		log.Error().Msg("Cache File Not Exist")
 		return
 	}
-	cacheFile, err = DB.ThumbnailsStorage.WriteFile(cacheFilename)
+	cacheFile, err = DB.ThumbnailsStorage.ReadFile(cacheFilename)
 	if err != nil {
 		log.Error().Err(err).Msg("Open Cache File")
 		return

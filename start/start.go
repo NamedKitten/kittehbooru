@@ -67,7 +67,6 @@ func Start() {
 		err := http.ListenAndServe("0.0.0.0:80", gorillaHandlers.LoggingHandler(os.Stdout, r))
 		if err != nil {
 			log.Error().Err(err).Msg("Can't start web")
-
 			panic(err)
 		}
 	}()

@@ -2,7 +2,7 @@ package database
 
 import (
 	"database/sql"
-	json "encoding/json"
+	"encoding/json"
 	"github.com/NamedKitten/kittehimageboard/storage"
 	"github.com/NamedKitten/kittehimageboard/storage/types"
 	"gopkg.in/yaml.v2"
@@ -69,8 +69,8 @@ type DB struct {
 	// Settings contains instance-specific settings for this instance.
 	Settings Settings `yaml:"settings"`
 
-	ContentStorage storageTypes.Storage `yaml:"-"`
-	ThumbnailsStorage   storageTypes.Storage `yaml:"-"`
+	ContentStorage    storageTypes.Storage `yaml:"-"`
+	ThumbnailsStorage storageTypes.Storage `yaml:"-"`
 }
 
 // Save saves the settings.
@@ -429,22 +429,30 @@ func (db *DB) getPostsForTags(tags []string) []int64 {
 	for _, tag := range tags {
 		tempTags[tag] = true
 	}
+
+	isOnlyNegatives := true
+
 	tags = make([]string, 0)
 	for tag := range tempTags {
-		shouldAdd := true
 		// if there is a tag "foo" and also a tag "-foo", remove both of them to reduce database load
-		if strings.HasPrefix(tag, "-") {
-			if _, ok := tempTags[tag[1:]]; ok {
-				shouldAdd = false
-			}
+		is := strings.HasPrefix(tag, "-")
+		var ok bool
+		if is {
+			_, ok = tempTags[tag[1:]]
 		} else {
-			if _, ok := tempTags["-"+tag]; ok {
-				shouldAdd = false
+			_, ok = tempTags["-"+tag]
+		}
+		if !ok {
+			tags = append(tags, tag)
+			if !is {
+				isOnlyNegatives = false
 			}
 		}
-		if shouldAdd {
-			tags = append(tags, tag)
-		}
+	}
+
+	// if there is only negative tags, add wildcard
+	if isOnlyNegatives {
+		tags = append(tags, "*")
 	}
 
 	for _, tag := range tags {
@@ -484,7 +492,7 @@ func (db *DB) getPostsForTags(tags []string) []int64 {
 			rows, err := db.sqldb.Query(`select "posts" from tags where tag = ?`, tag)
 			if err != nil {
 				log.Error().Err(err).Msg("GetPostsForTags can't query tag posts")
-				return []int64{}
+				continue
 			}
 			var postsString string
 			defer rows.Close()
@@ -493,32 +501,26 @@ func (db *DB) getPostsForTags(tags []string) []int64 {
 				err = rows.Scan(&postsString)
 				if err != nil {
 					log.Error().Err(err).Msg("GetPostsForTags can't scan row")
-					return []int64{}
+					continue
 				}
 			}
 			// we store it as json just so its easy to store in the database
 			err = json.Unmarshal([]byte(postsString), &posts)
 			if err != nil {
-				log.Error().Err(err).Msg("GetPostsForTags can't unmarshal JSON")
-				return []int64{}
+				continue
 			}
 		}
 
-		if is {
-			// add to counter if its a positive
-			for _, post := range posts {
-				if _, ok := posCounts[post]; ok {
-					// increase the count
-					posCounts[post] = posCounts[post] + 1
-				} else {
-					// add the count to map starting at 1 if not existing already
-					posCounts[post] = 1
-				}
-			}
-		} else {
-			for _, post := range posts {
+		for _, post := range posts {
+			if !is {
 				// if its a negative match, aka post we DONT want, add it to this map instead
 				negMatch[post] = true
+			} else if _, ok := posCounts[post]; ok {
+				// add to counter of positive counts
+				posCounts[post] = posCounts[post] + 1
+			} else {
+				// add the count to map starting at 1 if not existing already
+				posCounts[post] = 1
 			}
 		}
 	}
@@ -541,25 +543,32 @@ func (db *DB) getPostsForTags(tags []string) []int64 {
 		}
 	}
 	return finalPostIDs
-
 }
 
 // cacheSearch searches for posts matching tags and returns a
 // array of post IDs matching those tags.
 func (db *DB) cacheSearch(searchTags []string) []int64 {
 	var result []int64
+
 	combinedTags := utils.TagsListToString(searchTags)
 	if val, ok := db.SearchCache.Get(combinedTags); ok {
 		result = val
 	} else {
 		matching := db.getPostsForTags(searchTags)
-		go db.SearchCache.Add(combinedTags, matching)
+		db.SearchCache.Add(combinedTags, matching)
 		result = matching
 	}
+
 	sort.Slice(result, func(i, j int) bool {
 		return snowflake.ID(result[i]).Time() > snowflake.ID(result[j]).Time()
 	})
 	return result
+}
+
+// GetSearchIDs returns a paginated list of Post IDs from a list of tags.
+func (db *DB) GetSearchIDs(searchTags []string, page int) []int64 {
+	matching := db.cacheSearch(searchTags)
+	return utils.Paginate(matching, page, 20)
 }
 
 // getSearchPage returns a paginated list of posts from a list of tags.
