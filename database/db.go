@@ -3,9 +3,6 @@ package database
 import (
 	"database/sql"
 	"encoding/json"
-	"github.com/NamedKitten/kittehimageboard/storage"
-	"github.com/NamedKitten/kittehimageboard/storage/types"
-	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"math"
 	"net/http"
@@ -13,6 +10,10 @@ import (
 	"sort"
 	"strings"
 	"time"
+
+	"github.com/NamedKitten/kittehimageboard/storage"
+	storageTypes "github.com/NamedKitten/kittehimageboard/storage/types"
+	"gopkg.in/yaml.v2"
 
 	"github.com/NamedKitten/kittehimageboard/types"
 	"github.com/NamedKitten/kittehimageboard/utils"
@@ -99,15 +100,10 @@ func (db *DB) NumOfPagesForTags(searchTags []string) int {
 // init creates all the database fields and starts cache and session management.
 func (db *DB) init() {
 	snowflake.Epoch = 1551864242
-	path, err := os.Getwd()
-	if err != nil {
-		log.Panic().Err(err).Msg("Can't get working dir")
-	}
+	var err error
 
-	contentStoragePath := strings.ReplaceAll(db.Settings.ContentStorage, "$CWD", path)
-	thumbnailsStoragePath := strings.ReplaceAll(db.Settings.ThumbnailsStorage, "$CWD", path)
-	db.ContentStorage = storage.GetStorage(contentStoragePath)
-	db.ThumbnailsStorage = storage.GetStorage(thumbnailsStoragePath)
+	db.ContentStorage = storage.GetStorage(db.Settings.ContentStorage)
+	db.ThumbnailsStorage = storage.GetStorage(db.Settings.ThumbnailsStorage)
 
 	db.sqldb, err = sql.Open("sqlite3", db.Settings.DatabaseURI)
 	if err != nil {

@@ -47,6 +47,7 @@ func sanitisedSize(s string) string {
 	}
 }
 
+/*
 func createThumbnails(post types.Post) {
 	createThumbnail(post, "jpeg", "small")
 	createThumbnail(post, "jpeg", "medium")
@@ -55,6 +56,7 @@ func createThumbnails(post types.Post) {
 	createThumbnail(post, "webp", "medium")
 	createThumbnail(post, "webp", "large")
 }
+*/
 
 func createThumbnail(post types.Post, ext string, size string) string {
 	log.Error().Msg("Creating Thumbnail")
@@ -72,13 +74,14 @@ func createThumbnail(post types.Post, ext string, size string) string {
 			if err != nil {
 				log.Error().Err(err).Msg("Can't create temp file")
 				contentFilename = "frontend/img/video.png"
-			}
-			contentFilename = tmpFile.Name()
-			tmpFile.Close()
-			defer os.Remove(tmpFile.Name())
-			err = exec.Command("ffmpegthumbnailer", "-c", "png", "-i", originalFilename, "-o", tmpFile.Name()).Run()
-			if err != nil {
-				contentFilename = "frontend/img/video.png"
+			} else {
+				contentFilename = tmpFile.Name()
+				tmpFile.Close()
+				defer os.Remove(tmpFile.Name())
+				err = exec.Command("ffmpegthumbnailer", "-c", "png", "-i", originalFilename, "-o", tmpFile.Name()).Run()
+				if err != nil {
+					contentFilename = "frontend/img/video.png"
+				}
 			}
 		} else {
 			contentFilename = "frontend/img/video.png"
@@ -123,7 +126,6 @@ func createThumbnail(post types.Post, ext string, size string) string {
 	defer contentFile.Close()
 	if err != nil {
 		log.Error().Err(err).Msg("Lost File?")
-		DB.DeletePost(post.PostID)
 		return ""
 	}
 

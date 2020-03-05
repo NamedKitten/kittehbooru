@@ -1,7 +1,9 @@
 package storageTypes
 
-import "net/http"
-import "io"
+import (
+	"io"
+	"net/http"
+)
 
 type ReadableFile interface {
 	io.ReadCloser

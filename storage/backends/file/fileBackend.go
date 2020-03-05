@@ -1,9 +1,10 @@
 package fileBackend
 
 import (
-	"github.com/NamedKitten/kittehimageboard/storage/types"
 	"net/http"
 	"os"
+
+	storageTypes "github.com/NamedKitten/kittehimageboard/storage/types"
 )
 
 type FileBackend struct {
