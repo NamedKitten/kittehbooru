@@ -54,30 +54,25 @@ func TagsListToString(tags []string) string {
 }
 
 func Paginate(x []int64, page int, pageSize int) []int64 {
+	var limit int
+	var start int
+	numItems := len(x)
 	skip := pageSize * page
 	if skip <= 0 {
 		skip = 0
 	}
-	numItems := len(x)
-	limit := func() int {
-
-		if skip+pageSize > numItems {
-			return numItems
-		} else {
-			return skip + pageSize
-		}
-
+    spS := skip+pageSize
+	if spS > numItems {
+		limit = numItems
+	} else {
+		limit = spS
 	}
-
-	start := func() int {
-		if skip > numItems {
-			return numItems
-		} else {
-			return skip
-		}
-
+	if skip > numItems {
+		start = numItems
+	} else {
+		start = skip
 	}
-	return x[start():limit()]
+	return x[start:limit]
 }
 
 func RemoveFromSlice(slice []int64, toDelete int64) []int64 {
