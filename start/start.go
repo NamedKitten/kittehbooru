@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"runtime/trace"
 
 	"github.com/NamedKitten/kittehimageboard/database"
 	"github.com/NamedKitten/kittehimageboard/handlers"
@@ -31,6 +32,17 @@ func cacheMiddleware(next http.Handler) http.Handler {
 	})
 }
 
+func taskMiddleware(name string, next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Wrap the http.Request Context with trace.Task object.
+		taskCtx, task := trace.NewTask(r.Context(), name)
+		defer task.End()
+		r = r.WithContext(taskCtx)
+
+		next.ServeHTTP(w, r)
+	})
+}
+
 func Start() {
 	flag.Parse()
 
@@ -41,31 +53,41 @@ func Start() {
 	log.Info().Msg("Loaded DB")
 
 	r := mux.NewRouter()
-	r.HandleFunc("/", handlers.RootHandler)
-	r.HandleFunc("/rules", handlers.RulesHandler)
-	r.HandleFunc("/setup", handlers.SetupPageHandler).Methods("GET")
-	r.HandleFunc("/setup", handlers.SetupHandler).Methods("POST")
-	r.HandleFunc("/deletePost/{postID}", handlers.DeletePostPageHandler).Methods("GET")
-	r.HandleFunc("/deletePost/{postID}", handlers.DeletePostHandler).Methods("POST")
-	r.HandleFunc("/deleteUser", handlers.DeleteUserPageHandler).Methods("GET")
-	r.HandleFunc("/deleteUser", handlers.DeleteUserHandler).Methods("POST")
-	r.HandleFunc("/register", handlers.RegisterPageHandler).Methods("GET")
-	r.HandleFunc("/register", handlers.RegisterHandler).Methods("POST")
-	r.HandleFunc("/search", handlers.SearchHandler)
-	r.HandleFunc("/login", handlers.LoginPageHandler).Methods("GET")
-	r.HandleFunc("/logout", handlers.LogoutHandler).Methods("GET")
-	r.HandleFunc("/login", handlers.LoginHandler).Methods("POST")
-	r.HandleFunc("/upload", handlers.UploadHandler).Methods("POST")
-	r.HandleFunc("/upload", handlers.UploadPageHandler).Methods("GET")
-	r.HandleFunc("/editPost/{postID}", handlers.EditPostHandler).Methods("POST")
-	r.HandleFunc("/editUser/{userID}", handlers.EditUserHandler).Methods("POST")
-	r.HandleFunc("/view/{postID}", handlers.ViewHandler)
-	r.HandleFunc("/user/{userID}", handlers.UserHandler)
 
-	r.PathPrefix("/content/").Handler(cacheMiddleware(http.StripPrefix("/content/", http.FileServer(DB.ContentStorage))))
+	handleFunc := func(path string, f func(w http.ResponseWriter, r *http.Request)) *mux.Route {
+		return r.Handle(path, taskMiddleware(path, http.HandlerFunc(f)))
+	}
+	handleFunc("/", handlers.RootHandler)
+	handleFunc("/rules", handlers.RulesHandler)
+	handleFunc("/setup", handlers.SetupPageHandler).Methods("GET")
+	handleFunc("/setup", handlers.SetupHandler).Methods("POST")
+	handleFunc("/deletePost/{postID}", handlers.DeletePostPageHandler).Methods("GET")
+	handleFunc("/deletePost/{postID}", handlers.DeletePostHandler).Methods("POST")
+	handleFunc("/deleteUser", handlers.DeleteUserPageHandler).Methods("GET")
+	handleFunc("/deleteUser", handlers.DeleteUserHandler).Methods("POST")
+	handleFunc("/register", handlers.RegisterPageHandler).Methods("GET")
+	handleFunc("/register", handlers.RegisterHandler).Methods("POST")
+	handleFunc("/search", handlers.SearchHandler)
+	handleFunc("/login", handlers.LoginPageHandler).Methods("GET")
+	handleFunc("/logout", handlers.LogoutHandler).Methods("GET")
+	handleFunc("/login", handlers.LoginHandler).Methods("POST")
+	handleFunc("/upload", handlers.UploadHandler).Methods("POST")
+	handleFunc("/upload", handlers.UploadPageHandler).Methods("GET")
+	handleFunc("/editPost/{postID}", handlers.EditPostHandler).Methods("POST")
+	handleFunc("/editUser/{userID}", handlers.EditUserHandler).Methods("POST")
+	handleFunc("/view/{postID}", handlers.ViewHandler)
+	handleFunc("/user/{userID}", handlers.UserHandler)
+	addPprof(r)
+
+	r.PathPrefix("/content/").Handler(
+		taskMiddleware("/content/",
+			cacheMiddleware(
+				http.StripPrefix("/content/",
+					http.FileServer(DB.ContentStorage),
+				))))
 	r.PathPrefix("/css/").Handler(cacheMiddleware(http.StripPrefix("/css/", http.FileServer(http.Dir("frontend/css")))))
 	r.PathPrefix("/js/").Handler(cacheMiddleware(http.StripPrefix("/js/", http.FileServer(http.Dir("frontend/js")))))
-	r.HandleFunc("/thumbnail/{postID}-{size}.{ext}", handlers.ThumbnailHandler)
+	handleFunc("/thumbnail/{postID}-{size}.{ext}", handlers.ThumbnailHandler)
 
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt)

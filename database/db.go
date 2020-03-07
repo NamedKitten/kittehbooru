@@ -8,6 +8,7 @@ import (
 	"math"
 	"net/http"
 	"os"
+	"runtime/trace"
 	"sort"
 	"strings"
 	"time"
@@ -171,6 +172,8 @@ func LoadDB() *DB {
 }
 
 func (db *DB) SetPassword(ctx context.Context, username string, password string) (err error) {
+	defer trace.StartRegion(ctx, "DB/SetPassword").End()
+
 	_, err = db.sqldb.ExecContext(ctx, `INSERT OR REPLACE INTO "passwords"("username", "password") VALUES (?, ?);`, username, utils.EncryptPassword(password))
 	if err != nil {
 		log.Warn().Err(err).Msg("SetPassword can't execute statement")
@@ -180,6 +183,8 @@ func (db *DB) SetPassword(ctx context.Context, username string, password string)
 }
 
 func (db *DB) CheckPassword(ctx context.Context, username string, password string) bool {
+	defer trace.StartRegion(ctx, "DB/CheckPassword").End()
+
 	var encPasswd string
 	row := db.sqldb.QueryRowContext(ctx, `select password from passwords where username=?`, username)
 	switch err := row.Scan(&encPasswd); err {
@@ -193,6 +198,8 @@ func (db *DB) CheckPassword(ctx context.Context, username string, password strin
 }
 
 func (db *DB) AddUser(ctx context.Context, u types.User) {
+	defer trace.StartRegion(ctx, "DB/AddUser").End()
+
 	_, err := db.sqldb.ExecContext(ctx, `INSERT INTO "users"("avatarID","owner","admin","username","description") VALUES (?,?,?,?,?);`, u.AvatarID, u.Owner, u.Admin, u.Username, "")
 	if err != nil {
 		log.Warn().Err(err).Msg("AddUser can't execute statement")
@@ -200,6 +207,8 @@ func (db *DB) AddUser(ctx context.Context, u types.User) {
 }
 
 func (db *DB) User(ctx context.Context, username string) (types.User, bool) {
+	defer trace.StartRegion(ctx, "DB/User").End()
+
 	u := types.User{}
 
 	rows, err := db.sqldb.QueryContext(ctx, `select "avatarID","owner","admin","username","description" from users where username = ?`, username)
@@ -220,6 +229,8 @@ func (db *DB) User(ctx context.Context, username string) (types.User, bool) {
 }
 
 func (db *DB) EditUser(ctx context.Context, u types.User) (err error) {
+	defer trace.StartRegion(ctx, "DB/EditUser").End()
+
 	_, err = db.sqldb.ExecContext(ctx, `update users set avatarID=?, owner=?, admin=?, description=? where username = ?`, u.AvatarID, u.Owner, u.Admin, u.Description, u.Username)
 	if err != nil {
 		log.Warn().Err(err).Msg("EditUser can't execute statement")
@@ -229,6 +240,8 @@ func (db *DB) EditUser(ctx context.Context, u types.User) (err error) {
 }
 
 func (db *DB) DeleteUser(ctx context.Context, username string) error {
+	defer trace.StartRegion(ctx, "DB/DeleteUser").End()
+
 	_, err := db.sqldb.ExecContext(ctx, `delete from users where username = ?`, username)
 	if err != nil {
 		log.Warn().Err(err).Msg("DeleteUser can't execute delete user statement")
@@ -277,6 +290,8 @@ func (db *DB) DeleteUser(ctx context.Context, username string) error {
 }
 
 func (db *DB) Post(ctx context.Context, postID int64) (types.Post, bool) {
+	defer trace.StartRegion(ctx, "DB/Post").End()
+
 	p := types.Post{}
 	var tags string
 
@@ -303,6 +318,8 @@ func (db *DB) Post(ctx context.Context, postID int64) (types.Post, bool) {
 
 // AddPost adds a post to the DB and adds it to the author's post list.
 func (db *DB) AddPost(ctx context.Context, post types.Post) error {
+	defer trace.StartRegion(ctx, "DB/AddPost").End()
+
 	_, err := db.sqldb.ExecContext(ctx, `INSERT INTO "posts"("postid", "filename", "ext", "description", "tags", "poster", "timestamp", "sha256", "mimetype") VALUES (?,?,?,?,?,?,?,?,?);`, post.PostID, post.Filename, post.FileExtension, post.Description, utils.TagsListToString(post.Tags), post.Poster, post.CreatedAt, post.Sha256, post.MimeType)
 	if err != nil {
 		log.Warn().Err(err).Msg("AddPost can't execute insert post statement")
@@ -349,6 +366,8 @@ func (db *DB) AddPost(ctx context.Context, post types.Post) error {
 }
 
 func (db *DB) EditPost(ctx context.Context, postID int64, post types.Post) {
+	defer trace.StartRegion(ctx, "DB/EditPost").End()
+
 	err := db.DeletePost(ctx, postID)
 	if err != nil {
 		log.Error().Err(err).Msg("EditPost can't delete post")
@@ -362,6 +381,8 @@ func (db *DB) EditPost(ctx context.Context, postID int64, post types.Post) {
 }
 
 func (db *DB) DeletePost(ctx context.Context, postID int64) error {
+	defer trace.StartRegion(ctx, "DB/DeletePost").End()
+
 	p, _ := db.Post(ctx, postID)
 	for _, tag := range p.Tags {
 		rows, err := db.sqldb.QueryContext(ctx, `select "posts" from tags where tag = ?`, tag)
@@ -410,6 +431,8 @@ func (db *DB) DeletePost(ctx context.Context, postID int64) error {
 }
 
 func (db *DB) getPostsForTag(ctx context.Context, tag string) []int64 {
+	defer trace.StartRegion(ctx, "DB/getPostsForTag").End()
+
 	var posts []int64
 	if val, ok := db.SearchCache.Get(tag); ok {
 		posts = val
@@ -496,6 +519,8 @@ func (db *DB) filterTags(tags []string) []string {
 // getPostsForTags gets posts matching tags from DB
 // it uses a tags table which maps a tag to all the posts containing a tag
 func (db *DB) getPostsForTags(ctx context.Context, tags []string) []int64 {
+	defer trace.StartRegion(ctx, "DB/getPostsForTags").End()
+
 	// we need to make sure to keep track of how many times the post
 	// is seen and only get which posts appear for all of the positive posts
 	// basically a simple way of getting the intersection of all positive tags
@@ -557,6 +582,8 @@ func (db *DB) getPostsForTags(ctx context.Context, tags []string) []int64 {
 }
 
 func (db *DB) Top15CommonTags(ctx context.Context, tags []string) []types.TagCounts {
+	defer trace.StartRegion(ctx, "DB/Top15CommonTags").End()
+
 	posts := db.cacheSearch(ctx, tags)
 	tagCounts := make(map[string]int, 0)
 	for _, p := range posts {
@@ -589,6 +616,8 @@ func (db *DB) Top15CommonTags(ctx context.Context, tags []string) []types.TagCou
 // cacheSearch searches for posts matching tags and returns a
 // array of post IDs matching those tags.
 func (db *DB) cacheSearch(ctx context.Context, searchTags []string) []int64 {
+	defer trace.StartRegion(ctx, "DB/cacheSearch").End()
+
 	var result []int64
 	searchTags = db.filterTags(searchTags)
 	combinedTags := utils.TagsListToString(searchTags)
@@ -608,12 +637,16 @@ func (db *DB) cacheSearch(ctx context.Context, searchTags []string) []int64 {
 
 // GetSearchIDs returns a paginated list of Post IDs from a list of tags.
 func (db *DB) GetSearchIDs(ctx context.Context, searchTags []string, page int) []int64 {
+	defer trace.StartRegion(ctx, "DB/GetSearchIDs").End()
+
 	matching := db.cacheSearch(ctx, searchTags)
 	return utils.Paginate(matching, page, 20)
 }
 
 // getSearchPage returns a paginated list of posts from a list of tags.
 func (db *DB) GetSearchPage(ctx context.Context, searchTags []string, page int) []types.Post {
+	defer trace.StartRegion(ctx, "DB/GetSearchPage").End()
+
 	matching := db.cacheSearch(ctx, searchTags)
 	pageContent := utils.Paginate(matching, page, 20)
 	matchingPosts := make([]types.Post, len(pageContent))
@@ -629,6 +662,8 @@ func (db *DB) GetSearchPage(ctx context.Context, searchTags []string, page int) 
 // It returns a types.User struct and a bool to tell if there was a logged in
 // user or not.
 func (db *DB) CheckForLoggedInUser(ctx context.Context, r *http.Request) (types.User, bool) {
+	defer trace.StartRegion(ctx, "DB/CheckForLoggedInUser").End()
+
 	c, err := r.Cookie("sessionToken")
 	if err == nil {
 		if sess, ok := db.Sessions.CheckToken(ctx, c.Value); ok {
@@ -642,6 +677,8 @@ func (db *DB) CheckForLoggedInUser(ctx context.Context, r *http.Request) (types.
 }
 
 func (db *DB) VerifyRecaptcha(ctx context.Context, resp string) bool {
+	defer trace.StartRegion(ctx, "DB/VerifyRecaptcha").End()
+
 	if !db.Settings.ReCaptcha {
 		return true
 	}
