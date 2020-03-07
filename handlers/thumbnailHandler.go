@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"image"
 	_ "image/gif"
-	"image/jpeg"
+	_ "image/jpeg"
 	_ "image/png"
 	"io"
 	"io/ioutil"
@@ -121,8 +121,6 @@ func createThumbnail(ctx context.Context, post types.Post, ext string, size stri
 
 	if ext == "webp" {
 		err = webp.Encode(newCacheFile, resizedImage, &webp.Options{Quality: 70})
-	} else {
-		err = jpeg.Encode(newCacheFile, resizedImage, &jpeg.Options{Quality: 50})
 	}
 
 	if err != nil {
