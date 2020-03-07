@@ -12,6 +12,29 @@
   <body>
     {{ template "header.html" . }}
     <div class="container" style="padding-top: 10px">
+<div class="row">
+  
+      <div class="col-md-2  order-md-1 order-sm-2">
+        <center>
+
+        <h5>Tag Popularity</h5>
+        <table class="table">
+          <thead>
+            <tr>
+              <th scope="col">Tag</th>
+              <th scope="col">Posts</th>
+            </tr>
+          </thead>
+          {{ range .PostPopularity }}
+          <tr>
+            <th scope="row"><a href="/search?tags={{ html .Tag}}">{{ html .Tag}}</a></th>
+            <td>{{ html .Count}}</td>
+          </tr>
+          {{end}}
+        </table>
+        </center>
+      </div>
+      <div class="col-md-10  order-md-2 order-sm-1" >
       <center>
         <h4>{{ .Translator.Localize "SearchText" }}</h4>
         <form action="/search" method="get">
@@ -35,8 +58,11 @@
           </div>
         </form>
         {{ end }}
-
+        <br>
+        <br>
+        <br>
       </center>
+      </div> 
     </div>
   </body>
 

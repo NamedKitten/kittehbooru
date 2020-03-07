@@ -408,17 +408,59 @@ func (db *DB) DeletePost(postID int64) error {
 	return nil
 }
 
-// getPostsForTags gets posts matching tags from DB
-// it uses a tags table which maps a tag to all the posts containing a tag
-func (db *DB) getPostsForTags(tags []string) []int64 {
-	// we need to make sure to keep track of how many times the post
-	// is seen and only get which posts appear for all of the positive posts
-	// basically a simple way of getting the intersection of all positive tags
-	// so that we only get the posts that match ALL of the positive tags
-	posCount := 0
-	posCounts := make(map[int64]int)
-	negMatch := make(map[int64]bool)
+func (db *DB) getPostsForTag(tag string) []int64 {
+	var posts []int64
+	if val, ok := db.SearchCache.Get(tag); ok {
+		posts = val
+	} else {
 
+	
+	if tag == "*" {
+		rows, err := db.sqldb.Query(`select "postid" from posts where true`)
+		if err != nil {
+			log.Error().Err(err).Msg("GetPostsForTags can't query wildcard posts")
+			return []int64{}
+		}
+		defer rows.Close()
+		var pid int64
+		for rows.Next() {
+			err = rows.Scan(&pid)
+			if err != nil {
+				log.Error().Err(err).Msg("GetPostsForTags can't scan row")
+				return []int64{}
+			}
+			posts = append(posts, pid)
+		}
+
+	} else {
+		rows, err := db.sqldb.Query(`select "posts" from tags where tag = ?`, tag)
+		if err != nil {
+			log.Error().Err(err).Msg("GetPostsForTags can't query tag posts")
+			return []int64{}
+		}
+		var postsString string
+		defer rows.Close()
+
+		for rows.Next() {
+			err = rows.Scan(&postsString)
+			if err != nil {
+				log.Error().Err(err).Msg("GetPostsForTags can't scan row")
+				continue
+			}
+		}
+		// we store it as json just so its easy to store in the database
+		err = json.Unmarshal([]byte(postsString), &posts)
+		if err != nil {
+			return []int64{}
+		}
+	}
+}
+	db.SearchCache.Add(tag, posts)
+	return posts
+
+}
+
+func (db *DB) filterTags(tags []string) []string {
 	// lets first remove any duplicate tags
 	tempTags := make(map[string]bool)
 	// this will remove duplicate entrys
@@ -438,7 +480,7 @@ func (db *DB) getPostsForTags(tags []string) []int64 {
 		} else {
 			_, ok = tempTags["-"+tag]
 		}
-		if !ok {
+		if !ok && ! (tag == " " || len(tag) == 0){
 			tags = append(tags, tag)
 			if !is {
 				isOnlyNegatives = false
@@ -450,6 +492,21 @@ func (db *DB) getPostsForTags(tags []string) []int64 {
 	if isOnlyNegatives {
 		tags = append(tags, "*")
 	}
+	return tags
+}
+
+// getPostsForTags gets posts matching tags from DB
+// it uses a tags table which maps a tag to all the posts containing a tag
+func (db *DB) getPostsForTags(tags []string) []int64 {
+	// we need to make sure to keep track of how many times the post
+	// is seen and only get which posts appear for all of the positive posts
+	// basically a simple way of getting the intersection of all positive tags
+	// so that we only get the posts that match ALL of the positive tags
+	posCount := 0
+	posCounts := make(map[int64]int)
+	negMatch := make(map[int64]bool)
+
+	tags = db.filterTags(tags)
 
 	for _, tag := range tags {
 		// is it a positive tag or a negative tag?
@@ -465,55 +522,15 @@ func (db *DB) getPostsForTags(tags []string) []int64 {
 		}
 
 		//posts will be all the posts that are tagged with `tag`
-		posts := make([]int64, 0)
-
-		if tag == "*" {
-			rows, err := db.sqldb.Query(`select "postid" from posts where true`)
-			if err != nil {
-				log.Error().Err(err).Msg("GetPostsForTags can't query wildcard posts")
-				return []int64{}
-			}
-			defer rows.Close()
-			var pid int64
-			for rows.Next() {
-				err = rows.Scan(&pid)
-				if err != nil {
-					log.Error().Err(err).Msg("GetPostsForTags can't scan row")
-					return []int64{}
-				}
-				posts = append(posts, pid)
-			}
-
-		} else {
-			rows, err := db.sqldb.Query(`select "posts" from tags where tag = ?`, tag)
-			if err != nil {
-				log.Error().Err(err).Msg("GetPostsForTags can't query tag posts")
-				continue
-			}
-			var postsString string
-			defer rows.Close()
-
-			for rows.Next() {
-				err = rows.Scan(&postsString)
-				if err != nil {
-					log.Error().Err(err).Msg("GetPostsForTags can't scan row")
-					continue
-				}
-			}
-			// we store it as json just so its easy to store in the database
-			err = json.Unmarshal([]byte(postsString), &posts)
-			if err != nil {
-				continue
-			}
-		}
+		posts := db.getPostsForTag(tag)
 
 		for _, post := range posts {
 			if !is {
 				// if its a negative match, aka post we DONT want, add it to this map instead
 				negMatch[post] = true
-			} else if _, ok := posCounts[post]; ok {
+			} else if i, ok := posCounts[post]; ok {
 				// add to counter of positive counts
-				posCounts[post] = posCounts[post] + 1
+				posCounts[post] = i + 1
 			} else {
 				// add the count to map starting at 1 if not existing already
 				posCounts[post] = 1
@@ -541,11 +558,43 @@ func (db *DB) getPostsForTags(tags []string) []int64 {
 	return finalPostIDs
 }
 
+func (db *DB) Top15CommonTags(tags []string) []types.TagCounts {
+	posts := db.cacheSearch(tags)
+	tagCounts := make(map[string]int, 0)
+	for _, p := range posts {
+		post, exists  := db.Post(p)
+		if !exists {
+			continue
+		}
+		for _, tag := range post.Tags {
+			if i, ok := tagCounts[tag]; ok {
+				tagCounts[tag] = i + 1
+			} else {
+				tagCounts[tag] = 1
+			}
+		}
+	}
+
+	tagCountsSlice := make([]types.TagCounts, 0, len(tagCounts))
+	for k, v := range tagCounts {
+		tagCountsSlice = append(tagCountsSlice, types.TagCounts{k,v})
+	}
+
+	
+	sort.Slice(tagCountsSlice, func(i, j int) bool {
+		return tagCountsSlice[i].Count > tagCountsSlice[j].Count
+	})
+
+	
+	x := math.Min(float64(15), float64(len(tagCountsSlice)))
+	return tagCountsSlice[:int(x)]
+}
+
 // cacheSearch searches for posts matching tags and returns a
 // array of post IDs matching those tags.
 func (db *DB) cacheSearch(searchTags []string) []int64 {
 	var result []int64
-
+	searchTags = db.filterTags(searchTags)
 	combinedTags := utils.TagsListToString(searchTags)
 	if val, ok := db.SearchCache.Get(combinedTags); ok {
 		result = val

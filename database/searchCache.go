@@ -21,12 +21,14 @@ func (c *SearchCache) init() {
 }
 
 func (c *SearchCache) Get(tags string) ([]int64, bool) {
+	log.Info().Msg(tags + " fetched from search cache.")
 	c.lock.Lock()
 	val, ok := c.cache[tags]
 	c.lock.Unlock()
 	return val, ok
 }
 func (c *SearchCache) Add(tags string, values []int64) {
+	log.Info().Msg(tags + " added to search cache.")
 	c.lock.Lock()
 	c.cache[tags] = values
 	c.times[tags] = time.Now()

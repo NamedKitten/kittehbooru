@@ -1,5 +1,10 @@
 package types
 
+type TagCounts struct {
+	Tag string
+	Count int
+}
+
 type Session struct {
 	Username       string `json:"username"`
 	ExpirationTime int64  `json:"expirationTime"`

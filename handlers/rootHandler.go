@@ -3,6 +3,8 @@ package handlers
 import (
 	"net/http"
 
+	"github.com/NamedKitten/kittehimageboard/types"
+
 	"github.com/NamedKitten/kittehimageboard/i18n"
 	templates "github.com/NamedKitten/kittehimageboard/template"
 )
@@ -11,6 +13,7 @@ import (
 // We require LoggedIn and User to display text and more buttons if
 // a user is already logged in.
 type RootTemplateData struct {
+	PostPopularity []types.TagCounts
 	templates.T
 }
 
@@ -22,11 +25,13 @@ func RootHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	user, loggedIn := DB.CheckForLoggedInUser(r)
 	x := RootTemplateData{
-		templates.T{
-			LoggedIn:     loggedIn,
-			LoggedInUser: user,
-			Translator:   i18n.GetTranslator(r),
+		T: templates.T{
+
+		LoggedIn:     loggedIn,
+		LoggedInUser: user,
+		Translator:   i18n.GetTranslator(r),
 		},
+		PostPopularity: DB.Top15CommonTags([]string{"*",}),
 	}
 	err := templates.RenderTemplate(w, "index.html", x)
 	if err != nil {

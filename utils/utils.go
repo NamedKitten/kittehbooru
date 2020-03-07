@@ -61,7 +61,7 @@ func Paginate(x []int64, page int, pageSize int) []int64 {
 	if skip <= 0 {
 		skip = 0
 	}
-    spS := skip+pageSize
+	spS := skip + pageSize
 	if spS > numItems {
 		limit = numItems
 	} else {
