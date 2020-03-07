@@ -7,6 +7,7 @@ import (
 	"math"
 	"net/http"
 	"os"
+	"runtime/trace"
 	"sort"
 	"strings"
 	"time"
@@ -413,54 +414,52 @@ func (db *DB) getPostsForTag(tag string) []int64 {
 	if val, ok := db.SearchCache.Get(tag); ok {
 		posts = val
 	} else {
-
-	
-	if tag == "*" {
-		rows, err := db.sqldb.Query(`select "postid" from posts where true`)
-		if err != nil {
-			log.Error().Err(err).Msg("GetPostsForTags can't query wildcard posts")
-			return []int64{}
-		}
-		defer rows.Close()
-		var pid int64
-		for rows.Next() {
-			err = rows.Scan(&pid)
+		if tag == "*" {
+			rows, err := db.sqldb.Query(`select "postid" from posts where true`)
 			if err != nil {
-				log.Error().Err(err).Msg("GetPostsForTags can't scan row")
+				log.Error().Err(err).Msg("GetPostsForTags can't query wildcard posts")
 				return []int64{}
 			}
-			posts = append(posts, pid)
-		}
+			defer rows.Close()
+			var pid int64
+			for rows.Next() {
+				err = rows.Scan(&pid)
+				if err != nil {
+					log.Error().Err(err).Msg("GetPostsForTags can't scan row")
+					return []int64{}
+				}
+				posts = append(posts, pid)
+			}
 
-	} else {
-		rows, err := db.sqldb.Query(`select "posts" from tags where tag = ?`, tag)
-		if err != nil {
-			log.Error().Err(err).Msg("GetPostsForTags can't query tag posts")
-			return []int64{}
-		}
-		var postsString string
-		defer rows.Close()
-
-		for rows.Next() {
-			err = rows.Scan(&postsString)
+		} else {
+			rows, err := db.sqldb.Query(`select "posts" from tags where tag = ?`, tag)
 			if err != nil {
-				log.Error().Err(err).Msg("GetPostsForTags can't scan row")
-				continue
+				log.Error().Err(err).Msg("GetPostsForTags can't query tag posts")
+				return []int64{}
+			}
+			var postsString string
+			defer rows.Close()
+
+			for rows.Next() {
+				err = rows.Scan(&postsString)
+				if err != nil {
+					log.Error().Err(err).Msg("GetPostsForTags can't scan row")
+					continue
+				}
+			}
+			// we store it as json just so its easy to store in the database
+			err = json.Unmarshal([]byte(postsString), &posts)
+			if err != nil {
+				return []int64{}
 			}
 		}
-		// we store it as json just so its easy to store in the database
-		err = json.Unmarshal([]byte(postsString), &posts)
-		if err != nil {
-			return []int64{}
-		}
 	}
-}
 	db.SearchCache.Add(tag, posts)
 	return posts
-
 }
 
 func (db *DB) filterTags(tags []string) []string {
+	defer trace.StartRegion(ctx, "database/filterTags").End()
 	// lets first remove any duplicate tags
 	tempTags := make(map[string]bool)
 	// this will remove duplicate entrys
@@ -480,7 +479,7 @@ func (db *DB) filterTags(tags []string) []string {
 		} else {
 			_, ok = tempTags["-"+tag]
 		}
-		if !ok && ! (tag == " " || len(tag) == 0){
+		if !ok && !(tag == " " || len(tag) == 0) {
 			tags = append(tags, tag)
 			if !is {
 				isOnlyNegatives = false
@@ -562,7 +561,7 @@ func (db *DB) Top15CommonTags(tags []string) []types.TagCounts {
 	posts := db.cacheSearch(tags)
 	tagCounts := make(map[string]int, 0)
 	for _, p := range posts {
-		post, exists  := db.Post(p)
+		post, exists := db.Post(p)
 		if !exists {
 			continue
 		}
@@ -577,15 +576,13 @@ func (db *DB) Top15CommonTags(tags []string) []types.TagCounts {
 
 	tagCountsSlice := make([]types.TagCounts, 0, len(tagCounts))
 	for k, v := range tagCounts {
-		tagCountsSlice = append(tagCountsSlice, types.TagCounts{k,v})
+		tagCountsSlice = append(tagCountsSlice, types.TagCounts{k, v})
 	}
 
-	
 	sort.Slice(tagCountsSlice, func(i, j int) bool {
 		return tagCountsSlice[i].Count > tagCountsSlice[j].Count
 	})
 
-	
 	x := math.Min(float64(15), float64(len(tagCountsSlice)))
 	return tagCountsSlice[:int(x)]
 }

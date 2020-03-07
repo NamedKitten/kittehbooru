@@ -27,11 +27,11 @@ func RootHandler(w http.ResponseWriter, r *http.Request) {
 	x := RootTemplateData{
 		T: templates.T{
 
-		LoggedIn:     loggedIn,
-		LoggedInUser: user,
-		Translator:   i18n.GetTranslator(r),
+			LoggedIn:     loggedIn,
+			LoggedInUser: user,
+			Translator:   i18n.GetTranslator(r),
 		},
-		PostPopularity: DB.Top15CommonTags([]string{"*",}),
+		PostPopularity: DB.Top15CommonTags([]string{"*"}),
 	}
 	err := templates.RenderTemplate(w, "index.html", x)
 	if err != nil {

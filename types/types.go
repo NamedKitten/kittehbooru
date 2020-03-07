@@ -1,7 +1,7 @@
 package types
 
 type TagCounts struct {
-	Tag string
+	Tag   string
 	Count int
 }
 
