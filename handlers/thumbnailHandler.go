@@ -117,7 +117,7 @@ func createThumbnail(ctx context.Context, post types.Post, ext string, size stri
 	}
 	defer newCacheFile.Close()
 
-	resizedImage := resize.Resize(uint(sizeToWidth(size)), 0, image, resize.Lanczos3)
+	resizedImage := resize.Resize(uint(sizeToWidth(size)), 0, image, resize.NearestNeighbor)
 
 	if ext == "webp" {
 		err = webp.Encode(newCacheFile, resizedImage, &webp.Options{Quality: 70})
