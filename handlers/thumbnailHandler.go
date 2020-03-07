@@ -58,7 +58,7 @@ func createThumbnails(ctx context.Context, post types.Post) {
 }
 
 func createThumbnail(ctx context.Context, post types.Post, ext string, size string) string {
-	log.Error().Msg("Creating Thumbnail")
+	log.Debug().Int64("postid", post.PostID).Str("size", size).Msg("Creating Thumbnail")
 
 	originalFilename := fmt.Sprintf("%s.%s", post.Filename, post.FileExtension)
 	// The file where the generated thumbnail is stored.
