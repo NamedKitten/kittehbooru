@@ -23,38 +23,15 @@ import (
 )
 
 func sizeToWidth(s string) int {
-	switch s {
-	case "small":
-		return 200
-	case "medium":
-		return 400
-	case "large":
-		return 800
-	default:
-		return 400
-	}
+	return 200
 }
 
 func sanitisedSize(s string) string {
-	switch s {
-	case "small":
-		return "small"
-	case "medium":
-		return "medium"
-	case "large":
-		return "large"
-	default:
-		return "large"
-	}
+	return "small"
 }
 
 func createThumbnails(ctx context.Context, post types.Post) {
-	createThumbnail(ctx, post, "jpeg", "small")
-	createThumbnail(ctx, post, "jpeg", "medium")
-	createThumbnail(ctx, post, "jpeg", "large")
 	createThumbnail(ctx, post, "webp", "small")
-	createThumbnail(ctx, post, "webp", "medium")
-	createThumbnail(ctx, post, "webp", "large")
 }
 
 func createThumbnail(ctx context.Context, post types.Post, ext string, size string) string {
