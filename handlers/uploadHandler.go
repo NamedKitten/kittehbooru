@@ -40,7 +40,9 @@ const maxUploadSize = 64 * 1024 * 1024
 
 // uploadHandler is the API endpoint for creating posts.
 func UploadHandler(w http.ResponseWriter, r *http.Request) {
-	user, loggedIn := DB.CheckForLoggedInUser(r)
+	ctx := r.Context()
+
+	user, loggedIn := DB.CheckForLoggedInUser(ctx, r)
 	if !loggedIn {
 		log.Error().Msg("Not Logged In")
 		http.Redirect(w, r, "/login", http.StatusFound)
@@ -97,7 +99,7 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 
 	sha256sum := utils.Sha256Bytes(fileBytes)
 	newPath := fileName + "." + extension
-	newFile, err := DB.ContentStorage.WriteFile(newPath)
+	newFile, err := DB.ContentStorage.WriteFile(ctx, newPath)
 	if err != nil {
 		log.Error().Err(err).Msg("File Create")
 		renderError(w, "CANT_WRITE_FILE", http.StatusInternalServerError)
@@ -142,9 +144,9 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 		Sha256:        sha256sum,
 		MimeType:      mimeType,
 	}
-	go createThumbnails(p)
+	go createThumbnails(ctx, p)
 
-	err = DB.AddPost(p)
+	err = DB.AddPost(ctx, p)
 	if err != nil {
 		log.Error().Err(err).Msg("Post Creation")
 		renderError(w, "POST_CREATE_ERR", http.StatusBadRequest)
@@ -155,7 +157,9 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 
 // uploadPageHandler is the endpoint where the file upload page is served.
 func UploadPageHandler(w http.ResponseWriter, r *http.Request) {
-	user, loggedIn := DB.CheckForLoggedInUser(r)
+	ctx := r.Context()
+
+	user, loggedIn := DB.CheckForLoggedInUser(ctx, r)
 	if !loggedIn {
 		http.Redirect(w, r, "/login", http.StatusFound)
 		return

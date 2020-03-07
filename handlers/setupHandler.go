@@ -27,6 +27,8 @@ func formValueToBool(val string) bool {
 }
 
 func SetupHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
 	if DB.SetupCompleted {
 		http.Redirect(w, r, "/", http.StatusFound)
 		return
@@ -43,14 +45,14 @@ func SetupHandler(w http.ResponseWriter, r *http.Request) {
 	reCaptchaPublicKey := r.FormValue("reCaptchaPublicKey")
 	reCaptchaPrivateKey := r.FormValue("reCaptchaPrivateKey")
 
-	DB.AddUser(types.User{
+	DB.AddUser(ctx, types.User{
 		Owner:       true,
 		Admin:       true,
 		Username:    username,
 		Description: "",
 		Posts:       []int64{},
 	})
-	err = DB.SetPassword(username, password)
+	err = DB.SetPassword(ctx, username, password)
 	if err != nil {
 		log.Error().Err(err).Msg("Setup Password")
 		return
@@ -69,7 +71,7 @@ func SetupHandler(w http.ResponseWriter, r *http.Request) {
 	DB.Save()
 	http.SetCookie(w, &http.Cookie{
 		Name:    "sessionToken",
-		Value:   DB.Sessions.CreateSession(username),
+		Value:   DB.Sessions.CreateSession(ctx, username),
 		Expires: time.Now().Add(3 * time.Hour),
 	})
 	http.Redirect(w, r, "/", http.StatusFound)

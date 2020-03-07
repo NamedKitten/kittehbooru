@@ -1,10 +1,10 @@
 package start
 
 import (
+	"flag"
 	"net/http"
 	"os"
 	"os/signal"
-	"flag"
 
 	"github.com/NamedKitten/kittehimageboard/database"
 	"github.com/NamedKitten/kittehimageboard/handlers"

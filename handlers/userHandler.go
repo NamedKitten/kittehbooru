@@ -17,20 +17,22 @@ type UserResultsTemplate struct {
 }
 
 func UserHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
 	if !DB.SetupCompleted {
 		http.Redirect(w, r, "/setup", http.StatusFound)
 		return
 	}
 	vars := mux.Vars(r)
-	loggedInUser, loggedIn := DB.CheckForLoggedInUser(r)
+	loggedInUser, loggedIn := DB.CheckForLoggedInUser(ctx, r)
 
 	username := vars["userID"]
-	user, exist := DB.User(vars["userID"])
+	user, exist := DB.User(ctx, vars["userID"])
 	if !exist {
 		return
 	}
 
-	avatarPost, _ := DB.Post(user.AvatarID)
+	avatarPost, _ := DB.Post(ctx, user.AvatarID)
 	templateInfo := UserResultsTemplate{
 		AvatarPost:   avatarPost,
 		User:         user,
