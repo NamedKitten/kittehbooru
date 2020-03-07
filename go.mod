@@ -14,6 +14,7 @@ require (
 	github.com/chrisfelesoid/go-flif v0.3.0
 	github.com/coreos/pkg v0.0.0-20180928190104-399ea9e2e55f // indirect
 	github.com/davecgh/go-spew v1.1.1
+	github.com/disintegration/imaging v1.6.2
 	github.com/ezzarghili/recaptcha-go v3.0.1+incompatible
 	github.com/godbus/dbus v4.1.0+incompatible // indirect
 	github.com/goji/param v0.0.0-20160927210335-d7f49fd7d1ed // indirect

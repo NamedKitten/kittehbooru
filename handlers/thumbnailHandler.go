@@ -18,7 +18,7 @@ import (
 	"github.com/NamedKitten/kittehimageboard/types"
 	"github.com/chai2010/webp"
 	"github.com/gorilla/mux"
-	"github.com/nfnt/resize"
+	"github.com/disintegration/imaging"
 	"github.com/rs/zerolog/log"
 )
 
@@ -117,7 +117,7 @@ func createThumbnail(ctx context.Context, post types.Post, ext string, size stri
 	}
 	defer newCacheFile.Close()
 
-	resizedImage := resize.Resize(uint(sizeToWidth(size)), 0, image, resize.NearestNeighbor)
+	resizedImage := imaging.Resize(image, sizeToWidth(size), 0, imaging.NearestNeighbor)
 
 	if ext == "webp" {
 		err = webp.Encode(newCacheFile, resizedImage, &webp.Options{Quality: 70})
