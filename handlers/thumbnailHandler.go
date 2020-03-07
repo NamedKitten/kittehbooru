@@ -47,7 +47,7 @@ func sanitisedSize(s string) string {
 	}
 }
 
-/*
+
 func createThumbnails(post types.Post) {
 	createThumbnail(post, "jpeg", "small")
 	createThumbnail(post, "jpeg", "medium")
@@ -56,7 +56,7 @@ func createThumbnails(post types.Post) {
 	createThumbnail(post, "webp", "medium")
 	createThumbnail(post, "webp", "large")
 }
-*/
+
 
 func createThumbnail(post types.Post, ext string, size string) string {
 	log.Error().Msg("Creating Thumbnail")
