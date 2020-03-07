@@ -8,11 +8,8 @@ settings:
   videoThumbnails: false
   pdfThumbnails: false
   pdfView: false
-  databaseURI: "file:db.sql"
-  contentStorage: "file://$CWD/data/content/"
-  thumbnailsStorage: "file://$CWD/data/cache/"
-  #for S3
-  #contentStorage: s3://kitcontent/content/
-  #thumbnailsStorage: s3://kitcontent/cache/
-  #contentURL: https://kitcontent.s3.amazonaws.com/content/
-  #thumbnailURL: https://kitcontent.s3.amazonaws.com/cache/
+  databaseURI: file:db.sql?_journal=WAL&cache=shared&_busy_timeout=5000
+  contentStorage: file://data/content/
+  thumbnailsStorage: file://data/cache/
+  contentURL: /content/
+  thumbnailURL: /thumbnail/
