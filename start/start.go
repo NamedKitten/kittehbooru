@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"flag"
 
 	"github.com/NamedKitten/kittehimageboard/database"
 	"github.com/NamedKitten/kittehimageboard/handlers"
@@ -15,6 +16,8 @@ import (
 )
 
 var DB *database.DB
+
+var listen = flag.String("listen", "0.0.0.0:80", "listen on port")
 
 func init() {
 	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
@@ -29,6 +32,8 @@ func cacheMiddleware(next http.Handler) http.Handler {
 }
 
 func Start() {
+	flag.Parse()
+
 	log.Info().Msg("Starting")
 	DB = database.LoadDB()
 	templates.DB = DB
@@ -65,7 +70,7 @@ func Start() {
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt)
 	go func() {
-		err := http.ListenAndServe("0.0.0.0:80", gorillaHandlers.LoggingHandler(os.Stdout, r))
+		err := http.ListenAndServe(*listen, gorillaHandlers.LoggingHandler(os.Stdout, r))
 		if err != nil {
 			log.Error().Err(err).Msg("Can't start web")
 			panic(err)

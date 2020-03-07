@@ -57,7 +57,6 @@ func createThumbnails(post types.Post) {
 	createThumbnail(post, "webp", "large")
 }
 
-
 func createThumbnail(post types.Post, ext string, size string) string {
 	log.Error().Msg("Creating Thumbnail")
 
