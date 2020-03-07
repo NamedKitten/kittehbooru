@@ -1,6 +1,7 @@
 package database
 
 import (
+	"context"
 	"database/sql"
 	"encoding/json"
 	"io/ioutil"
@@ -88,13 +89,13 @@ func (db *DB) Save() {
 }
 
 // numOfPostsForTags returns the total number of posts for a list of tags.
-func (db *DB) NumOfPostsForTags(searchTags []string) int {
-	return len(db.cacheSearch(searchTags))
+func (db *DB) NumOfPostsForTags(ctx context.Context, searchTags []string) int {
+	return len(db.cacheSearch(ctx, searchTags))
 }
 
 // numOfPagesForTags returns the total number of pages for a list of tags.
-func (db *DB) NumOfPagesForTags(searchTags []string) int {
-	return int(math.Ceil(float64(db.NumOfPostsForTags(searchTags)) / float64(20)))
+func (db *DB) NumOfPagesForTags(ctx context.Context, searchTags []string) int {
+	return int(math.Ceil(float64(db.NumOfPostsForTags(ctx, searchTags)) / float64(20)))
 }
 
 // init creates all the database fields and starts cache and session management.
@@ -169,8 +170,8 @@ func LoadDB() *DB {
 	return db
 }
 
-func (db *DB) SetPassword(username string, password string) (err error) {
-	_, err = db.sqldb.Exec(`INSERT OR REPLACE INTO "passwords"("username", "password") VALUES (?, ?);`, username, utils.EncryptPassword(password))
+func (db *DB) SetPassword(ctx context.Context, username string, password string) (err error) {
+	_, err = db.sqldb.ExecContext(ctx, `INSERT OR REPLACE INTO "passwords"("username", "password") VALUES (?, ?);`, username, utils.EncryptPassword(password))
 	if err != nil {
 		log.Warn().Err(err).Msg("SetPassword can't execute statement")
 		return err
@@ -178,9 +179,9 @@ func (db *DB) SetPassword(username string, password string) (err error) {
 	return nil
 }
 
-func (db *DB) CheckPassword(username string, password string) bool {
+func (db *DB) CheckPassword(ctx context.Context, username string, password string) bool {
 	var encPasswd string
-	row := db.sqldb.QueryRow(`select password from passwords where username=?`, username)
+	row := db.sqldb.QueryRowContext(ctx, `select password from passwords where username=?`, username)
 	switch err := row.Scan(&encPasswd); err {
 	case sql.ErrNoRows:
 		return false
@@ -191,17 +192,17 @@ func (db *DB) CheckPassword(username string, password string) bool {
 	}
 }
 
-func (db *DB) AddUser(u types.User) {
-	_, err := db.sqldb.Exec(`INSERT INTO "users"("avatarID","owner","admin","username","description") VALUES (?,?,?,?,?);`, u.AvatarID, u.Owner, u.Admin, u.Username, "")
+func (db *DB) AddUser(ctx context.Context, u types.User) {
+	_, err := db.sqldb.ExecContext(ctx, `INSERT INTO "users"("avatarID","owner","admin","username","description") VALUES (?,?,?,?,?);`, u.AvatarID, u.Owner, u.Admin, u.Username, "")
 	if err != nil {
 		log.Warn().Err(err).Msg("AddUser can't execute statement")
 	}
 }
 
-func (db *DB) User(username string) (types.User, bool) {
+func (db *DB) User(ctx context.Context, username string) (types.User, bool) {
 	u := types.User{}
 
-	rows, err := db.sqldb.Query(`select "avatarID","owner","admin","username","description" from users where username = ?`, username)
+	rows, err := db.sqldb.QueryContext(ctx, `select "avatarID","owner","admin","username","description" from users where username = ?`, username)
 	if err != nil {
 		log.Error().Err(err).Msg("User can't query statement")
 		return u, false
@@ -218,8 +219,8 @@ func (db *DB) User(username string) (types.User, bool) {
 	return u, false
 }
 
-func (db *DB) EditUser(u types.User) (err error) {
-	_, err = db.sqldb.Exec(`update users set avatarID=?, owner=?, admin=?, description=? where username = ?`, u.AvatarID, u.Owner, u.Admin, u.Description, u.Username)
+func (db *DB) EditUser(ctx context.Context, u types.User) (err error) {
+	_, err = db.sqldb.ExecContext(ctx, `update users set avatarID=?, owner=?, admin=?, description=? where username = ?`, u.AvatarID, u.Owner, u.Admin, u.Description, u.Username)
 	if err != nil {
 		log.Warn().Err(err).Msg("EditUser can't execute statement")
 		return err
@@ -227,20 +228,20 @@ func (db *DB) EditUser(u types.User) (err error) {
 	return nil
 }
 
-func (db *DB) DeleteUser(username string) error {
-	_, err := db.sqldb.Exec(`delete from users where username = ?`, username)
+func (db *DB) DeleteUser(ctx context.Context, username string) error {
+	_, err := db.sqldb.ExecContext(ctx, `delete from users where username = ?`, username)
 	if err != nil {
 		log.Warn().Err(err).Msg("DeleteUser can't execute delete user statement")
 		return err
 	}
 
-	_, err = db.sqldb.Exec(`delete from passwords where username = ?`, username)
+	_, err = db.sqldb.ExecContext(ctx, `delete from passwords where username = ?`, username)
 	if err != nil {
 		log.Warn().Err(err).Msg("DeleteUser can't execute delete password statement")
 		return err
 	}
 
-	rows, err := db.sqldb.Query(`select "postid" from posts where poster = ?`, username)
+	rows, err := db.sqldb.QueryContext(ctx, `select "postid" from posts where poster = ?`, username)
 	if err != nil {
 		log.Error().Err(err).Msg("DeleteUser can't select posts")
 	}
@@ -263,23 +264,23 @@ func (db *DB) DeleteUser(username string) error {
 		return err
 	}
 	for _, post := range posts {
-		err = db.DeletePost(post)
+		err = db.DeletePost(ctx, post)
 		if err != nil {
 			log.Error().Err(err).Msg("Can't delete user's post")
 			return err
 		}
 	}
 
-	db.Sessions.InvalidateSession(username)
+	db.Sessions.InvalidateSession(ctx, username)
 
 	return nil
 }
 
-func (db *DB) Post(postID int64) (types.Post, bool) {
+func (db *DB) Post(ctx context.Context, postID int64) (types.Post, bool) {
 	p := types.Post{}
 	var tags string
 
-	rows, err := db.sqldb.Query(`select "filename", "ext", "description", "tags", "poster", "timestamp", "sha256", "mimetype" from posts where postID = ?`, postID)
+	rows, err := db.sqldb.QueryContext(ctx, `select "filename", "ext", "description", "tags", "poster", "timestamp", "sha256", "mimetype" from posts where postID = ?`, postID)
 	if err != nil {
 		log.Error().Err(err).Msg("Post can't query")
 		return p, false
@@ -301,15 +302,15 @@ func (db *DB) Post(postID int64) (types.Post, bool) {
 }
 
 // AddPost adds a post to the DB and adds it to the author's post list.
-func (db *DB) AddPost(post types.Post) error {
-	_, err := db.sqldb.Exec(`INSERT INTO "posts"("postid", "filename", "ext", "description", "tags", "poster", "timestamp", "sha256", "mimetype") VALUES (?,?,?,?,?,?,?,?,?);`, post.PostID, post.Filename, post.FileExtension, post.Description, utils.TagsListToString(post.Tags), post.Poster, post.CreatedAt, post.Sha256, post.MimeType)
+func (db *DB) AddPost(ctx context.Context, post types.Post) error {
+	_, err := db.sqldb.ExecContext(ctx, `INSERT INTO "posts"("postid", "filename", "ext", "description", "tags", "poster", "timestamp", "sha256", "mimetype") VALUES (?,?,?,?,?,?,?,?,?);`, post.PostID, post.Filename, post.FileExtension, post.Description, utils.TagsListToString(post.Tags), post.Poster, post.CreatedAt, post.Sha256, post.MimeType)
 	if err != nil {
 		log.Warn().Err(err).Msg("AddPost can't execute insert post statement")
 		return err
 	}
 
 	for _, tag := range post.Tags {
-		rows, err := db.sqldb.Query(`select "posts" from tags where tag = ?`, tag)
+		rows, err := db.sqldb.QueryContext(ctx, `select "posts" from tags where tag = ?`, tag)
 		if err != nil {
 			log.Error().Err(err).Msg("AddPost can't select tags")
 			return err
@@ -337,7 +338,7 @@ func (db *DB) AddPost(post types.Post) error {
 			return err
 		}
 
-		_, err = db.sqldb.Exec(`INSERT OR REPLACE INTO "tags"("tag", "posts") VALUES (?, ?);`, tag, string(x))
+		_, err = db.sqldb.ExecContext(ctx, `INSERT OR REPLACE INTO "tags"("tag", "posts") VALUES (?, ?);`, tag, string(x))
 		if err != nil {
 			log.Warn().Err(err).Msg("AddPost Tags can't execute insert tags statement")
 			return err
@@ -347,23 +348,23 @@ func (db *DB) AddPost(post types.Post) error {
 	return nil
 }
 
-func (db *DB) EditPost(postID int64, post types.Post) {
-	err := db.DeletePost(postID)
+func (db *DB) EditPost(ctx context.Context, postID int64, post types.Post) {
+	err := db.DeletePost(ctx, postID)
 	if err != nil {
 		log.Error().Err(err).Msg("EditPost can't delete post")
 		return
 	}
-	err = db.AddPost(post)
+	err = db.AddPost(ctx, post)
 	if err != nil {
 		log.Error().Err(err).Msg("EditPost can't add post")
 		return
 	}
 }
 
-func (db *DB) DeletePost(postID int64) error {
-	p, _ := db.Post(postID)
+func (db *DB) DeletePost(ctx context.Context, postID int64) error {
+	p, _ := db.Post(ctx, postID)
 	for _, tag := range p.Tags {
-		rows, err := db.sqldb.Query(`select "posts" from tags where tag = ?`, tag)
+		rows, err := db.sqldb.QueryContext(ctx, `select "posts" from tags where tag = ?`, tag)
 		if err != nil {
 			log.Error().Err(err).Msg("DeletePost can't select tags")
 			return err
@@ -393,14 +394,14 @@ func (db *DB) DeletePost(postID int64) error {
 			log.Error().Err(err).Msg("DeletePost can't unmarshal posts list")
 			return err
 		}
-		_, err = db.sqldb.Exec(`INSERT OR REPLACE INTO "tags"("tag", "posts") VALUES (?, ?);`, tag, string(x))
+		_, err = db.sqldb.ExecContext(ctx, `INSERT OR REPLACE INTO "tags"("tag", "posts") VALUES (?, ?);`, tag, string(x))
 		if err != nil {
 			log.Warn().Err(err).Msg("AddPost Tags can't execute insert tags statement")
 			return err
 		}
 	}
 
-	_, err := db.sqldb.Exec(`delete from posts where postid = ?`, postID)
+	_, err := db.sqldb.ExecContext(ctx, `delete from posts where postid = ?`, postID)
 	if err != nil {
 		log.Warn().Err(err).Msg("DeletePost can't execute delete post statement")
 		return err
@@ -408,51 +409,51 @@ func (db *DB) DeletePost(postID int64) error {
 	return nil
 }
 
-func (db *DB) getPostsForTag(tag string) []int64 {
+func (db *DB) getPostsForTag(ctx context.Context, tag string) []int64 {
 	var posts []int64
 	if val, ok := db.SearchCache.Get(tag); ok {
 		posts = val
 	} else {
-	if tag == "*" {
-		rows, err := db.sqldb.Query(`select "postid" from posts where true`)
-		if err != nil {
-			log.Error().Err(err).Msg("GetPostsForTags can't query wildcard posts")
-			return []int64{}
-		}
-		defer rows.Close()
-		var pid int64
-		for rows.Next() {
-			err = rows.Scan(&pid)
+		if tag == "*" {
+			rows, err := db.sqldb.QueryContext(ctx, `select "postid" from posts where true`)
 			if err != nil {
-				log.Error().Err(err).Msg("GetPostsForTags can't scan row")
+				log.Error().Err(err).Msg("GetPostsForTags can't query wildcard posts")
 				return []int64{}
 			}
-			posts = append(posts, pid)
-		}
+			defer rows.Close()
+			var pid int64
+			for rows.Next() {
+				err = rows.Scan(&pid)
+				if err != nil {
+					log.Error().Err(err).Msg("GetPostsForTags can't scan row")
+					return []int64{}
+				}
+				posts = append(posts, pid)
+			}
 
-	} else {
-		rows, err := db.sqldb.Query(`select "posts" from tags where tag = ?`, tag)
-		if err != nil {
-			log.Error().Err(err).Msg("GetPostsForTags can't query tag posts")
-			return []int64{}
-		}
-		var postsString string
-		defer rows.Close()
-
-		for rows.Next() {
-			err = rows.Scan(&postsString)
+		} else {
+			rows, err := db.sqldb.QueryContext(ctx, `select "posts" from tags where tag = ?`, tag)
 			if err != nil {
-				log.Error().Err(err).Msg("GetPostsForTags can't scan row")
-				continue
+				log.Error().Err(err).Msg("GetPostsForTags can't query tag posts")
+				return []int64{}
+			}
+			var postsString string
+			defer rows.Close()
+
+			for rows.Next() {
+				err = rows.Scan(&postsString)
+				if err != nil {
+					log.Error().Err(err).Msg("GetPostsForTags can't scan row")
+					continue
+				}
+			}
+			// we store it as json just so its easy to store in the database
+			err = json.Unmarshal([]byte(postsString), &posts)
+			if err != nil {
+				return []int64{}
 			}
 		}
-		// we store it as json just so its easy to store in the database
-		err = json.Unmarshal([]byte(postsString), &posts)
-		if err != nil {
-			return []int64{}
-		}
 	}
-}
 	db.SearchCache.Add(tag, posts)
 	return posts
 }
@@ -477,7 +478,7 @@ func (db *DB) filterTags(tags []string) []string {
 		} else {
 			_, ok = tempTags["-"+tag]
 		}
-		if !ok && ! (tag == " " || len(tag) == 0){
+		if !ok && !(tag == " " || len(tag) == 0) {
 			tags = append(tags, tag)
 			if !is {
 				isOnlyNegatives = false
@@ -494,7 +495,7 @@ func (db *DB) filterTags(tags []string) []string {
 
 // getPostsForTags gets posts matching tags from DB
 // it uses a tags table which maps a tag to all the posts containing a tag
-func (db *DB) getPostsForTags(tags []string) []int64 {
+func (db *DB) getPostsForTags(ctx context.Context, tags []string) []int64 {
 	// we need to make sure to keep track of how many times the post
 	// is seen and only get which posts appear for all of the positive posts
 	// basically a simple way of getting the intersection of all positive tags
@@ -519,7 +520,7 @@ func (db *DB) getPostsForTags(tags []string) []int64 {
 		}
 
 		//posts will be all the posts that are tagged with `tag`
-		posts := db.getPostsForTag(tag)
+		posts := db.getPostsForTag(ctx, tag)
 
 		for _, post := range posts {
 			if !is {
@@ -555,11 +556,11 @@ func (db *DB) getPostsForTags(tags []string) []int64 {
 	return finalPostIDs
 }
 
-func (db *DB) Top15CommonTags(tags []string) []types.TagCounts {
-	posts := db.cacheSearch(tags)
+func (db *DB) Top15CommonTags(ctx context.Context, tags []string) []types.TagCounts {
+	posts := db.cacheSearch(ctx, tags)
 	tagCounts := make(map[string]int, 0)
 	for _, p := range posts {
-		post, exists  := db.Post(p)
+		post, exists := db.Post(ctx, p)
 		if !exists {
 			continue
 		}
@@ -574,29 +575,27 @@ func (db *DB) Top15CommonTags(tags []string) []types.TagCounts {
 
 	tagCountsSlice := make([]types.TagCounts, 0, len(tagCounts))
 	for k, v := range tagCounts {
-		tagCountsSlice = append(tagCountsSlice, types.TagCounts{k,v})
+		tagCountsSlice = append(tagCountsSlice, types.TagCounts{k, v})
 	}
 
-	
 	sort.Slice(tagCountsSlice, func(i, j int) bool {
 		return tagCountsSlice[i].Count > tagCountsSlice[j].Count
 	})
 
-	
 	x := math.Min(float64(15), float64(len(tagCountsSlice)))
 	return tagCountsSlice[:int(x)]
 }
 
 // cacheSearch searches for posts matching tags and returns a
 // array of post IDs matching those tags.
-func (db *DB) cacheSearch(searchTags []string) []int64 {
+func (db *DB) cacheSearch(ctx context.Context, searchTags []string) []int64 {
 	var result []int64
 	searchTags = db.filterTags(searchTags)
 	combinedTags := utils.TagsListToString(searchTags)
 	if val, ok := db.SearchCache.Get(combinedTags); ok {
 		result = val
 	} else {
-		matching := db.getPostsForTags(searchTags)
+		matching := db.getPostsForTags(ctx, searchTags)
 		db.SearchCache.Add(combinedTags, matching)
 		result = matching
 	}
@@ -608,18 +607,18 @@ func (db *DB) cacheSearch(searchTags []string) []int64 {
 }
 
 // GetSearchIDs returns a paginated list of Post IDs from a list of tags.
-func (db *DB) GetSearchIDs(searchTags []string, page int) []int64 {
-	matching := db.cacheSearch(searchTags)
+func (db *DB) GetSearchIDs(ctx context.Context, searchTags []string, page int) []int64 {
+	matching := db.cacheSearch(ctx, searchTags)
 	return utils.Paginate(matching, page, 20)
 }
 
 // getSearchPage returns a paginated list of posts from a list of tags.
-func (db *DB) GetSearchPage(searchTags []string, page int) []types.Post {
-	matching := db.cacheSearch(searchTags)
+func (db *DB) GetSearchPage(ctx context.Context, searchTags []string, page int) []types.Post {
+	matching := db.cacheSearch(ctx, searchTags)
 	pageContent := utils.Paginate(matching, page, 20)
 	matchingPosts := make([]types.Post, len(pageContent))
 	for i, post := range pageContent {
-		p, _ := db.Post(post)
+		p, _ := db.Post(ctx, post)
 		matchingPosts[i] = p
 	}
 	return matchingPosts
@@ -629,11 +628,11 @@ func (db *DB) GetSearchPage(searchTags []string, page int) []types.Post {
 // HTTP request is from a logged in user.
 // It returns a types.User struct and a bool to tell if there was a logged in
 // user or not.
-func (db *DB) CheckForLoggedInUser(r *http.Request) (types.User, bool) {
+func (db *DB) CheckForLoggedInUser(ctx context.Context, r *http.Request) (types.User, bool) {
 	c, err := r.Cookie("sessionToken")
 	if err == nil {
-		if sess, ok := db.Sessions.CheckToken(c.Value); ok {
-			u, exists := db.User(sess.Username)
+		if sess, ok := db.Sessions.CheckToken(ctx, c.Value); ok {
+			u, exists := db.User(ctx, sess.Username)
 			if exists {
 				return u, true
 			}
@@ -642,10 +641,11 @@ func (db *DB) CheckForLoggedInUser(r *http.Request) (types.User, bool) {
 	return types.User{}, false
 }
 
-func (db *DB) VerifyRecaptcha(resp string) bool {
+func (db *DB) VerifyRecaptcha(ctx context.Context, resp string) bool {
 	if !db.Settings.ReCaptcha {
 		return true
 	}
+	// TODO: Add context support to recaptcha-go.
 	if err := captcha.Verify(resp); err != nil {
 		return false
 	}

@@ -12,8 +12,10 @@ import (
 
 // EditPostHandler is the endpoint used to edit posts.
 func EditPostHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
 	vars := mux.Vars(r)
-	user, loggedIn := DB.CheckForLoggedInUser(r)
+	user, loggedIn := DB.CheckForLoggedInUser(ctx, r)
 	if !loggedIn {
 		http.Redirect(w, r, "/login", http.StatusFound)
 		return
@@ -24,7 +26,7 @@ func EditPostHandler(w http.ResponseWriter, r *http.Request) {
 		log.Error().Err(err).Msg("Can't convert postID to string")
 		return
 	}
-	post, postExists := DB.Post(int64(postID))
+	post, postExists := DB.Post(ctx, int64(postID))
 	if !postExists {
 		http.Redirect(w, r, "/", http.StatusFound)
 		return
@@ -55,7 +57,7 @@ func EditPostHandler(w http.ResponseWriter, r *http.Request) {
 	post.Tags = newTags
 	post.Description = r.PostFormValue("description")
 
-	DB.EditPost(int64(postID), post)
+	DB.EditPost(ctx, int64(postID), post)
 
 	http.Redirect(w, r, "/view/"+vars["postID"], http.StatusFound)
 }

@@ -13,11 +13,13 @@ type RulesTemplateData struct {
 }
 
 func RulesHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
 	if !DB.SetupCompleted {
 		http.Redirect(w, r, "/setup", http.StatusFound)
 		return
 	}
-	user, loggedIn := DB.CheckForLoggedInUser(r)
+	user, loggedIn := DB.CheckForLoggedInUser(ctx, r)
 	x := RulesTemplateData{
 		len(DB.Settings.Rules),
 		templates.T{

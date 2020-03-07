@@ -18,11 +18,13 @@ Translator: i18n.GetTranslator(r),
 
 // LoginPageHandler takes you to the login page or the root page if you are already logged in.
 func LoginPageHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
 	if !DB.SetupCompleted {
 		http.Redirect(w, r, "/setup", http.StatusFound)
 		return
 	}
-	_, loggedIn := DB.CheckForLoggedInUser(r)
+	_, loggedIn := DB.CheckForLoggedInUser(ctx, r)
 	if loggedIn {
 		http.Redirect(w, r, "/", http.StatusFound)
 		return
@@ -36,6 +38,8 @@ func LoginPageHandler(w http.ResponseWriter, r *http.Request) {
 // loginHandler is the API endpoint that handles checking if a login
 // is correct and giving the user a session token.
 func LoginHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
 	err := r.ParseForm()
 	if err != nil {
 		log.Error().Err(err).Msg("Parse Form")
@@ -44,16 +48,16 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	username := r.FormValue("username")
 	password := r.FormValue("password")
 
-	_, exist := DB.User(username)
+	_, exist := DB.User(ctx, username)
 	if !exist {
 		log.Info().Str("username", username).Msg("Login Not Found")
 	} else {
-		if DB.CheckPassword(username, password) {
+		if DB.CheckPassword(ctx, username, password) {
 			log.Info().Str("username", username).Msg("Login")
 
 			http.SetCookie(w, &http.Cookie{
 				Name:    "sessionToken",
-				Value:   DB.Sessions.CreateSession(username),
+				Value:   DB.Sessions.CreateSession(ctx, username),
 				Expires: time.Now().Add(2 * time.Hour),
 			})
 			http.Redirect(w, r, "/", http.StatusFound)

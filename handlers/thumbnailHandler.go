@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"fmt"
 	"image"
 	_ "image/gif"
@@ -47,17 +48,16 @@ func sanitisedSize(s string) string {
 	}
 }
 
-
-func createThumbnails(post types.Post) {
-	createThumbnail(post, "jpeg", "small")
-	createThumbnail(post, "jpeg", "medium")
-	createThumbnail(post, "jpeg", "large")
-	createThumbnail(post, "webp", "small")
-	createThumbnail(post, "webp", "medium")
-	createThumbnail(post, "webp", "large")
+func createThumbnails(ctx context.Context, post types.Post) {
+	createThumbnail(ctx, post, "jpeg", "small")
+	createThumbnail(ctx, post, "jpeg", "medium")
+	createThumbnail(ctx, post, "jpeg", "large")
+	createThumbnail(ctx, post, "webp", "small")
+	createThumbnail(ctx, post, "webp", "medium")
+	createThumbnail(ctx, post, "webp", "large")
 }
 
-func createThumbnail(post types.Post, ext string, size string) string {
+func createThumbnail(ctx context.Context, post types.Post, ext string, size string) string {
 	log.Error().Msg("Creating Thumbnail")
 
 	originalFilename := fmt.Sprintf("%s.%s", post.Filename, post.FileExtension)
@@ -77,7 +77,7 @@ func createThumbnail(post types.Post, ext string, size string) string {
 				contentFilename = tmpFile.Name()
 				tmpFile.Close()
 				defer os.Remove(tmpFile.Name())
-				err = exec.Command("ffmpegthumbnailer", "-c", "png", "-i", originalFilename, "-o", tmpFile.Name()).Run()
+				err = exec.CommandContext(ctx, "ffmpegthumbnailer", "-c", "png", "-i", originalFilename, "-o", tmpFile.Name()).Run()
 				if err != nil {
 					contentFilename = "frontend/img/video.png"
 				}
@@ -116,11 +116,11 @@ func createThumbnail(post types.Post, ext string, size string) string {
 	if strings.HasPrefix(contentFilename, "frontend/") {
 		contentFile, err = os.Open(contentFilename)
 	} else {
-		if !DB.ContentStorage.Exists(contentFilename) {
+		if !DB.ContentStorage.Exists(ctx, contentFilename) {
 			log.Error().Msg("Content File Does Not Exist")
 			return ""
 		}
-		contentFile, err = DB.ContentStorage.ReadFile(contentFilename)
+		contentFile, err = DB.ContentStorage.ReadFile(ctx, contentFilename)
 	}
 	defer contentFile.Close()
 	if err != nil {
@@ -133,7 +133,7 @@ func createThumbnail(post types.Post, ext string, size string) string {
 		log.Error().Err(err).Msg("Image Decode")
 		return "frontend/img/preview-not-available.jpg"
 	}
-	newCacheFile, err := DB.ThumbnailsStorage.WriteFile(thumbnailFile)
+	newCacheFile, err := DB.ThumbnailsStorage.WriteFile(ctx, thumbnailFile)
 	if err != nil {
 		log.Error().Err(err).Msg("Cache Create")
 		return ""
@@ -158,6 +158,8 @@ func createThumbnail(post types.Post, ext string, size string) string {
 
 // thumbnailHandler handles serving and downscaling post images as thumbnails.
 func ThumbnailHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
 	var err error
 	vars := mux.Vars(r)
 	postID, err := strconv.Atoi(vars["postID"])
@@ -165,7 +167,7 @@ func ThumbnailHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	ext := vars["ext"]
-	post, ok := DB.Post(int64(postID))
+	post, ok := DB.Post(ctx, int64(postID))
 	var cacheFile io.ReadCloser
 
 	size := sanitisedSize(vars["size"])
@@ -177,8 +179,8 @@ func ThumbnailHandler(w http.ResponseWriter, r *http.Request) {
 		cacheFilename = fmt.Sprintf("%d-%s.%s", post.PostID, size, ext)
 	}
 
-	if !DB.ThumbnailsStorage.Exists(cacheFilename) {
-		cacheFilename = createThumbnail(post, ext, size)
+	if !DB.ThumbnailsStorage.Exists(ctx, cacheFilename) {
+		cacheFilename = createThumbnail(ctx, post, ext, size)
 	}
 
 	// Return early if no cache file could be created.
@@ -186,11 +188,11 @@ func ThumbnailHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !DB.ThumbnailsStorage.Exists(cacheFilename) {
+	if !DB.ThumbnailsStorage.Exists(ctx, cacheFilename) {
 		log.Error().Msg("Cache File Not Exist")
 		return
 	}
-	cacheFile, err = DB.ThumbnailsStorage.ReadFile(cacheFilename)
+	cacheFile, err = DB.ThumbnailsStorage.ReadFile(ctx, cacheFilename)
 	if err != nil {
 		log.Error().Err(err).Msg("Open Cache File")
 		return

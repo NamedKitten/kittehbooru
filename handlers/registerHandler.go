@@ -20,6 +20,8 @@ func RegisterPageHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func RegisterHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
 	if !DB.SetupCompleted {
 		http.Redirect(w, r, "/setup", http.StatusFound)
 		return
@@ -36,12 +38,12 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/register", http.StatusFound)
 	}
 
-	if !DB.VerifyRecaptcha(r.FormValue("recaptchaResponse")) {
+	if !DB.VerifyRecaptcha(ctx, r.FormValue("recaptchaResponse")) {
 		http.Redirect(w, r, "/register", http.StatusFound)
 		return
 	}
 
-	_, exist := DB.User(username)
+	_, exist := DB.User(ctx, username)
 	if exist {
 		http.Redirect(w, r, "/register", http.StatusFound)
 		return
@@ -51,9 +53,9 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 		Description: "",
 		Posts:       []int64{},
 	}
-	DB.AddUser(u)
+	DB.AddUser(ctx, u)
 
-	err = DB.SetPassword(username, password)
+	err = DB.SetPassword(ctx, username, password)
 	if err != nil {
 		log.Error().Err(err).Msg("Register Password")
 		return
@@ -61,7 +63,7 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	log.Info().Str("username", username).Msg("Register")
 	http.SetCookie(w, &http.Cookie{
 		Name:    "sessionToken",
-		Value:   DB.Sessions.CreateSession(username),
+		Value:   DB.Sessions.CreateSession(ctx, username),
 		Expires: time.Now().Add(3 * time.Hour),
 	})
 	http.Redirect(w, r, "/", http.StatusFound)

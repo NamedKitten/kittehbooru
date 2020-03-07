@@ -20,25 +20,27 @@ type ViewResultsTemplate struct {
 }
 
 func ViewHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
 	if !DB.SetupCompleted {
 		http.Redirect(w, r, "/setup", http.StatusFound)
 		return
 	}
 	vars := mux.Vars(r)
-	user, loggedIn := DB.CheckForLoggedInUser(r)
+	user, loggedIn := DB.CheckForLoggedInUser(ctx, r)
 
 	postID, err := strconv.Atoi(vars["postID"])
 	if err != nil {
 		log.Error().Err(err).Msg("Can't parse postID")
 		return
 	}
-	post, ok := DB.Post(int64(postID))
+	post, ok := DB.Post(ctx, int64(postID))
 	if !ok {
 		return
 	}
 	fmt.Println(post)
 
-	poster, _ := DB.User(post.Poster)
+	poster, _ := DB.User(ctx, post.Poster)
 
 	templateInfo := ViewResultsTemplate{
 		Post:         post,

@@ -10,14 +10,16 @@ import (
 
 // EditUserHandler is the endpoint used to edit user settings.
 func EditUserHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
 	vars := mux.Vars(r)
-	loggedInUser, loggedIn := DB.CheckForLoggedInUser(r)
+	loggedInUser, loggedIn := DB.CheckForLoggedInUser(ctx, r)
 	if !loggedIn {
 		http.Redirect(w, r, "/login", http.StatusFound)
 		return
 	}
 
-	user, exist := DB.User(vars["userID"])
+	user, exist := DB.User(ctx, vars["userID"])
 	if !exist {
 		http.Redirect(w, r, "/", http.StatusFound)
 		return
@@ -42,7 +44,7 @@ func EditUserHandler(w http.ResponseWriter, r *http.Request) {
 	if !(len(password) == 0) {
 		passwordPrevious := r.PostFormValue("passwordPrevious")
 		log.Error().Msg(passwordPrevious)
-		if !DB.CheckPassword(user.Username, passwordPrevious) {
+		if !DB.CheckPassword(ctx, user.Username, passwordPrevious) {
 			return
 		}
 
@@ -51,7 +53,7 @@ func EditUserHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		err = DB.SetPassword(user.Username, password)
+		err = DB.SetPassword(ctx, user.Username, password)
 		if err != nil {
 			log.Error().Err(err).Msg("Set Password")
 			return
@@ -68,7 +70,7 @@ func EditUserHandler(w http.ResponseWriter, r *http.Request) {
 		user.AvatarID = int64(avatarIDInt)
 	}
 
-	err = DB.EditUser(user)
+	err = DB.EditUser(ctx, user)
 	if err != nil {
 		log.Error().Err(err).Msg("Edit User")
 		renderError(w, "EDIT_USER_ERR", http.StatusBadRequest)

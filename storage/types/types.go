@@ -1,6 +1,7 @@
 package storageTypes
 
 import (
+	"context"
 	"io"
 	"net/http"
 )
@@ -14,8 +15,8 @@ type WriteableFile interface {
 }
 
 type Storage interface {
-	Exists(string) bool
-	ReadFile(string) (ReadableFile, error)
-	WriteFile(string) (WriteableFile, error)
+	Exists(context.Context, string) bool
+	ReadFile(context.Context, string) (ReadableFile, error)
+	WriteFile(context.Context, string) (WriteableFile, error)
 	Open(string) (http.File, error)
 }

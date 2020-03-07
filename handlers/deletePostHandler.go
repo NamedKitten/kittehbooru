@@ -16,13 +16,15 @@ type DeletePostTemplate struct {
 }
 
 func DeletePostPageHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
 	vars := mux.Vars(r)
 	postID, err := strconv.Atoi(vars["postID"])
 	if err != nil {
 		log.Error().Err(err).Msg("Can't convert postID to string")
 		return
 	}
-	user, loggedIn := DB.CheckForLoggedInUser(r)
+	user, loggedIn := DB.CheckForLoggedInUser(ctx, r)
 	if !loggedIn {
 		http.Redirect(w, r, "/login", http.StatusFound)
 		return
@@ -44,8 +46,10 @@ func DeletePostPageHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func DeletePostHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
 	vars := mux.Vars(r)
-	user, loggedIn := DB.CheckForLoggedInUser(r)
+	user, loggedIn := DB.CheckForLoggedInUser(ctx, r)
 	if !loggedIn {
 		http.Redirect(w, r, "/login", http.StatusFound)
 		return
@@ -56,7 +60,7 @@ func DeletePostHandler(w http.ResponseWriter, r *http.Request) {
 		log.Error().Err(err).Msg("Can't convert postID to string")
 		return
 	}
-	post, postExists := DB.Post(int64(postID))
+	post, postExists := DB.Post(ctx, int64(postID))
 	if !postExists {
 		http.Redirect(w, r, "/", http.StatusFound)
 		return
@@ -67,7 +71,7 @@ func DeletePostHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = DB.DeletePost(int64(postID))
+	err = DB.DeletePost(ctx, int64(postID))
 	if err != nil {
 		log.Error().Err(err).Msg("Delete Post")
 		return

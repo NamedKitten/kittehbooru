@@ -36,11 +36,13 @@ type SearchResultsTemplate struct {
 // searchHandler is the search endpoint used for displaying results
 // of a search query.
 func SearchHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
 	if !DB.SetupCompleted {
 		http.Redirect(w, r, "/setup", http.StatusFound)
 		return
 	}
-	user, loggedIn := DB.CheckForLoggedInUser(r)
+	user, loggedIn := DB.CheckForLoggedInUser(ctx, r)
 	tagsStr := r.URL.Query().Get("tags")
 	if len(tagsStr) == 0 {
 		tagsStr = "*"
@@ -55,7 +57,7 @@ func SearchHandler(w http.ResponseWriter, r *http.Request) {
 		log.Error().Err(err).Msg("Can't convert pageStr to string")
 		return
 	}
-	matchingPosts := DB.GetSearchPage(tags, page)
+	matchingPosts := DB.GetSearchPage(ctx, tags, page)
 	var prevPage int
 	if page <= 0 {
 		prevPage = 0
@@ -67,8 +69,8 @@ func SearchHandler(w http.ResponseWriter, r *http.Request) {
 		Results:    matchingPosts,
 		RealPage:   page,
 		Page:       page + 1,
-		NumPosts:   DB.NumOfPostsForTags(tags),
-		TotalPages: DB.NumOfPagesForTags(tags),
+		NumPosts:   DB.NumOfPostsForTags(ctx, tags),
+		TotalPages: DB.NumOfPagesForTags(ctx, tags),
 		Next:       page + 1,
 		Prev:       prevPage,
 		Tags:       tagsStr,
