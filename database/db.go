@@ -608,9 +608,6 @@ func (db *DB) Top15CommonTags(ctx context.Context, tags []string) []types.TagCou
 	for k, v := range tagCounts {
 		tagCountsSlice = append(tagCountsSlice, types.TagCounts{k, v})
 	}
-	  
-	x := math.Min(float64(15), float64(len(tagCountsSlice)))
-	tagCountsSlice = tagCountsSlice[:int(x)]
 
 	sort.Slice(tagCountsSlice, func(i, j int) bool {
 		return tagCountsSlice[i].Tag > tagCountsSlice[j].Tag
@@ -620,7 +617,8 @@ func (db *DB) Top15CommonTags(ctx context.Context, tags []string) []types.TagCou
 		return tagCountsSlice[i].Count > tagCountsSlice[j].Count
 	})
 
-	return tagCountsSlice
+	x := math.Min(float64(15), float64(len(tagCountsSlice)))
+	return tagCountsSlice[:int(x)]
 }
 
 // cacheSearch searches for posts matching tags and returns a
