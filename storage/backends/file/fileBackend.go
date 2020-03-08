@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"os"
 
-	storageTypes "github.com/NamedKitten/kittehimageboard/storage/types"
+	"github.com/NamedKitten/kittehimageboard/types"
 )
 
 type FileBackend struct {
@@ -16,11 +16,11 @@ func (fb FileBackend) Open(s string) (http.File, error) {
 	return os.OpenFile(fb.path+s, os.O_RDONLY, 0666)
 }
 
-func (fb FileBackend) ReadFile(ctx context.Context, s string) (storageTypes.ReadableFile, error) {
+func (fb FileBackend) ReadFile(ctx context.Context, s string) (types.ReadableFile, error) {
 	return os.OpenFile(fb.path+s, os.O_RDONLY, 0666)
 }
 
-func (fb FileBackend) WriteFile(ctx context.Context, s string) (storageTypes.WriteableFile, error) {
+func (fb FileBackend) WriteFile(ctx context.Context, s string) (types.WriteableFile, error) {
 	return os.OpenFile(fb.path+s, os.O_WRONLY|os.O_CREATE, 0666)
 }
 

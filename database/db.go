@@ -14,7 +14,6 @@ import (
 	"time"
 
 	"github.com/NamedKitten/kittehimageboard/storage"
-	storageTypes "github.com/NamedKitten/kittehimageboard/storage/types"
 	"gopkg.in/yaml.v2"
 
 	"github.com/NamedKitten/kittehimageboard/types"
@@ -72,8 +71,8 @@ type DB struct {
 	// Settings contains instance-specific settings for this instance.
 	Settings Settings `yaml:"settings"`
 
-	ContentStorage    storageTypes.Storage `yaml:"-"`
-	ThumbnailsStorage storageTypes.Storage `yaml:"-"`
+	ContentStorage    types.Storage `yaml:"-"`
+	ThumbnailsStorage types.Storage `yaml:"-"`
 }
 
 // Save saves the settings.
