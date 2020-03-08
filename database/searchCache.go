@@ -21,18 +21,22 @@ func (c *SearchCache) init() {
 }
 
 func (c *SearchCache) Get(tags string) ([]int64, bool) {
-	log.Info().Msg(tags + " fetched from search cache.")
 	c.lock.Lock()
 	val, ok := c.cache[tags]
 	c.lock.Unlock()
+	if ok {
+		log.Debug().Msg(tags + " fetched from search cache.")
+	} else {
+		log.Debug().Msg(tags + " not in search cache.")
+	}
 	return val, ok
 }
 func (c *SearchCache) Add(tags string, values []int64) {
-	log.Info().Msg(tags + " added to search cache.")
 	c.lock.Lock()
 	c.cache[tags] = values
 	c.times[tags] = time.Now()
 	c.lock.Unlock()
+	log.Debug().Msg(tags + " added to search cache.")
 }
 
 func (c *SearchCache) Start() {
@@ -42,7 +46,7 @@ func (c *SearchCache) Start() {
 		for tags := range c.cache {
 			val, ok := c.times[tags]
 			if !ok || (time.Now().After(val.Add(time.Second * 5))) {
-				log.Info().Msg(tags + " has expired, removing from cache.")
+				log.Debug().Msg(tags + " has expired, removing from search cache.")
 				delete(c.cache, tags)
 				delete(c.times, tags)
 			}

@@ -144,7 +144,7 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 		Sha256:        sha256sum,
 		MimeType:      mimeType,
 	}
-	go createThumbnails(ctx, p)
+	go createThumbnail(ctx, p)
 
 	err = DB.AddPost(ctx, p)
 	if err != nil {

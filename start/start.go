@@ -82,7 +82,7 @@ func Start() {
 				))))
 	r.PathPrefix("/css/").Handler(cacheMiddleware(http.StripPrefix("/css/", http.FileServer(http.Dir("frontend/css")))))
 	r.PathPrefix("/js/").Handler(cacheMiddleware(http.StripPrefix("/js/", http.FileServer(http.Dir("frontend/js")))))
-	handleFunc("/thumbnail/{postID}-{size}.{ext}", handlers.ThumbnailHandler)
+	handleFunc("/thumbnail/{postID}.webp", handlers.ThumbnailHandler)
 
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt)

@@ -17,67 +17,105 @@ import (
 
 	"github.com/NamedKitten/kittehimageboard/types"
 	"github.com/chai2010/webp"
-	"github.com/gorilla/mux"
 	"github.com/disintegration/imaging"
+	"github.com/gorilla/mux"
 	"github.com/rs/zerolog/log"
 )
 
-func sizeToWidth(s string) int {
-	return 200
+func createVideoThumbnail(ctx context.Context, post types.Post) (string, bool) {
+	if !DB.Settings.VideoThumbnails {
+		return "frontend/img/video.png", false
+	}
+
+	originalFilename := fmt.Sprintf("%s.%s", post.Filename, post.FileExtension)
+
+	tmpFile, err := ioutil.TempFile("", "video_thumbnail_")
+	if err != nil {
+		log.Error().Err(err).Msg("Can't create temp file")
+		return "frontend/img/video.png", false
+	}
+	vidTmpFile, err := ioutil.TempFile("", "video_")
+	if err != nil {
+		log.Error().Err(err).Msg("Can't create temp file")
+		return "frontend/img/video.png", false
+	}
+	tmpFile.Close()
+	defer os.Remove(vidTmpFile.Name())
+
+	contentFile, _ := DB.ContentStorage.ReadFile(ctx, originalFilename)
+	io.Copy(vidTmpFile, contentFile)
+	vidTmpFile.Close()
+
+	cmd := exec.CommandContext(ctx, "ffmpegthumbnailer", "-c", "png", "-i", vidTmpFile.Name(), "-o", tmpFile.Name())
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	err = cmd.Run()
+	if err != nil {
+		log.Error().Err(err).Msg("Can't run ffmpegthumbnailer")
+		return "frontend/img/video.png", false
+	}
+	return tmpFile.Name(), true
 }
 
-func sanitisedSize(s string) string {
-	return "small"
+func createPDFThumbnail(ctx context.Context, post types.Post) (string, bool) {
+	if !DB.Settings.PDFThumbnails {
+		return "frontend/img/pdf.jpg", false
+	}
+
+	originalFilename := fmt.Sprintf("%s.%s", post.Filename, post.FileExtension)
+	tmpFile, err := ioutil.TempFile("", "pdf_thumbnail_")
+	if err != nil {
+		log.Error().Err(err).Msg("Can't create temp file")
+		return "frontend/img/pdf.jpg", false
+	}
+	contentFilename := tmpFile.Name()
+
+	pdfTmpFile, err := ioutil.TempFile("", "pdf_")
+	if err != nil {
+		log.Error().Err(err).Msg("Can't create temp file")
+		return "frontend/img/pdf.jpg", false
+	}
+	defer os.Remove(pdfTmpFile.Name())
+
+	contentFile, _ := DB.ContentStorage.ReadFile(ctx, originalFilename)
+	io.Copy(pdfTmpFile, contentFile)
+	defer pdfTmpFile.Close()
+	defer tmpFile.Close()
+
+	defer os.Remove(tmpFile.Name())
+	err = exec.Command("convert", "-format", "png", "-thumbnail", "x300", "-background", "white", "-alpha", "remove", originalFilename+"[0]", contentFilename).Run()
+	if err != nil {
+		return "frontend/img/pdf.jpg", false
+	}
+	return pdfTmpFile.Name(), true
+
 }
 
-func createThumbnails(ctx context.Context, post types.Post) {
-	createThumbnail(ctx, post, "webp", "small")
-}
-
-func createThumbnail(ctx context.Context, post types.Post, ext string, size string) string {
-	log.Debug().Int64("postid", post.PostID).Str("size", size).Msg("Creating Thumbnail")
+func createThumbnail(ctx context.Context, post types.Post) string {
+	log.Debug().Int64("postid", post.PostID).Msg("Creating Thumbnail")
 
 	originalFilename := fmt.Sprintf("%s.%s", post.Filename, post.FileExtension)
 	// The file where the generated thumbnail is stored.
 	var contentFilename string
-	thumbnailFile := fmt.Sprintf("%d-%s.%s", post.PostID, size, ext)
+	thumbnailFile := fmt.Sprintf("%d.webp", post.PostID)
+	isTmpFile := false
 
 	if post.FileExtension == "swf" {
 		contentFilename = "frontend/img/flash.jpg"
 	} else if strings.HasPrefix(post.MimeType, "video/") {
-		if DB.Settings.VideoThumbnails {
-			tmpFile, err := ioutil.TempFile("", "video_thumbnail_")
-			if err != nil {
-				log.Error().Err(err).Msg("Can't create temp file")
-				contentFilename = "frontend/img/video.png"
-			} else {
-				contentFilename = tmpFile.Name()
-				tmpFile.Close()
-				defer os.Remove(tmpFile.Name())
-				err = exec.CommandContext(ctx, "ffmpegthumbnailer", "-c", "png", "-i", originalFilename, "-o", tmpFile.Name()).Run()
-				if err != nil {
-					contentFilename = "frontend/img/video.png"
-				}
-			}
-		} else {
-			contentFilename = "frontend/img/video.png"
+		var success bool
+		contentFilename, success = createVideoThumbnail(ctx, post)
+		if success {
+			defer os.Remove(contentFilename)
+			isTmpFile = true
 		}
+
 	} else if post.FileExtension == "pdf" {
-		if DB.Settings.PDFThumbnails {
-			tmpFile, err := ioutil.TempFile("", "pdf_thumbnail_")
-			if err != nil {
-				log.Error().Err(err).Msg("Can't create temp file")
-				return "frontend/img/pdf.jpg"
-			}
-			contentFilename = tmpFile.Name()
-			tmpFile.Close()
-			defer os.Remove(tmpFile.Name())
-			err = exec.Command("convert", "-format", "png", "-thumbnail", "x300", "-background", "white", "-alpha", "remove", originalFilename+"[0]", contentFilename).Run()
-			if err != nil {
-				contentFilename = "frontend/img/pdf.jpg"
-			}
-		} else {
-			contentFilename = "frontend/img/pdf.jpg"
+		var success bool
+		contentFilename, success = createPDFThumbnail(ctx, post)
+		if success {
+			defer os.Remove(contentFilename)
+			isTmpFile = true
 		}
 
 	} else if strings.HasPrefix(post.MimeType, "image/") {
@@ -90,7 +128,7 @@ func createThumbnail(ctx context.Context, post types.Post, ext string, size stri
 
 	var contentFile io.ReadCloser
 	var err error
-	if strings.HasPrefix(contentFilename, "frontend/") {
+	if strings.HasPrefix(contentFilename, "frontend/") || isTmpFile {
 		contentFile, err = os.Open(contentFilename)
 	} else {
 		if !DB.ContentStorage.Exists(ctx, contentFilename) {
@@ -117,12 +155,9 @@ func createThumbnail(ctx context.Context, post types.Post, ext string, size stri
 	}
 	defer newCacheFile.Close()
 
-	resizedImage := imaging.Resize(image, sizeToWidth(size), 0, imaging.NearestNeighbor)
+	resizedImage := imaging.Resize(image, 300, 0, imaging.NearestNeighbor)
 
-	if ext == "webp" {
-		err = webp.Encode(newCacheFile, resizedImage, &webp.Options{Quality: 70})
-	}
-
+	err = webp.Encode(newCacheFile, resizedImage, &webp.Options{Quality: 70})
 	if err != nil {
 		log.Error().Err(err).Msg("Encode Fail")
 		return ""
@@ -141,21 +176,18 @@ func ThumbnailHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		return
 	}
-	ext := vars["ext"]
 	post, ok := DB.Post(ctx, int64(postID))
 	var cacheFile io.ReadCloser
-
-	size := sanitisedSize(vars["size"])
 
 	var cacheFilename string
 	if !ok {
 		cacheFilename = "frontend/img/file-not-found.jpg"
 	} else {
-		cacheFilename = fmt.Sprintf("%d-%s.%s", post.PostID, size, ext)
+		cacheFilename = fmt.Sprintf("%d.webp", post.PostID)
 	}
 
 	if !DB.ThumbnailsStorage.Exists(ctx, cacheFilename) {
-		cacheFilename = createThumbnail(ctx, post, ext, size)
+		cacheFilename = createThumbnail(ctx, post)
 	}
 
 	// Return early if no cache file could be created.

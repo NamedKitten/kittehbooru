@@ -26,7 +26,6 @@ type Storage interface {
 	Open(string) (http.File, error)
 }
 
-
 type Session struct {
 	Username       string `json:"username"`
 	ExpirationTime int64  `json:"expirationTime"`

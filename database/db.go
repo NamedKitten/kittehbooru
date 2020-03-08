@@ -505,11 +505,8 @@ func (db *DB) filterTags(tags []string) []string {
 		if !ok && !(tag == " " || len(tag) == 0) {
 			if !is {
 				isOnlyNegatives = false
-			} 
-			// Saves DB Query Time
-			if tag != "*" {
-				tags = append(tags, tag)
 			}
+			tags = append(tags, tag)
 		}
 	}
 
