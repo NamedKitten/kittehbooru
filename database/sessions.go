@@ -30,7 +30,7 @@ func (s *Sessions) CreateSession(ctx context.Context, username string) string {
 		log.Error().Err(err).Msg("CreateSession can't generate token")
 		return ""
 	}
-	_, err = s.db.ExecContext(ctx, `INSERT INTO "sessions" ("token", "username", "expiry") VALUES (?,?,?);`, sessionToken, username, time.Now().Add(time.Hour*3).Unix())
+	_, err = s.db.ExecContext(ctx, `INSERT INTO "sessions" ("token", "username", "expiry") VALUES ($1,$2,$3);`, sessionToken, username, time.Now().Add(time.Hour*3).Unix())
 	if err != nil {
 		log.Error().Err(err).Msg("CreateSession can't exec statement")
 	}
@@ -38,14 +38,14 @@ func (s *Sessions) CreateSession(ctx context.Context, username string) string {
 }
 
 func (s *Sessions) InvalidateSession(ctx context.Context, username string) {
-	_, err := s.db.ExecContext(ctx, `delete from sessions where username = ?`, username)
+	_, err := s.db.ExecContext(ctx, `delete from sessions where username = $1`, username)
 	if err != nil {
 		log.Error().Err(err).Msg("InvalidateSession can't exec statement")
 	}
 }
 
 func (s *Sessions) CheckToken(ctx context.Context, token string) (types.Session, bool) {
-	rows, err := s.db.QueryContext(ctx, `select "username", "expiry" from sessions where token = ?`, token)
+	rows, err := s.db.QueryContext(ctx, `select "username", "expiry" from sessions where token = $1`, token)
 	if err != nil {
 		log.Error().Err(err).Msg("CheckToken can't query")
 		return types.Session{}, false
@@ -69,7 +69,7 @@ func (s *Sessions) CheckToken(ctx context.Context, token string) (types.Session,
 func (s *Sessions) Start(db *sql.DB) {
 	s.db = db
 	for {
-		_, err := s.db.Exec(`delete from sessions where expiry < ?`, time.Now().Unix())
+		_, err := s.db.Exec(`DELETE FROM sessions WHERE expiry < $1`, time.Now().Unix())
 		if err != nil {
 			log.Error().Err(err).Msg("Sessions can't exec statement")
 		}

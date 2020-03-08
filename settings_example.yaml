@@ -8,6 +8,7 @@ settings:
   videoThumbnails: false
   pdfThumbnails: false
   pdfView: false
+  databaseType: sqlite3
   databaseURI: file:db.sql?_journal=WAL&cache=shared&_busy_timeout=5000
   contentStorage: file://data/content/
   thumbnailsStorage: file://data/cache/

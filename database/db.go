@@ -21,6 +21,7 @@ import (
 	"github.com/bwmarrin/snowflake"
 	"github.com/ezzarghili/recaptcha-go"
 	_ "github.com/mattn/go-sqlite3"
+	_ "github.com/lib/pq"
 	"github.com/rs/zerolog/log"
 )
 
@@ -48,6 +49,8 @@ type Settings struct {
 	PDFView bool `yaml:"pdfView"`
 	// Database URI
 	DatabaseURI string `yaml:"databaseURI"`
+	// Database Type
+	DatabaseType string `yaml:"databaseType"`
 	// Content Storage URI
 	ContentStorage string `yaml:"contentStorage"`
 	// Thumbnails Storage URI
@@ -108,27 +111,28 @@ func (db *DB) init() {
 	db.ContentStorage = storage.GetStorage(db.Settings.ContentStorage)
 	db.ThumbnailsStorage = storage.GetStorage(db.Settings.ThumbnailsStorage)
 
-	db.sqldb, err = sql.Open("sqlite3", db.Settings.DatabaseURI)
+	db.sqldb, err = sql.Open(db.Settings.DatabaseType, db.Settings.DatabaseURI)
 	if err != nil {
 		log.Warn().Err(err).Msg("SQL Open")
 	}
-	_, err = db.sqldb.Exec(`CREATE TABLE IF NOT EXISTS "users" (  "avatarID"  INTEGER,  "owner"  BOOL,  "admin"  BOOL,  "username"  TEXT,  "description"  TEXT,  PRIMARY KEY("username"));`)
+
+	_, err = db.sqldb.Exec(`CREATE TABLE IF NOT EXISTS "users" (  "avatarID"  bigint,  "owner"  BOOL,  "admin"  BOOL,  "username"  TEXT,  "description"  TEXT,  PRIMARY KEY("username"))`)
 	if err != nil {
 		log.Warn().Err(err).Msg("SQL Create Users Table")
 	}
-	_, err = db.sqldb.Exec(`CREATE TABLE IF NOT EXISTS "passwords" (  "username"  TEXT, "password"  TEXT,  PRIMARY KEY("username"));`)
+	_, err = db.sqldb.Exec(`CREATE TABLE IF NOT EXISTS "passwords" (  "username"  TEXT, "password"  TEXT,  PRIMARY KEY("username"))`)
 	if err != nil {
 		log.Warn().Err(err).Msg("SQL Create Passwords Table")
 	}
-	_, err = db.sqldb.Exec(`CREATE TABLE IF NOT EXISTS "tags" (  "tag"  TEXT, "posts"  string,  PRIMARY KEY("tag"));`)
+	_, err = db.sqldb.Exec(`CREATE TABLE IF NOT EXISTS "tags" (  "tag"  TEXT, "posts"  TEXT,  PRIMARY KEY("tag"))`)
 	if err != nil {
 		log.Warn().Err(err).Msg("SQL Create Tags Table")
 	}
-	_, err = db.sqldb.Exec(`CREATE TABLE IF NOT EXISTS "posts" (  "postid" INTEGER, "filename"  TEXT, "ext" string, "description" text, "tags"  string, "poster" string, "timestamp" integer, "sha256" string, "mimetype" string, PRIMARY KEY("postid"));`)
+	_, err = db.sqldb.Exec(`CREATE TABLE IF NOT EXISTS "posts" (  "postid" bigint, "filename"  TEXT, "ext" TEXT, "description" TEXT, "tags"  TEXT, "poster" TEXT, "timestamp" bigint, "sha256" TEXT, "mimetype" TEXT, PRIMARY KEY("postid"))`)
 	if err != nil {
 		log.Warn().Err(err).Msg("SQL Create Posts Table")
 	}
-	_, err = db.sqldb.Exec(`CREATE TABLE IF NOT EXISTS "sessions" (  "token" string, "username" string, "expiry" integer, PRIMARY KEY("token"));`)
+	_, err = db.sqldb.Exec(`CREATE TABLE IF NOT EXISTS "sessions" (  "token" TEXT, "username" TEXT, "expiry" bigint, PRIMARY KEY("token"))`)
 	if err != nil {
 		log.Warn().Err(err).Msg("SQL Create Sessions Table")
 	}
@@ -174,8 +178,13 @@ func LoadDB() *DB {
 
 func (db *DB) SetPassword(ctx context.Context, username string, password string) (err error) {
 	defer trace.StartRegion(ctx, "DB/SetPassword").End()
-
-	_, err = db.sqldb.ExecContext(ctx, `INSERT OR REPLACE INTO "passwords"("username", "password") VALUES (?, ?);`, username, utils.EncryptPassword(password))
+	var query string
+	if db.Settings.DatabaseType == "postgres" {
+		query =  `INSERT INTO "passwords" ("username", "password") VALUES ($1, $2) ON CONFLICT (username) DO UPDATE SET password = EXCLUDED.password`
+	} else {
+		query =  `INSERT OR REPLACE INTO "passwords"("username", "password") VALUES ($1, $2)`
+	}
+	_, err = db.sqldb.ExecContext(ctx, query, username, utils.EncryptPassword(password))
 	if err != nil {
 		log.Warn().Err(err).Msg("SetPassword can't execute statement")
 		return err
@@ -187,7 +196,7 @@ func (db *DB) CheckPassword(ctx context.Context, username string, password strin
 	defer trace.StartRegion(ctx, "DB/CheckPassword").End()
 
 	var encPasswd string
-	row := db.sqldb.QueryRowContext(ctx, `select password from passwords where username=?`, username)
+	row := db.sqldb.QueryRowContext(ctx, `select password from passwords where username=$1`, username)
 	switch err := row.Scan(&encPasswd); err {
 	case sql.ErrNoRows:
 		return false
@@ -201,7 +210,7 @@ func (db *DB) CheckPassword(ctx context.Context, username string, password strin
 func (db *DB) AddUser(ctx context.Context, u types.User) {
 	defer trace.StartRegion(ctx, "DB/AddUser").End()
 
-	_, err := db.sqldb.ExecContext(ctx, `INSERT INTO "users"("avatarID","owner","admin","username","description") VALUES (?,?,?,?,?);`, u.AvatarID, u.Owner, u.Admin, u.Username, "")
+	_, err := db.sqldb.ExecContext(ctx, `INSERT INTO "users"("avatarID","owner","admin","username","description") VALUES ($1,$2,$3,$4,$5)`, u.AvatarID, u.Owner, u.Admin, u.Username, "")
 	if err != nil {
 		log.Warn().Err(err).Msg("AddUser can't execute statement")
 	}
@@ -212,7 +221,7 @@ func (db *DB) User(ctx context.Context, username string) (types.User, bool) {
 
 	u := types.User{}
 
-	rows, err := db.sqldb.QueryContext(ctx, `select "avatarID","owner","admin","username","description" from users where username = ?`, username)
+	rows, err := db.sqldb.QueryContext(ctx, `select "avatarID","owner","admin","username","description" from users where username = $1`, username)
 	if err != nil {
 		log.Error().Err(err).Msg("User can't query statement")
 		return u, false
@@ -232,7 +241,7 @@ func (db *DB) User(ctx context.Context, username string) (types.User, bool) {
 func (db *DB) EditUser(ctx context.Context, u types.User) (err error) {
 	defer trace.StartRegion(ctx, "DB/EditUser").End()
 
-	_, err = db.sqldb.ExecContext(ctx, `update users set avatarID=?, owner=?, admin=?, description=? where username = ?`, u.AvatarID, u.Owner, u.Admin, u.Description, u.Username)
+	_, err = db.sqldb.ExecContext(ctx, `update users set avatarID=$1, owner=$2, admin=$3, description=$4 where username = $5`, u.AvatarID, u.Owner, u.Admin, u.Description, u.Username)
 	if err != nil {
 		log.Warn().Err(err).Msg("EditUser can't execute statement")
 		return err
@@ -243,19 +252,19 @@ func (db *DB) EditUser(ctx context.Context, u types.User) (err error) {
 func (db *DB) DeleteUser(ctx context.Context, username string) error {
 	defer trace.StartRegion(ctx, "DB/DeleteUser").End()
 
-	_, err := db.sqldb.ExecContext(ctx, `delete from users where username = ?`, username)
+	_, err := db.sqldb.ExecContext(ctx, `delete from users where username = $1`, username)
 	if err != nil {
 		log.Warn().Err(err).Msg("DeleteUser can't execute delete user statement")
 		return err
 	}
 
-	_, err = db.sqldb.ExecContext(ctx, `delete from passwords where username = ?`, username)
+	_, err = db.sqldb.ExecContext(ctx, `delete from passwords where username = $1`, username)
 	if err != nil {
 		log.Warn().Err(err).Msg("DeleteUser can't execute delete password statement")
 		return err
 	}
 
-	rows, err := db.sqldb.QueryContext(ctx, `select "postid" from posts where poster = ?`, username)
+	rows, err := db.sqldb.QueryContext(ctx, `select "postid" from posts where poster = $1`, username)
 	if err != nil {
 		log.Error().Err(err).Msg("DeleteUser can't select posts")
 	}
@@ -296,7 +305,7 @@ func (db *DB) Post(ctx context.Context, postID int64) (types.Post, bool) {
 	p := types.Post{}
 	var tags string
 
-	rows, err := db.sqldb.QueryContext(ctx, `select "filename", "ext", "description", "tags", "poster", "timestamp", "sha256", "mimetype" from posts where postID = ?`, postID)
+	rows, err := db.sqldb.QueryContext(ctx, `select "filename", "ext", "description", "tags", "poster", "timestamp", "sha256", "mimetype" from posts where postID = $1`, postID)
 	if err != nil {
 		log.Error().Err(err).Msg("Post can't query")
 		return p, false
@@ -321,14 +330,14 @@ func (db *DB) Post(ctx context.Context, postID int64) (types.Post, bool) {
 func (db *DB) AddPost(ctx context.Context, post types.Post) error {
 	defer trace.StartRegion(ctx, "DB/AddPost").End()
 
-	_, err := db.sqldb.ExecContext(ctx, `INSERT INTO "posts"("postid", "filename", "ext", "description", "tags", "poster", "timestamp", "sha256", "mimetype") VALUES (?,?,?,?,?,?,?,?,?);`, post.PostID, post.Filename, post.FileExtension, post.Description, utils.TagsListToString(post.Tags), post.Poster, post.CreatedAt, post.Sha256, post.MimeType)
+	_, err := db.sqldb.ExecContext(ctx, `INSERT INTO "posts"("postid", "filename", "ext", "description", "tags", "poster", "timestamp", "sha256", "mimetype") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)`, post.PostID, post.Filename, post.FileExtension, post.Description, utils.TagsListToString(post.Tags), post.Poster, post.CreatedAt, post.Sha256, post.MimeType)
 	if err != nil {
 		log.Warn().Err(err).Msg("AddPost can't execute insert post statement")
 		return err
 	}
 
 	for _, tag := range post.Tags {
-		rows, err := db.sqldb.QueryContext(ctx, `select "posts" from tags where tag = ?`, tag)
+		rows, err := db.sqldb.QueryContext(ctx, `select "posts" from tags where tag = $1`, tag)
 		if err != nil {
 			log.Error().Err(err).Msg("AddPost can't select tags")
 			return err
@@ -355,8 +364,14 @@ func (db *DB) AddPost(ctx context.Context, post types.Post) error {
 			log.Error().Err(err).Msg("AddPost can't marshal posts list")
 			return err
 		}
+		var query string
+		if db.Settings.DatabaseType == "postgres" {
+			query =  `INSERT INTO "tags"("tag", "posts") VALUES ($1, $2) ON CONFLICT (tag) DO UPDATE SET posts = EXCLUDED.posts`
+		} else {
+			query =  `INSERT OR REPLACE INTO "tags"("tag", "posts") VALUES ($1, $2)`
+		}
 
-		_, err = db.sqldb.ExecContext(ctx, `INSERT OR REPLACE INTO "tags"("tag", "posts") VALUES (?, ?);`, tag, string(x))
+		_, err = db.sqldb.ExecContext(ctx, query, tag, string(x))
 		if err != nil {
 			log.Warn().Err(err).Msg("AddPost Tags can't execute insert tags statement")
 			return err
@@ -386,7 +401,7 @@ func (db *DB) DeletePost(ctx context.Context, postID int64) error {
 
 	p, _ := db.Post(ctx, postID)
 	for _, tag := range p.Tags {
-		rows, err := db.sqldb.QueryContext(ctx, `select "posts" from tags where tag = ?`, tag)
+		rows, err := db.sqldb.QueryContext(ctx, `select "posts" from tags where tag = $1`, tag)
 		if err != nil {
 			log.Error().Err(err).Msg("DeletePost can't select tags")
 			return err
@@ -416,14 +431,21 @@ func (db *DB) DeletePost(ctx context.Context, postID int64) error {
 			log.Error().Err(err).Msg("DeletePost can't unmarshal posts list")
 			return err
 		}
-		_, err = db.sqldb.ExecContext(ctx, `INSERT OR REPLACE INTO "tags"("tag", "posts") VALUES (?, ?);`, tag, string(x))
+		var query string
+		if db.Settings.DatabaseType == "postgres" {
+			query =  `INSERT INTO "tags"("tag", "posts") VALUES ($1, $2) ON CONFLICT (tag) DO UPDATE SET posts = EXCLUDED.posts`
+		} else {
+			query =  `INSERT OR REPLACE INTO "tags"("tag", "posts") VALUES ($1, $2)`
+		}
+
+		_, err = db.sqldb.ExecContext(ctx, query, tag, string(x))
 		if err != nil {
 			log.Warn().Err(err).Msg("AddPost Tags can't execute insert tags statement")
 			return err
 		}
 	}
 
-	_, err := db.sqldb.ExecContext(ctx, `delete from posts where postid = ?`, postID)
+	_, err := db.sqldb.ExecContext(ctx, `delete from posts where postid = $1`, postID)
 	if err != nil {
 		log.Warn().Err(err).Msg("DeletePost can't execute delete post statement")
 		return err
@@ -456,7 +478,7 @@ func (db *DB) getPostsForTag(ctx context.Context, tag string) []int64 {
 			}
 
 		} else {
-			rows, err := db.sqldb.QueryContext(ctx, `select "posts" from tags where tag = ?`, tag)
+			rows, err := db.sqldb.QueryContext(ctx, `select "posts" from tags where tag = $1`, tag)
 			if err != nil {
 				log.Error().Err(err).Msg("GetPostsForTags can't query tag posts")
 				return []int64{}
@@ -533,7 +555,7 @@ func (db *DB) getPostsForTags(ctx context.Context, tags []string) []int64 {
 	tags = db.filterTags(tags)
 
 	for _, tag := range tags {
-		// is it a positive tag or a negative tag?
+		// is it a positive tag or a negative tag
 		// true = positive, false = negative
 		is := !strings.HasPrefix(tag, "-")
 

@@ -28,6 +28,7 @@ require (
 	github.com/json-iterator/go v1.1.9
 	github.com/jsummers/gobmp v0.0.0-20151104160322-e2ba15ffa76e // indirect
 	github.com/kr/pretty v0.2.0 // indirect
+	github.com/lib/pq v1.3.0
 	github.com/mattn/go-sqlite3 v2.0.2+incompatible
 	github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646
 	github.com/nicksnyder/go-i18n/v2 v2.0.3
