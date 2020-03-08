@@ -56,6 +56,8 @@ type Settings struct {
 	ContentURL string `yaml:"contentURL"`
 	// Thumbnail URL
 	ThumbnailURL string `yaml:"thumbnailURL"`
+	// Listen Address
+	ListenAddress string `yaml:"listenAddress"`
 }
 
 // DB is the type at which all things are stored in the database.

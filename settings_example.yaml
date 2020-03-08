@@ -13,3 +13,4 @@ settings:
   thumbnailsStorage: file://data/cache/
   contentURL: /content/
   thumbnailURL: /thumbnail/
+  listenAddress: 0.0.0.0:80

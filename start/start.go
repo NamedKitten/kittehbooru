@@ -1,7 +1,6 @@
 package start
 
 import (
-	"flag"
 	"net/http"
 	"os"
 	"os/signal"
@@ -17,8 +16,6 @@ import (
 )
 
 var DB *database.DB
-
-var listen = flag.String("listen", "0.0.0.0:80", "listen on port")
 
 func init() {
 	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
@@ -44,8 +41,6 @@ func taskMiddleware(name string, next http.Handler) http.Handler {
 }
 
 func Start() {
-	flag.Parse()
-
 	log.Info().Msg("Starting")
 	DB = database.LoadDB()
 	templates.DB = DB
@@ -92,7 +87,7 @@ func Start() {
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt)
 	go func() {
-		err := http.ListenAndServe(*listen, gorillaHandlers.LoggingHandler(os.Stdout, r))
+		err := http.ListenAndServe(DB.Settings.ListenAddress, gorillaHandlers.LoggingHandler(os.Stdout, r))
 		if err != nil {
 			log.Error().Err(err).Msg("Can't start web")
 			panic(err)
