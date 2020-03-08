@@ -503,9 +503,12 @@ func (db *DB) filterTags(tags []string) []string {
 			_, ok = tempTags["-"+tag]
 		}
 		if !ok && !(tag == " " || len(tag) == 0) {
-			tags = append(tags, tag)
 			if !is {
 				isOnlyNegatives = false
+			} 
+			// Saves DB Query Time
+			if tag != "*" {
+				tags = append(tags, tag)
 			}
 		}
 	}
@@ -605,13 +608,19 @@ func (db *DB) Top15CommonTags(ctx context.Context, tags []string) []types.TagCou
 	for k, v := range tagCounts {
 		tagCountsSlice = append(tagCountsSlice, types.TagCounts{k, v})
 	}
+	  
+	x := math.Min(float64(15), float64(len(tagCountsSlice)))
+	tagCountsSlice = tagCountsSlice[:int(x)]
+
+	sort.Slice(tagCountsSlice, func(i, j int) bool {
+		return tagCountsSlice[i].Tag > tagCountsSlice[j].Tag
+	})
 
 	sort.Slice(tagCountsSlice, func(i, j int) bool {
 		return tagCountsSlice[i].Count > tagCountsSlice[j].Count
 	})
 
-	x := math.Min(float64(15), float64(len(tagCountsSlice)))
-	return tagCountsSlice[:int(x)]
+	return tagCountsSlice
 }
 
 // cacheSearch searches for posts matching tags and returns a
