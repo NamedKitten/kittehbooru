@@ -3,10 +3,7 @@ package handlers
 import (
 	"context"
 	"fmt"
-	"image"
-	_ "image/gif"
-	_ "image/jpeg"
-	_ "image/png"
+
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -16,10 +13,9 @@ import (
 	"strings"
 
 	"github.com/NamedKitten/kittehimageboard/types"
-	"github.com/chai2010/webp"
-	"github.com/disintegration/imaging"
 	"github.com/gorilla/mux"
 	"github.com/rs/zerolog/log"
+	"github.com/h2non/bimg"
 )
 
 func createVideoThumbnail(ctx context.Context, post types.Post) (string, bool) {
@@ -143,25 +139,32 @@ func createThumbnail(ctx context.Context, post types.Post) string {
 		return ""
 	}
 
-	image, _, err := image.Decode(contentFile)
+	buffer, err := ioutil.ReadAll(contentFile)
 	if err != nil {
-		log.Error().Err(err).Msg("Image Decode")
+		log.Error().Err(err).Msg("Image Read")
 		return "frontend/img/preview-not-available.jpg"
 	}
+	o := bimg.Options{
+		Height:      0,
+		Width:       300,
+		Quality:     70,
+		Compression: 100,
+		Embed: true,
+	}
+
+	newImage, err := bimg.NewImage(buffer).Process(o)
+	if err != nil {
+		log.Error().Err(err).Msg("Resize Image")
+	}
+
+
 	newCacheFile, err := DB.ThumbnailsStorage.WriteFile(ctx, thumbnailFile)
 	if err != nil {
 		log.Error().Err(err).Msg("Cache Create")
 		return ""
 	}
-	defer newCacheFile.Close()
-
-	resizedImage := imaging.Resize(image, 300, 0, imaging.NearestNeighbor)
-
-	err = webp.Encode(newCacheFile, resizedImage, &webp.Options{Quality: 70})
-	if err != nil {
-		log.Error().Err(err).Msg("Encode Fail")
-		return ""
-	}
+	newCacheFile.Write(newImage)
+	newCacheFile.Close()
 	return thumbnailFile
 
 }

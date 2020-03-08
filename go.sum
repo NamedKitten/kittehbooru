@@ -62,6 +62,8 @@ github.com/gorilla/handlers v1.4.2 h1:0QniY0USkHQ1RGCLfKxeNHK9bkDHGRYGNDFBCS+YAR
 github.com/gorilla/handlers v1.4.2/go.mod h1:Qkdc/uu4tH4g6mTK6auzZ766c4CA0Ng8+o/OAirnOIQ=
 github.com/gorilla/mux v1.7.3 h1:gnP5JzjVOuiZD07fKKToCAOjS0yOpj/qPETTXCCS6hw=
 github.com/gorilla/mux v1.7.3/go.mod h1:1lud6UwP+6orDFRuTfBEV8e9/aOM/c4fVVCaMa2zaAs=
+github.com/h2non/bimg v1.0.19 h1:lrKA2oi4DttnscGeb/oRiBIcRiAX33mmp3yQX8JzGIc=
+github.com/h2non/bimg v1.0.19/go.mod h1:R3+UiYwkK4rQl6KVFTOFJHitgLbZXBZNFh2cv3AEbp8=
 github.com/h2non/filetype v1.0.10 h1:z+SJfnL6thYJ9kAST+6nPRXp1lMxnOVbMZHNYHMar0s=
 github.com/h2non/filetype v1.0.10/go.mod h1:isekKqOuhMj+s/7r3rIeTErIRy4Rub5uBWHfvMusLMU=
 github.com/h2non/go-is-svg v0.0.0-20160927212452-35e8c4b0612c h1:fEE5/5VNnYUoBOj2I9TP8Jc+a7lge3QWn9DKE7NCwfc=

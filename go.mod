@@ -21,6 +21,7 @@ require (
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0
 	github.com/gorilla/handlers v1.4.2
 	github.com/gorilla/mux v1.7.3
+	github.com/h2non/bimg v1.0.19
 	github.com/h2non/filetype v1.0.10
 	github.com/h2non/go-is-svg v0.0.0-20160927212452-35e8c4b0612c
 	github.com/hqbobo/text2pic v0.0.0-20180823042751-2479e146d720

@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"fmt"
 	"net/http"
 	"strconv"
 
@@ -38,7 +37,6 @@ func ViewHandler(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
-	fmt.Println(post)
 
 	poster, _ := DB.User(ctx, post.Poster)
 
