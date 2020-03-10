@@ -2,7 +2,6 @@ package database
 
 import (
 	"context"
-	"encoding/json"
 
 	"runtime/trace"
 
@@ -49,41 +48,7 @@ func (db *DB) AddPost(ctx context.Context, post types.Post) error {
 		return err
 	}
 
-	for _, tag := range post.Tags {
-		rows, err := db.sqldb.QueryContext(ctx, `select "posts" from tags where tag = $1`, tag)
-		if err != nil {
-			log.Error().Err(err).Msg("AddPost can't select tags")
-			return err
-		}
-		defer rows.Close()
-
-		var postsString string
-		for rows.Next() {
-			err = rows.Scan(&postsString)
-			if err != nil {
-				log.Error().Err(err).Msg("AddPost can't scan row")
-			}
-		}
-
-		var posts []int64
-		err = json.Unmarshal([]byte(postsString), &posts)
-		if err != nil {
-			posts = []int64{post.PostID}
-		} else {
-			posts = append(posts, post.PostID)
-		}
-		x, err := json.Marshal(posts)
-		if err != nil {
-			log.Error().Err(err).Msg("AddPost can't marshal posts list")
-			return err
-		}
-
-		_, err = db.sqldb.ExecContext(ctx, `INSERT INTO "tags"("tag", "posts") VALUES ($1, $2) ON CONFLICT (tag) DO UPDATE SET posts = EXCLUDED.posts`, tag, string(x))
-		if err != nil {
-			log.Warn().Err(err).Msg("AddPost Tags can't execute insert tags statement")
-			return err
-		}
-	}
+	db.AddPostTags(ctx, post)
 
 	return nil
 }
@@ -107,44 +72,7 @@ func (db *DB) DeletePost(ctx context.Context, postID int64) error {
 	defer trace.StartRegion(ctx, "DB/DeletePost").End()
 
 	p, _ := db.Post(ctx, postID)
-	for _, tag := range p.Tags {
-		rows, err := db.sqldb.QueryContext(ctx, `select "posts" from tags where tag = $1`, tag)
-		if err != nil {
-			log.Error().Err(err).Msg("DeletePost can't select tags")
-			return err
-		}
-		defer rows.Close()
-
-		var posts []int64
-		newPosts := make([]int64, 0)
-		var postsString string
-
-		for rows.Next() {
-			err = rows.Scan(&postsString)
-			if err != nil {
-				log.Error().Err(err).Msg("DeletePost can't scan rows")
-				return err
-			}
-		}
-		err = json.Unmarshal([]byte(postsString), &posts)
-		if err != nil {
-			log.Error().Err(err).Msg("DeletePost Json Unmarshal Error")
-			return err
-		}
-
-		posts = utils.RemoveFromSlice(posts, postID)
-		x, err := json.Marshal(newPosts)
-		if err != nil {
-			log.Error().Err(err).Msg("DeletePost can't unmarshal posts list")
-			return err
-		}
-
-		_, err = db.sqldb.ExecContext(ctx, `INSERT INTO "tags"("tag", "posts") VALUES ($1, $2) ON CONFLICT (tag) DO UPDATE SET posts = EXCLUDED.posts`, tag, string(x))
-		if err != nil {
-			log.Warn().Err(err).Msg("AddPost Tags can't execute insert tags statement")
-			return err
-		}
-	}
+	db.RemovePostTags(ctx, p)
 
 	_, err := db.sqldb.ExecContext(ctx, `delete from posts where postid = $1`, postID)
 	if err != nil {
