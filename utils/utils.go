@@ -1,14 +1,10 @@
 package utils
 
 import (
-	"crypto/sha256"
-	"fmt"
 	"sort"
 	"strings"
 
 	"regexp"
-
-	"golang.org/x/crypto/bcrypt"
 )
 
 func FilterString(s string) string {
@@ -16,27 +12,6 @@ func FilterString(s string) string {
 	s = re.ReplaceAllLiteralString(s, "")
 	s = strings.TrimSpace(s)
 	return s
-}
-
-func EncryptPassword(password string) string {
-	passwordBytes := []byte(password)
-	bytes, err := bcrypt.GenerateFromPassword(passwordBytes, 12)
-	if err != nil {
-		panic(err)
-	}
-	return string(bytes)
-}
-
-func CheckPassword(encryptedPassword, attemptPassword string) bool {
-	err := bcrypt.CompareHashAndPassword([]byte(encryptedPassword), []byte(attemptPassword))
-	return err == nil
-}
-
-func Sha256Bytes(b []byte) string {
-	h := sha256.New()
-	_, __ := h.Write(b)
-	_ = __
-	return fmt.Sprintf("%x", h.Sum(nil))
 }
 
 func SplitTagsString(tags string) []string {
@@ -51,28 +26,6 @@ func TagsListToString(tags []string) string {
 	}
 	sort.Strings(tags)
 	return strings.Join(tags, "+")
-}
-
-func Paginate(x []int64, page int, pageSize int) []int64 {
-	var limit int
-	var start int
-	numItems := len(x)
-	skip := pageSize * page
-	if skip <= 0 {
-		skip = 0
-	}
-	spS := skip + pageSize
-	if spS > numItems {
-		limit = numItems
-	} else {
-		limit = spS
-	}
-	if skip > numItems {
-		start = numItems
-	} else {
-		start = skip
-	}
-	return x[start:limit]
 }
 
 func RemoveFromSlice(slice []int64, toDelete int64) []int64 {

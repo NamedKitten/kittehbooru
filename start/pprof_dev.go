@@ -3,8 +3,8 @@
 package start
 
 import (
-	_"net/http/pprof"
 	"net/http"
+	_ "net/http/pprof"
 
 	"github.com/gorilla/mux"
 )

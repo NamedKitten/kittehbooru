@@ -63,8 +63,6 @@ type Post struct {
 	Poster string `json:"poster"`
 	// CreatedAt is the Unix timestamp of when this post was posted.
 	CreatedAt int64 `json:"timestamp"`
-	// Sha256 is the sha256 checksum of the post file.
-	Sha256 string `json:"sha256"`
 	// MimeType is the MIME type of the post file.
 	MimeType string `json:"mimetype"`
 }

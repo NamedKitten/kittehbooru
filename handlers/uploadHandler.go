@@ -97,7 +97,6 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 	postIDInt64 := postID.Int64()
 	fileName := strconv.Itoa(int(postIDInt64))
 
-	sha256sum := utils.Sha256Bytes(fileBytes)
 	newPath := fileName + "." + extension
 	newFile, err := DB.ContentStorage.WriteFile(ctx, newPath)
 	if err != nil {
@@ -141,10 +140,9 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 		Description:   description,
 		Poster:        user.Username,
 		CreatedAt:     postID.Time(),
-		Sha256:        sha256sum,
 		MimeType:      mimeType,
 	}
-	go createThumbnail(ctx, p)
+	go DB.CreateThumbnail(ctx, p)
 
 	err = DB.AddPost(ctx, p)
 	if err != nil {
