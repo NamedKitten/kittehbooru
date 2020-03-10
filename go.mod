@@ -4,6 +4,7 @@ go 1.14
 
 require (
 	github.com/BurntSushi/toml v0.3.1
+	github.com/NamedKitten/hot v0.0.0-20190309114900-977428eba6c3
 	github.com/bwmarrin/snowflake v0.3.0
 	github.com/ezzarghili/recaptcha-go v4.0.0+incompatible
 	github.com/gorilla/handlers v1.4.2
