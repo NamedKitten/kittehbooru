@@ -40,7 +40,6 @@ func (db *DB) CheckPassword(ctx context.Context, username string, password strin
 	case sql.ErrNoRows:
 		return false
 	case nil:
-
 		return bcrypt.CompareHashAndPassword([]byte(encPasswd), []byte(password)) == nil
 	default:
 		return false

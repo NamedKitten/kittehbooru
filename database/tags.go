@@ -72,8 +72,6 @@ func (db *DB) TagPosts(ctx context.Context, tag string) ([]int64, error) {
 
 }
 
-
-
 func (db *DB) RemovePostTags(ctx context.Context, p types.Post) error {
 	defer trace.StartRegion(ctx, "DB/RemovePostTags").End()
 	for _, tag := range p.Tags {

@@ -48,24 +48,23 @@ func (db *DB) AddPost(ctx context.Context, post types.Post) error {
 		return err
 	}
 
-	db.AddPostTags(ctx, post)
+	err = db.AddPostTags(ctx, post)
 
-	return nil
+	return err
 }
 
-func (db *DB) EditPost(ctx context.Context, postID int64, post types.Post) {
+func (db *DB) EditPost(ctx context.Context, postID int64, post types.Post) error {
 	defer trace.StartRegion(ctx, "DB/EditPost").End()
 
 	err := db.DeletePost(ctx, postID)
 	if err != nil {
-		log.Error().Err(err).Msg("EditPost can't delete post")
-		return
+		return err
 	}
 	err = db.AddPost(ctx, post)
 	if err != nil {
-		log.Error().Err(err).Msg("EditPost can't add post")
-		return
+		return err
 	}
+	return nil
 }
 
 func (db *DB) DeletePost(ctx context.Context, postID int64) error {
@@ -80,4 +79,26 @@ func (db *DB) DeletePost(ctx context.Context, postID int64) error {
 		return err
 	}
 	return nil
+}
+
+func (db *DB) AllPostIDs(ctx context.Context) ([]int64, error) {
+	defer trace.StartRegion(ctx, "DB/AllPostIDs").End()
+	posts := make([]int64, 0)
+
+	rows, err := db.sqldb.QueryContext(ctx, `select "postid" from posts where true`)
+	if err != nil {
+		log.Error().Err(err).Msg("AllPostIDs can't query wildcard posts")
+		return posts, err
+	}
+	defer rows.Close()
+	var pid int64
+	for rows.Next() {
+		err = rows.Scan(&pid)
+		if err != nil {
+			log.Error().Err(err).Msg("AllPostIDs can't scan row")
+			return posts, err
+		}
+		posts = append(posts, pid)
+	}
+	return posts, nil
 }

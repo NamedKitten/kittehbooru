@@ -2,7 +2,6 @@ package database
 
 import (
 	"context"
-	"encoding/json"
 	"math"
 	"runtime/trace"
 	"sort"
@@ -12,7 +11,6 @@ import (
 
 	"github.com/NamedKitten/kittehimageboard/types"
 	"github.com/NamedKitten/kittehimageboard/utils"
-	"github.com/rs/zerolog/log"
 )
 
 func paginate(x []int64, page int, pageSize int) []int64 {
@@ -37,52 +35,23 @@ func paginate(x []int64, page int, pageSize int) []int64 {
 	return x[start:limit]
 }
 
-func (db *DB) getPostsForTag(ctx context.Context, tag string) []int64 {
-	defer trace.StartRegion(ctx, "DB/getPostsForTag").End()
+// searchTag is the same as TagPosts but includes wildcard search.
+func (db *DB) searchTag(ctx context.Context, tag string) ([]int64) {
+	defer trace.StartRegion(ctx, "DB/searchTag").End()
 
 	var posts []int64
+	var err error 
 	if val, ok := db.SearchCache.Get(tag); ok {
 		posts = val
 	} else {
 		if tag == "*" {
-			rows, err := db.sqldb.QueryContext(ctx, `select "postid" from posts where true`)
-			if err != nil {
-				log.Error().Err(err).Msg("GetPostsForTags can't query wildcard posts")
-				return []int64{}
-			}
-			defer rows.Close()
-			var pid int64
-			for rows.Next() {
-				err = rows.Scan(&pid)
-				if err != nil {
-					log.Error().Err(err).Msg("GetPostsForTags can't scan row")
-					return []int64{}
-				}
-				posts = append(posts, pid)
-			}
-
+			posts, err = db.AllPostIDs(ctx)
 		} else {
-			rows, err := db.sqldb.QueryContext(ctx, `select "posts" from tags where tag = $1`, tag)
-			if err != nil {
-				log.Error().Err(err).Msg("GetPostsForTags can't query tag posts")
-				return []int64{}
-			}
-			var postsString string
-			defer rows.Close()
-
-			for rows.Next() {
-				err = rows.Scan(&postsString)
-				if err != nil {
-					log.Error().Err(err).Msg("GetPostsForTags can't scan row")
-					continue
-				}
-			}
-			// we store it as json just so its easy to store in the database
-			err = json.Unmarshal([]byte(postsString), &posts)
-			if err != nil {
-				return []int64{}
-			}
+			posts, err = db.TagPosts(ctx, tag)
 		}
+	}
+	if err != nil {
+		return []int64{}
 	}
 	db.SearchCache.Add(tag, posts)
 	return posts
@@ -117,7 +86,7 @@ func (db *DB) getPostsForTags(ctx context.Context, tags []string) []int64 {
 		}
 
 		//posts will be all the posts that are tagged with `tag`
-		posts := db.getPostsForTag(ctx, tag)
+		posts := db.searchTag(ctx, tag)
 
 		for _, post := range posts {
 			if !is {
