@@ -48,8 +48,8 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	username := r.FormValue("username")
 	password := r.FormValue("password")
 
-	_, exist := DB.User(ctx, username)
-	if !exist {
+	_, err = DB.User(ctx, username)
+	if err != nil {
 		log.Info().Str("username", username).Msg("Login Not Found")
 	} else {
 		if DB.CheckPassword(ctx, username, password) {
@@ -57,7 +57,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 
 			http.SetCookie(w, &http.Cookie{
 				Name:    "sessionToken",
-				Value:   DB.Sessions.CreateSession(ctx, username),
+				Value:   DB.CreateSession(ctx, username),
 				Expires: time.Now().Add(2 * time.Hour),
 			})
 			http.Redirect(w, r, "/", http.StatusFound)

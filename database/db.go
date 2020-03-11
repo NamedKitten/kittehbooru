@@ -16,6 +16,7 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
+// database-gobal captcha manager
 var captcha recaptcha.ReCAPTCHA
 
 // Settings are instance-specific settings.
@@ -59,8 +60,6 @@ type DB struct {
 	sqldb *sql.DB
 	// SetupCompleted is used to know when to run setup page.
 	SetupCompleted bool `yaml:"init"`
-	// Sessions handles logged in user sessions
-	Sessions Sessions `yaml:"-"`
 	// SearchCache is a cache of search strings and the post IDs
 	// that match the result.
 	SearchCache SearchCache `yaml:"-"`
@@ -84,7 +83,7 @@ func (db *DB) Save() {
 	}
 }
 
-// init creates all the database fields and starts cache and session management.
+// init creates all the database fields and starts cache, thumbnail and session management
 func (db *DB) init() {
 	snowflake.Epoch = 1551864242
 	var err error
@@ -110,11 +109,11 @@ func (db *DB) init() {
 		}
 	}
 	go db.thumbnailScanner()
+	go db.sessionCleaner()
 	go db.SearchCache.Start()
-	go db.Sessions.Start(db.sqldb)
 }
 
-// LoadDB loads the database from the db.json file and initializes it.
+// LoadDB loads the settings file and initializes the database
 func LoadDB() *DB {
 	db := &DB{}
 	_, err := os.Stat("settings.yaml")

@@ -19,8 +19,8 @@ func EditUserHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, exist := DB.User(ctx, vars["userID"])
-	if !exist {
+	user, err := DB.User(ctx, vars["userID"])
+	if err != nil {
 		http.Redirect(w, r, "/", http.StatusFound)
 		return
 	}
@@ -29,7 +29,7 @@ func EditUserHandler(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/", http.StatusFound)
 		return
 	}
-	var err error
+
 	err = r.ParseForm()
 	if err != nil {
 		log.Error().Err(err).Msg("Parse Form")

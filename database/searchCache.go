@@ -7,6 +7,7 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
+// SearchCache is a struct for managing a cache of search terms and their post IDs
 type SearchCache struct {
 	cache map[string][]int64
 	lock  sync.RWMutex

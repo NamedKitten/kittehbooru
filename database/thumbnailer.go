@@ -15,6 +15,7 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
+// createVideoThumbnail creates a thumbnail from a video using ffmpegthumbnailer
 func (db *DB) createVideoThumbnail(ctx context.Context, post types.Post) (string, bool) {
 	if !db.Settings.VideoThumbnails {
 		return "frontend/img/video.png", false
@@ -50,6 +51,7 @@ func (db *DB) createVideoThumbnail(ctx context.Context, post types.Post) (string
 	return tmpFile.Name(), true
 }
 
+// createPDFThumbnail creates a thumbnail from a pdf using imagemagick
 func (db *DB) createPDFThumbnail(ctx context.Context, post types.Post) (string, bool) {
 	if !db.Settings.PDFThumbnails {
 		return "frontend/img/pdf.jpg", false
@@ -84,6 +86,7 @@ func (db *DB) createPDFThumbnail(ctx context.Context, post types.Post) (string, 
 
 }
 
+// CreateThumbnail creates a thumbnail for a post.
 func (db *DB) CreateThumbnail(ctx context.Context, post types.Post) string {
 	log.Debug().Int64("postid", post.PostID).Msg("Creating Thumbnail")
 
@@ -121,6 +124,7 @@ func (db *DB) CreateThumbnail(ctx context.Context, post types.Post) string {
 
 	var contentFile io.ReadCloser
 	var err error
+	// If it is a frontend file, it is on the OS, not remote or accessable from the storage
 	if strings.HasPrefix(contentFilename, "frontend/") || isTmpFile {
 		contentFile, err = os.Open(contentFilename)
 	} else {
@@ -163,5 +167,4 @@ func (db *DB) CreateThumbnail(ctx context.Context, post types.Post) string {
 	newCacheFile.Write(newImage)
 	newCacheFile.Close()
 	return thumbnailFile
-
 }

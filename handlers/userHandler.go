@@ -27,8 +27,8 @@ func UserHandler(w http.ResponseWriter, r *http.Request) {
 	loggedInUser, loggedIn := DB.CheckForLoggedInUser(ctx, r)
 
 	username := vars["userID"]
-	user, exist := DB.User(ctx, vars["userID"])
-	if !exist {
+	user, err := DB.User(ctx, vars["userID"])
+	if err != nil {
 		return
 	}
 
@@ -44,7 +44,7 @@ func UserHandler(w http.ResponseWriter, r *http.Request) {
 		},
 	}
 
-	err := templates.RenderTemplate(w, "user.html", templateInfo)
+	err = templates.RenderTemplate(w, "user.html", templateInfo)
 	if err != nil {
 		panic(err)
 	}

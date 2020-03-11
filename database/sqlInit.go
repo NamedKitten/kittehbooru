@@ -6,6 +6,9 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
+
+// sqlInit initialises the database and makes sure all tables exist.
+// Also provides migration between schema versions.
 func (db *DB) sqlInit(sqldb *sql.DB, dbType string) {
 	var err error
 	_, err = sqldb.Exec(`CREATE TABLE IF NOT EXISTS "users" (  "avatarID"  bigint,  "owner"  BOOL,  "admin"  BOOL,  "username"  TEXT,  "description"  TEXT,  PRIMARY KEY("username"))`)

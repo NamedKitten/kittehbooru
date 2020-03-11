@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"runtime/trace"
+	"errors"
 
 	"github.com/NamedKitten/kittehimageboard/utils"
 
@@ -11,7 +12,11 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-func (db *DB) Post(ctx context.Context, postID int64) (types.Post, bool) {
+// A error to be returned if the post does not exist.
+var PostNotExistError = errors.New("Post does not exist")
+
+// Post fetches a post from the database given a post ID
+func (db *DB) Post(ctx context.Context, postID int64) (types.Post, error) {
 	defer trace.StartRegion(ctx, "DB/Post").End()
 
 	p := types.Post{}
@@ -20,7 +25,7 @@ func (db *DB) Post(ctx context.Context, postID int64) (types.Post, bool) {
 	rows, err := db.sqldb.QueryContext(ctx, `select "filename", "ext", "description", "tags", "poster", "timestamp", "mimetype" from posts where postID = $1`, postID)
 	if err != nil {
 		log.Error().Err(err).Msg("Post can't query")
-		return p, false
+		return p, err
 	}
 	defer rows.Close()
 
@@ -28,14 +33,14 @@ func (db *DB) Post(ctx context.Context, postID int64) (types.Post, bool) {
 		err := rows.Scan(&p.Filename, &p.FileExtension, &p.Description, &tags, &p.Poster, &p.CreatedAt, &p.MimeType)
 		if err != nil {
 			log.Error().Err(err).Msg("Post can't scan")
-			return p, false
+			return p, err
 		} else {
 			p.PostID = postID
 			p.Tags = utils.SplitTagsString(tags)
-			return p, true
+			return p, nil
 		}
 	}
-	return p, false
+	return p, PostNotExistError
 }
 
 // AddPost adds a post to the DB and adds it to the author's post list.
@@ -53,6 +58,8 @@ func (db *DB) AddPost(ctx context.Context, post types.Post) error {
 	return err
 }
 
+// EditPost edits a post give a new post object and a post ID
+// TODO: Use SQL UPDATE statement
 func (db *DB) EditPost(ctx context.Context, postID int64, post types.Post) error {
 	defer trace.StartRegion(ctx, "DB/EditPost").End()
 
@@ -67,6 +74,8 @@ func (db *DB) EditPost(ctx context.Context, postID int64, post types.Post) error
 	return nil
 }
 
+// DeletePost deletes a post from the database
+// TODO: add parameter for knowing if it should delete the post's files or not when editing
 func (db *DB) DeletePost(ctx context.Context, postID int64) error {
 	defer trace.StartRegion(ctx, "DB/DeletePost").End()
 
@@ -81,6 +90,7 @@ func (db *DB) DeletePost(ctx context.Context, postID int64) error {
 	return nil
 }
 
+// AllPostIDs returns a list of the ID of all the posts in the database. 
 func (db *DB) AllPostIDs(ctx context.Context) ([]int64, error) {
 	defer trace.StartRegion(ctx, "DB/AllPostIDs").End()
 	posts := make([]int64, 0)

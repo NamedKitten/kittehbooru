@@ -13,6 +13,6 @@ func LogoutHandler(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/login", http.StatusFound)
 		return
 	}
-	DB.Sessions.InvalidateSession(ctx, user.Username)
+	DB.InvalidateSession(ctx, user.Username)
 	http.Redirect(w, r, "/", http.StatusFound)
 }

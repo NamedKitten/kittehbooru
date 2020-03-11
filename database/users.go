@@ -4,12 +4,14 @@ import (
 	"context"
 	"encoding/json"
 
+	"errors"
 	"runtime/trace"
 
 	"github.com/NamedKitten/kittehimageboard/types"
 	"github.com/rs/zerolog/log"
 )
 
+// AddUser adds a user to the database.
 func (db *DB) AddUser(ctx context.Context, u types.User) {
 	defer trace.StartRegion(ctx, "DB/AddUser").End()
 
@@ -19,7 +21,8 @@ func (db *DB) AddUser(ctx context.Context, u types.User) {
 	}
 }
 
-func (db *DB) User(ctx context.Context, username string) (types.User, bool) {
+// User fetches a user from the database.
+func (db *DB) User(ctx context.Context, username string) (types.User, error) {
 	defer trace.StartRegion(ctx, "DB/User").End()
 
 	u := types.User{}
@@ -27,20 +30,22 @@ func (db *DB) User(ctx context.Context, username string) (types.User, bool) {
 	rows, err := db.sqldb.QueryContext(ctx, `select "avatarID","owner","admin","username","description" from users where username = $1`, username)
 	if err != nil {
 		log.Error().Err(err).Msg("User can't query statement")
-		return u, false
+		return u, err
 	}
 	defer rows.Close()
 	for rows.Next() {
 		err := rows.Scan(&u.AvatarID, &u.Owner, &u.Admin, &u.Username, &u.Description)
 		if err != nil {
 			log.Error().Err(err).Msg("User can't scan")
+			return u, err
 		} else {
-			return u, username == u.Username
+			return u, nil
 		}
 	}
-	return u, false
+	return u, errors.New("No rows exist.")
 }
 
+// EditUser edits a user in the database.
 func (db *DB) EditUser(ctx context.Context, u types.User) (err error) {
 	defer trace.StartRegion(ctx, "DB/EditUser").End()
 
@@ -52,6 +57,7 @@ func (db *DB) EditUser(ctx context.Context, u types.User) (err error) {
 	return nil
 }
 
+// DeleteUser deletes a user and all their posts from the database
 func (db *DB) DeleteUser(ctx context.Context, username string) error {
 	defer trace.StartRegion(ctx, "DB/DeleteUser").End()
 
@@ -97,7 +103,7 @@ func (db *DB) DeleteUser(ctx context.Context, username string) error {
 		}
 	}
 
-	db.Sessions.InvalidateSession(ctx, username)
+	db.InvalidateSession(ctx, username)
 
 	return nil
 }

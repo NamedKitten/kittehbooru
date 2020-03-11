@@ -17,11 +17,12 @@ func (db *DB) thumbnailScanner() {
 
 		posts := db.cacheSearch(ctx, []string{"*"})
 		for _, postID := range posts {
+			// If the thumbnail doesn't exist, generate a new thumbnail
 			if !db.ThumbnailsStorage.Exists(ctx, fmt.Sprintf("%d.webp", postID)) {
 				log.Debug().Int64("postID", postID).Msg("Missing thumbnail, generating new.")
-				p, exists := db.Post(ctx, postID)
-				if !exists {
-					log.Debug().Int64("postID", postID).Msg("thumbnailScanner can't fetch post.")
+				p, err := db.Post(ctx, postID)
+				if err != nil {
+					log.Debug().Err(err).Int64("postID", postID).Msg("thumbnailScanner can't fetch post.")
 					continue
 				}
 				db.CreateThumbnail(ctx, p)

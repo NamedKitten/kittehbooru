@@ -20,8 +20,13 @@ func (db *DB) NumOfPagesForTags(ctx context.Context, searchTags []string) int {
 	return int(math.Ceil(float64(db.NumOfPostsForTags(ctx, searchTags)) / float64(20)))
 }
 
+// filterTags filters tags before searching using them
+// Order of operations:
+// 1. Remove duplicate tags
+// 2. Removes both a positive and a negative tag if they are the same.
+// 3. Adds * (wildcard operator) if there is only negative matches.
 func (db *DB) filterTags(tags []string) []string {
-	// lets first remove any duplicate tags
+	// 1. Remove duplicate tags
 	tempTags := make(map[string]bool)
 	// this will remove duplicate entrys
 	for _, tag := range tags {
@@ -40,6 +45,7 @@ func (db *DB) filterTags(tags []string) []string {
 		} else {
 			_, ok = tempTags["-"+tag]
 		}
+		// 2. Removes both a positive and a negative tag if they are the same.
 		if !ok && !(tag == " " || len(tag) == 0) {
 			if !is {
 				isOnlyNegatives = false
@@ -48,13 +54,14 @@ func (db *DB) filterTags(tags []string) []string {
 		}
 	}
 
-	// if there is only negative tags, add wildcard
+	// 3. Adds * (wildcard operator) if there is only negative matches.
 	if isOnlyNegatives {
 		tags = append(tags, "*")
 	}
 	return tags
 }
 
+// VerifyRecaptcha verifies a recaptcha response
 func (db *DB) VerifyRecaptcha(ctx context.Context, resp string) bool {
 	defer trace.StartRegion(ctx, "DB/VerifyRecaptcha").End()
 
@@ -77,9 +84,9 @@ func (db *DB) CheckForLoggedInUser(ctx context.Context, r *http.Request) (types.
 
 	c, err := r.Cookie("sessionToken")
 	if err == nil {
-		if sess, ok := db.Sessions.CheckToken(ctx, c.Value); ok {
-			u, exists := db.User(ctx, sess.Username)
-			if exists {
+		if sess, err := db.CheckToken(ctx, c.Value); err != nil {
+			u, err := db.User(ctx, sess.Username)
+			if err != nil {
 				return u, true
 			}
 		}

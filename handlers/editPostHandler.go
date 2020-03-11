@@ -26,8 +26,9 @@ func EditPostHandler(w http.ResponseWriter, r *http.Request) {
 		log.Error().Err(err).Msg("Can't convert postID to string")
 		return
 	}
-	post, postExists := DB.Post(ctx, int64(postID))
-	if !postExists {
+	post, err := DB.Post(ctx, int64(postID))
+	if err != nil {
+		log.Error().Err(err).Msg("Can't fetch post")
 		http.Redirect(w, r, "/", http.StatusFound)
 		return
 	}

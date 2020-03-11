@@ -33,8 +33,8 @@ func ViewHandler(w http.ResponseWriter, r *http.Request) {
 		log.Error().Err(err).Msg("Can't parse postID")
 		return
 	}
-	post, ok := DB.Post(ctx, int64(postID))
-	if !ok {
+	post, err := DB.Post(ctx, int64(postID))
+	if err != nil {
 		return
 	}
 

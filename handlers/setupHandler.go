@@ -71,7 +71,7 @@ func SetupHandler(w http.ResponseWriter, r *http.Request) {
 	DB.Save()
 	http.SetCookie(w, &http.Cookie{
 		Name:    "sessionToken",
-		Value:   DB.Sessions.CreateSession(ctx, username),
+		Value:   DB.CreateSession(ctx, username),
 		Expires: time.Now().Add(3 * time.Hour),
 	})
 	http.Redirect(w, r, "/", http.StatusFound)

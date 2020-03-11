@@ -43,8 +43,8 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, exist := DB.User(ctx, username)
-	if exist {
+	_, err = DB.User(ctx, username)
+	if err == nil {
 		http.Redirect(w, r, "/register", http.StatusFound)
 		return
 	}
@@ -63,7 +63,7 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	log.Info().Str("username", username).Msg("Register")
 	http.SetCookie(w, &http.Cookie{
 		Name:    "sessionToken",
-		Value:   DB.Sessions.CreateSession(ctx, username),
+		Value:   DB.CreateSession(ctx, username),
 		Expires: time.Now().Add(3 * time.Hour),
 	})
 	http.Redirect(w, r, "/", http.StatusFound)

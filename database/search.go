@@ -13,29 +13,33 @@ import (
 	"github.com/NamedKitten/kittehimageboard/utils"
 )
 
+// paginate paginates a list of int64s
+// TODO: add more comments
 func paginate(x []int64, page int, pageSize int) []int64 {
 	var limit int
 	var start int
 	numItems := len(x)
+	// skips forward N items where N is how many items in a page multiplied by the page number
 	skip := pageSize * page
+	// prevents integer overflow if skip becomes negative
 	if skip <= 0 {
 		skip = 0
-	}
-	spS := skip + pageSize
-	if spS > numItems {
-		limit = numItems
-	} else {
-		limit = spS
 	}
 	if skip > numItems {
 		start = numItems
 	} else {
 		start = skip
 	}
+	if skip + pageSize > numItems {
+		limit = numItems
+	} else {
+		limit = skip + pageSize
+	}
 	return x[start:limit]
 }
 
-// searchTag is the same as TagPosts but includes wildcard search.
+// searchTag is a wrapper around AllPostIDs and TagPosts 
+// for searching for all results for a tag or a wildcard match.
 func (db *DB) searchTag(ctx context.Context, tag string) ([]int64) {
 	defer trace.StartRegion(ctx, "DB/searchTag").End()
 
@@ -61,7 +65,6 @@ func (db *DB) searchTag(ctx context.Context, tag string) ([]int64) {
 // it uses a tags table which maps a tag to all the posts containing a tag
 func (db *DB) getPostsForTags(ctx context.Context, tags []string) []int64 {
 	defer trace.StartRegion(ctx, "DB/getPostsForTags").End()
-
 	// we need to make sure to keep track of how many times the post
 	// is seen and only get which posts appear for all of the positive posts
 	// basically a simple way of getting the intersection of all positive tags
@@ -122,14 +125,15 @@ func (db *DB) getPostsForTags(ctx context.Context, tags []string) []int64 {
 	return finalPostIDs
 }
 
-func (db *DB) Top15CommonTags(ctx context.Context, tags []string) []types.TagCounts {
+// TopNCommonTags returns the top N common tags for a search result
+func (db *DB) TopNCommonTags(ctx context.Context, n int, tags []string) []types.TagCounts {
 	defer trace.StartRegion(ctx, "DB/Top15CommonTags").End()
 
 	posts := db.cacheSearch(ctx, tags)
 	tagCounts := make(map[string]int)
 	for _, p := range posts {
-		post, exists := db.Post(ctx, p)
-		if !exists {
+		post, err := db.Post(ctx, p)
+		if err != nil {
 			continue
 		}
 		for _, tag := range post.Tags {
@@ -145,16 +149,18 @@ func (db *DB) Top15CommonTags(ctx context.Context, tags []string) []types.TagCou
 	for k, v := range tagCounts {
 		tagCountsSlice = append(tagCountsSlice, types.TagCounts{k, v})
 	}
-
+	// Sort by tag name first so equal value results are in alphabetical order
 	sort.Slice(tagCountsSlice, func(i, j int) bool {
 		return tagCountsSlice[i].Tag > tagCountsSlice[j].Tag
 	})
 
+	// Sort by how many posts a tag has
 	sort.Slice(tagCountsSlice, func(i, j int) bool {
 		return tagCountsSlice[i].Count > tagCountsSlice[j].Count
 	})
-
-	x := math.Min(float64(15), float64(len(tagCountsSlice)))
+	// Calculate the min between how many tags there are and N
+	// Prevents panic when N > tag count
+	x := math.Min(float64(n), float64(len(tagCountsSlice)))
 	return tagCountsSlice[:int(x)]
 }
 
@@ -166,14 +172,18 @@ func (db *DB) cacheSearch(ctx context.Context, searchTags []string) []int64 {
 	var result []int64
 	searchTags = db.filterTags(searchTags)
 	combinedTags := utils.TagsListToString(searchTags)
+	// If it is in the cache then great! use the cached result
+	// otherise search for them and add to the cache.
 	if val, ok := db.SearchCache.Get(combinedTags); ok {
 		result = val
 	} else {
 		matching := db.getPostsForTags(ctx, searchTags)
-		db.SearchCache.Add(combinedTags, matching)
+		go db.SearchCache.Add(combinedTags, matching)
 		result = matching
 	}
-
+	// Sort by posted time
+	// TODO add a parameter to have different sorting modes such as sorting from oldest to newest
+	// or from filesize.
 	sort.Slice(result, func(i, j int) bool {
 		return snowflake.ID(result[i]).Time() > snowflake.ID(result[j]).Time()
 	})
@@ -196,7 +206,10 @@ func (db *DB) GetSearchPage(ctx context.Context, searchTags []string, page int) 
 	pageContent := paginate(matching, page, 20)
 	matchingPosts := make([]types.Post, len(pageContent))
 	for i, post := range pageContent {
-		p, _ := db.Post(ctx, post)
+		p, err := db.Post(ctx, post)
+		if err != nil {
+			continue
+		}
 		matchingPosts[i] = p
 	}
 	return matchingPosts

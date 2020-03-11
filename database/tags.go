@@ -12,10 +12,13 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
+// AddPostTags adds a post's tags to the database for easy searching.
 func (db *DB) AddPostTags(ctx context.Context, post types.Post) error {
-	defer trace.StartRegion(ctx, "DB/AddPostTags").End()
+	defer trace.StartRegion(ctx, "DB/addPostTags").End()
 	for _, tag := range post.Tags {
 		posts, err := db.TagPosts(ctx, tag)
+		// If it doesn't exist in the database, make it with just the post ID
+		// otherise append it to existing result
 		if err != nil {
 			posts = []int64{post.PostID}
 		} else {
@@ -28,6 +31,7 @@ func (db *DB) AddPostTags(ctx context.Context, post types.Post) error {
 	return nil
 }
 
+// SetTagPosts performs the actual database operation of setting the tags.
 func (db *DB) SetTagPosts(ctx context.Context, tag string, posts []int64) error {
 	defer trace.StartRegion(ctx, "DB/SetTagPosts").End()
 	x, err := json.Marshal(posts)
@@ -43,6 +47,7 @@ func (db *DB) SetTagPosts(ctx context.Context, tag string, posts []int64) error 
 	return nil
 }
 
+// TagPosts returns a list of post IDs for a tag
 func (db *DB) TagPosts(ctx context.Context, tag string) ([]int64, error) {
 	defer trace.StartRegion(ctx, "DB/TagPosts").End()
 
@@ -72,6 +77,7 @@ func (db *DB) TagPosts(ctx context.Context, tag string) ([]int64, error) {
 
 }
 
+// RemovePostTags removes all instances of a post from their tags
 func (db *DB) RemovePostTags(ctx context.Context, p types.Post) error {
 	defer trace.StartRegion(ctx, "DB/RemovePostTags").End()
 	for _, tag := range p.Tags {
