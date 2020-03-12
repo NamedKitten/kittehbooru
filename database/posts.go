@@ -2,9 +2,10 @@ package database
 
 import (
 	"context"
+	"database/sql"
 
-	"runtime/trace"
 	"errors"
+	"runtime/trace"
 
 	"github.com/NamedKitten/kittehimageboard/utils"
 
@@ -47,14 +48,13 @@ func (db *DB) Post(ctx context.Context, postID int64) (types.Post, error) {
 func (db *DB) AddPost(ctx context.Context, post types.Post) error {
 	defer trace.StartRegion(ctx, "DB/AddPost").End()
 
-	_, err := db.sqldb.ExecContext(ctx, `INSERT INTO "posts"("postid", "filename", "ext", "description", "tags", "poster", "timestamp", "mimetype") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)`, post.PostID, post.Filename, post.FileExtension, post.Description, utils.TagsListToString(post.Tags), post.Poster, post.CreatedAt, post.MimeType)
+	_, err := db.sqldb.ExecContext(ctx, `INSERT INTO "posts"("postid", "filename", "ext", "description", "tags", "poster", "timestamp", "mimetype") VALUES ($1,$2,$3,$4,$5,$6,$7, $8)`, post.PostID, post.Filename, post.FileExtension, post.Description, utils.TagsListToString(post.Tags), post.Poster, post.CreatedAt, post.MimeType)
 	if err != nil {
 		log.Warn().Err(err).Msg("AddPost can't execute insert post statement")
 		return err
 	}
 
 	err = db.AddPostTags(ctx, post)
-
 	return err
 }
 
@@ -90,7 +90,7 @@ func (db *DB) DeletePost(ctx context.Context, postID int64) error {
 	return nil
 }
 
-// AllPostIDs returns a list of the ID of all the posts in the database. 
+// AllPostIDs returns a list of the ID of all the posts in the database.
 func (db *DB) AllPostIDs(ctx context.Context) ([]int64, error) {
 	defer trace.StartRegion(ctx, "DB/AllPostIDs").End()
 	posts := make([]int64, 0)
@@ -111,4 +111,66 @@ func (db *DB) AllPostIDs(ctx context.Context) ([]int64, error) {
 		posts = append(posts, pid)
 	}
 	return posts, nil
+}
+
+// PostsTagsCounts returns a map of tag to how many time the tag was encountered in all posts
+func (db *DB) PostsTagsCounts(ctx context.Context, posts []int64) (res map[string]int, err error) {
+	defer trace.StartRegion(ctx, "DB/PostsTagsCounts").End()
+
+	res = make(map[string]int)
+	stmt, err := db.sqldb.PrepareContext(ctx, `select "tags" from posts where postID = $1`)
+	defer stmt.Close()
+
+	var tags string
+	var tagsSlice []string
+
+	for _, p := range posts {
+		err = stmt.QueryRowContext(ctx, p).Scan(&tags)
+		switch {
+		case err == sql.ErrNoRows:
+			continue
+		case err != nil:
+			log.Fatal().Err(err)
+		default:
+			tagsSlice = utils.SplitTagsString(tags)
+			for _, tag := range tagsSlice {
+				if i, ok := res[tag]; ok {
+					res[tag] = i + 1
+				} else {
+					res[tag] = 1
+				}
+			}
+		}
+	}
+
+	return res, nil
+}
+
+// PostsTagsCounts returns a list of posts from their post IDs, does the same as Post but
+// uses a prepared statement to do it all in one db connection
+func (db *DB) Posts(ctx context.Context, posts []int64) (res []types.Post, err error) {
+	defer trace.StartRegion(ctx, "DB/Posts").End()
+
+	res = make([]types.Post, 0)
+	stmt, err := db.sqldb.PrepareContext(ctx, `select "filename", "ext", "description", "tags", "poster", "timestamp", "mimetype" from posts where postID = $1`)
+	defer stmt.Close()
+
+	var tags string
+	var p types.Post
+
+	for _, pid := range posts {
+		err = stmt.QueryRowContext(ctx, pid).Scan(&p.Filename, &p.FileExtension, &p.Description, &tags, &p.Poster, &p.CreatedAt, &p.MimeType)
+		switch {
+		case err == sql.ErrNoRows:
+			continue
+		case err != nil:
+			log.Fatal().Err(err)
+		default:
+			p.PostID = pid
+			p.Tags = utils.SplitTagsString(tags)
+			res = append(res, p)
+		}
+	}
+
+	return res, nil
 }

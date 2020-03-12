@@ -53,7 +53,6 @@ func (c *SearchCache) Start() {
 			}
 		}
 		c.lock.Unlock()
-
-		time.Sleep(time.Second * 1)
+		time.Sleep(time.Second)
 	}
 }

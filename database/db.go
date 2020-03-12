@@ -63,6 +63,8 @@ type DB struct {
 	// SearchCache is a cache of search strings and the post IDs
 	// that match the result.
 	SearchCache SearchCache `yaml:"-"`
+	// TagCountsCache is a cache of tag counts
+	TagCountsCache TagCountsCache `yaml:"-"`
 	// Settings contains instance-specific settings for this instance.
 	Settings Settings `yaml:"settings"`
 
@@ -96,7 +98,7 @@ func (db *DB) init() {
 		log.Warn().Err(err).Msg("SQL Open")
 	}
 
-	db.sqlInit(db.sqldb, db.Settings.DatabaseType)
+	db.sqlInit()
 
 	if !db.SetupCompleted {
 		log.Warn().Msg("You need to go to /setup in web browser to setup this imageboard.")
@@ -108,8 +110,10 @@ func (db *DB) init() {
 			panic(err)
 		}
 	}
+
 	go db.thumbnailScanner()
 	go db.sessionCleaner()
+	go db.TagCountsCache.Start()
 	go db.SearchCache.Start()
 }
 

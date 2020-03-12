@@ -9,7 +9,7 @@ import (
 	"github.com/NamedKitten/kittehimageboard/database"
 	"github.com/NamedKitten/kittehimageboard/handlers"
 	templates "github.com/NamedKitten/kittehimageboard/template"
-	gorillaHandlers "github.com/gorilla/handlers"
+	//gorillaHandlers "github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
@@ -87,7 +87,7 @@ func Start() {
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt)
 	go func() {
-		err := http.ListenAndServe(DB.Settings.ListenAddress, gorillaHandlers.LoggingHandler(os.Stdout, r))
+		err := http.ListenAndServe(DB.Settings.ListenAddress, r)
 		if err != nil {
 			log.Error().Err(err).Msg("Can't start web")
 			panic(err)

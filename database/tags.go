@@ -74,7 +74,6 @@ func (db *DB) TagPosts(ctx context.Context, tag string) ([]int64, error) {
 		return []int64{}, err
 	}
 	return posts, nil
-
 }
 
 // RemovePostTags removes all instances of a post from their tags
