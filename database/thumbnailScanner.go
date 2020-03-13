@@ -17,7 +17,7 @@ func (db *DB) thumbnailScanner() {
 		posts := db.cacheSearch(ctx, []string{"*"})
 		for _, postID := range posts {
 			// If the thumbnail doesn't exist, generate a new thumbnail
-			if _, err := db.ThumbnailsStorage.ReadFile(ctx, fmt.Sprintf("%d.webp", postID)); err != nil {
+			if f, err := db.ThumbnailsStorage.ReadFile(ctx, fmt.Sprintf("%d.webp", postID)); err != nil {
 				log.Debug().Int64("postID", postID).Msg("Missing thumbnail, generating new.")
 				p, err := db.Post(ctx, postID)
 				if err != nil {
@@ -25,6 +25,8 @@ func (db *DB) thumbnailScanner() {
 					continue
 				}
 				db.CreateThumbnail(ctx, p)
+			} else {
+				f.Close()
 			}
 		}
 		task.End()
