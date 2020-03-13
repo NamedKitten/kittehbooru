@@ -6,7 +6,6 @@ import (
 
 	"github.com/NamedKitten/kittehimageboard/i18n"
 	templates "github.com/NamedKitten/kittehimageboard/template"
-	"github.com/NamedKitten/kittehimageboard/types"
 	"github.com/NamedKitten/kittehimageboard/utils"
 	"github.com/rs/zerolog/log"
 )
@@ -14,7 +13,7 @@ import (
 // SearchResultsTemplate contains data to be used in the template.
 type SearchResultsTemplate struct {
 	// The posts that match the search for a page.
-	Results []types.Post
+	Results []int64
 	// RealPage is the real page number for the current page.
 	RealPage int
 	// Page is RealPage + 1 and is used to show a 1-based page number index.
@@ -57,7 +56,7 @@ func SearchHandler(w http.ResponseWriter, r *http.Request) {
 		log.Error().Err(err).Msg("Can't convert pageStr to string")
 		return
 	}
-	matchingPosts := DB.GetSearchPage(ctx, tags, page)
+	matchingPosts := DB.GetSearchIDs(ctx, tags, page)
 	var prevPage int
 	if page <= 0 {
 		prevPage = 0
