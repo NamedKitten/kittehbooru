@@ -65,6 +65,8 @@ type DB struct {
 	SearchCache SearchCache `yaml:"-"`
 	// TagCountsCache is a cache of tag counts
 	TagCountsCache TagCountsCache `yaml:"-"`
+	// UserCache is a cache of users
+	UserCache UserCache `yaml:"-"`
 	// Settings contains instance-specific settings for this instance.
 	Settings Settings `yaml:"settings"`
 
@@ -110,11 +112,11 @@ func (db *DB) init() {
 			panic(err)
 		}
 	}
-
+	db.SearchCache.Init()
+	db.UserCache.Init()
+	db.TagCountsCache.Init()
 	go db.thumbnailScanner()
 	go db.sessionCleaner()
-	go db.TagCountsCache.Start()
-	go db.SearchCache.Start()
 }
 
 // LoadDB loads the settings file and initializes the database

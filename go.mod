@@ -15,6 +15,7 @@ require (
 	github.com/h2non/filetype v1.0.12
 	github.com/lib/pq v1.3.0
 	github.com/nicksnyder/go-i18n/v2 v2.0.3
+	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/rs/zerolog v1.18.0
 	golang.org/x/crypto v0.0.0-20200302210943-78000ba7a073
 	golang.org/x/sync v0.0.0-20190423024810-112230192c58

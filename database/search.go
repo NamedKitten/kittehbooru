@@ -42,7 +42,7 @@ func (db *DB) searchTag(ctx context.Context, tag string) (posts []int64) {
 	defer trace.StartRegion(ctx, "DB/searchTag").End()
 
 	var err error
-	if val, ok := db.SearchCache.Get(tag); ok {
+	if val, ok := db.SearchCache.Get(ctx, tag); ok {
 		posts = val
 	} else {
 		if tag == "*" {
@@ -52,7 +52,7 @@ func (db *DB) searchTag(ctx context.Context, tag string) (posts []int64) {
 		}
 	}
 	if err == nil {
-		db.SearchCache.Add(tag, posts)
+		db.SearchCache.Add(ctx, tag, posts)
 	} 
 	return
 }
@@ -135,7 +135,7 @@ func (db *DB) TopNCommonTags(ctx context.Context, n int, tags []string) []types.
 	defer trace.StartRegion(ctx, "DB/Top15CommonTags").End()
 
 	combinedTags := utils.TagsListToString(tags)
-	if val, ok := db.TagCountsCache.Get(combinedTags); ok {
+	if val, ok := db.TagCountsCache.Get(ctx, combinedTags); ok {
 		return val
 	}
 
@@ -160,7 +160,7 @@ func (db *DB) TopNCommonTags(ctx context.Context, n int, tags []string) []types.
 	// Prevents panic when N > tag count
 	x := math.Min(float64(n), float64(len(tagCountsSlice)))
 	result := tagCountsSlice[:int(x)]
-	db.TagCountsCache.Add(combinedTags, result)
+	db.TagCountsCache.Add(ctx, combinedTags, result)
 	return result
 }
 
@@ -174,11 +174,11 @@ func (db *DB) cacheSearch(ctx context.Context, searchTags []string) []int64 {
 	combinedTags := utils.TagsListToString(searchTags)
 	// If it is in the cache then great! use the cached result
 	// otherise search for them and add to the cache.
-	if val, ok := db.SearchCache.Get(combinedTags); ok {
+	if val, ok := db.SearchCache.Get(ctx, combinedTags); ok {
 		result = val
 	} else {
 		matching := db.getPostsForTags(ctx, searchTags)
-		db.SearchCache.Add(combinedTags, matching)
+		db.SearchCache.Add(ctx, combinedTags, matching)
 		result = matching
 	}
 	// Sort by posted time

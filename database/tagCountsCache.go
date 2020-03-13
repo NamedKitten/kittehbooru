@@ -1,52 +1,40 @@
 package database
 
 import (
-	"sync"
+	"github.com/patrickmn/go-cache"
 	"time"
+	"context"
+	"runtime/trace"
 
 	"github.com/NamedKitten/kittehimageboard/types"
-	"github.com/rs/zerolog/log"
 )
 
 // TagCountsCache is a struct for managing a cache of tag counts
 type TagCountsCache struct {
-	cache map[string][]types.TagCounts
-	lock  sync.RWMutex
+	cache *cache.Cache
 }
 
 func (c *TagCountsCache) init() {
 	if c.cache == nil {
-		c.cache = make(map[string][]types.TagCounts)
+		c.cache = cache.New(10*time.Second, 5*time.Second)
 	}
 }
 
-func (c *TagCountsCache) Get(tags string) ([]types.TagCounts, bool) {
-	c.lock.RLock()
-	val, ok := c.cache[tags]
-	c.lock.RUnlock()
-	if ok {
-		log.Debug().Msg(tags + " fetched from tag counts cache.")
-	} else {
-		log.Debug().Msg(tags + " not in tag counts cache.")
+func (c *TagCountsCache) Get(ctx context.Context, query string) (tc []types.TagCounts, found bool) {
+	defer trace.StartRegion(ctx, "DB/TagCountsCache/Get").End()
+	result, ok := c.cache.Get(query)
+	found = ok
+	if found {
+		tc = result.([]types.TagCounts)
 	}
-	return val, ok
-}
-func (c *TagCountsCache) Add(tags string, values []types.TagCounts) {
-	c.lock.Lock()
-	c.cache[tags] = values
-	c.lock.Unlock()
-	log.Debug().Msg(tags + " added to tag counts cache.")
+	return
 }
 
-func (c *TagCountsCache) Start() {
+func (c *TagCountsCache) Add(ctx context.Context, query string, t []types.TagCounts) {
+	defer trace.StartRegion(ctx, "DB/TagCountsCache/Add").End()
+	c.cache.Set(query, t, cache.DefaultExpiration)
+}
+
+func (c *TagCountsCache) Init() {
 	c.init()
-	for {
-		c.lock.Lock()
-		for tags := range c.cache {
-			log.Debug().Msg(tags + " has expired, removing from tag counts cache.")
-			delete(c.cache, tags)
-		}
-		c.lock.Unlock()
-		time.Sleep(time.Minute)
-	}
 }

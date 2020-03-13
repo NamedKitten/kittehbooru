@@ -24,9 +24,15 @@ func (db *DB) AddUser(ctx context.Context, u types.User) {
 func (db *DB) User(ctx context.Context, username string) (u types.User, err error) {
 	defer trace.StartRegion(ctx, "DB/User").End()
 
-	err = db.sqldb.QueryRowContext(ctx, `select "avatarID","owner","admin","username","description" from users where username = $1`, username).Scan(&u.AvatarID, &u.Owner, &u.Admin, &u.Username, &u.Description)
-	if err != nil {
-		log.Error().Err(err).Msg("User can't query statement")
+	if val, ok := db.UserCache.Get(ctx, username); ok {
+		u = val
+	} else {
+		err = db.sqldb.QueryRowContext(ctx, `select "avatarID","owner","admin","username","description" from users where username = $1`, username).Scan(&u.AvatarID, &u.Owner, &u.Admin, &u.Username, &u.Description)
+		if err != nil {
+			log.Error().Err(err).Msg("User can't query statement")
+		} else {
+			db.UserCache.Add(ctx, u)
+		}
 	}
 	return u, err
 }

@@ -5,10 +5,14 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"time"
+	"github.com/patrickmn/go-cache"
 
 	"github.com/NamedKitten/kittehimageboard/types"
 	"github.com/rs/zerolog/log"
 )
+
+var sessionCache = cache.New(10*time.Second, 5*time.Second)
+
 
 // genSessionToken generates a 32 byte long random session token
 func genSessionToken() (string, error) {
@@ -44,9 +48,15 @@ func (db *DB) InvalidateSession(ctx context.Context, username string) {
 
 // CheckToken checks if there is a session for the user, and returns info on it if available
 func (db *DB) CheckToken(ctx context.Context, token string) (s types.Session, err error) {
-	err = db.sqldb.QueryRowContext(ctx, `select "username", "expiry" from sessions where token = $1`, token).Scan(&s.Username, &s.ExpirationTime)
-	if err != nil {
-		log.Error().Err(err).Msg("CheckToken can't query")
+	if result, ok := sessionCache.Get(token); ok {
+		return result.(types.Session), nil
+	} else {
+		err = db.sqldb.QueryRowContext(ctx, `select "username", "expiry" from sessions where token = $1`, token).Scan(&s.Username, &s.ExpirationTime)
+		if err != nil {
+			log.Error().Err(err).Msg("CheckToken can't query")
+		} else {
+			sessionCache.Set(token, s, cache.DefaultExpiration)
+		}
 	}
 	return
 }
