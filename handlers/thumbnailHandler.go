@@ -21,17 +21,14 @@ func ThumbnailHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		return
 	}
-	post, err := DB.Post(ctx, int64(postID))
 	var cacheFile io.ReadCloser
 
-	var cacheFilename string
-	if err != nil {
-		cacheFilename = "frontend/img/file-not-found.jpg"
-	} else {
-		cacheFilename = fmt.Sprintf("%d.webp", post.PostID)
-	}
+
+	cacheFilename := fmt.Sprintf("%d.webp", postID)
 
 	if !DB.ThumbnailsStorage.Exists(ctx, cacheFilename) {
+		post, _ := DB.Post(ctx, int64(postID))
+
 		cacheFilename = DB.CreateThumbnail(ctx, post)
 	}
 
