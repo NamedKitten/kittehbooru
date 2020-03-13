@@ -128,11 +128,11 @@ func (db *DB) CreateThumbnail(ctx context.Context, post types.Post) string {
 	if strings.HasPrefix(contentFilename, "frontend/") || isTmpFile {
 		contentFile, err = os.Open(contentFilename)
 	} else {
-		if !db.ContentStorage.Exists(ctx, contentFilename) {
+		contentFile, err = db.ContentStorage.ReadFile(ctx, contentFilename)
+		if err != nil {
 			log.Error().Msg("Content File Does Not Exist")
 			return ""
 		}
-		contentFile, err = db.ContentStorage.ReadFile(ctx, contentFilename)
 	}
 	defer contentFile.Close()
 	if err != nil {

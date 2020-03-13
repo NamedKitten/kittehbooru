@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 	"os"
+	"runtime/trace"
 
 	"github.com/NamedKitten/kittehimageboard/types"
 )
@@ -21,19 +22,13 @@ func (fb FileBackend) Delete(s string) error {
 }
 
 func (fb FileBackend) ReadFile(ctx context.Context, s string) (types.ReadableFile, error) {
+	defer trace.StartRegion(ctx, "FileStorage/ReadFile").End()
 	return os.OpenFile(fb.path+s, os.O_RDONLY, 0666)
 }
 
 func (fb FileBackend) WriteFile(ctx context.Context, s string) (types.WriteableFile, error) {
+	defer trace.StartRegion(ctx, "FileStorage/WriteFile").End()
 	return os.OpenFile(fb.path+s, os.O_WRONLY|os.O_CREATE, 0666)
-}
-
-func (fb FileBackend) Exists(ctx context.Context, s string) bool {
-	f, err := os.Stat(fb.path + s)
-	if os.IsNotExist(err) {
-		return false
-	}
-	return !f.IsDir()
 }
 
 func New(s string) FileBackend {

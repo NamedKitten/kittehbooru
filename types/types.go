@@ -20,7 +20,6 @@ type WriteableFile interface {
 }
 
 type Storage interface {
-	Exists(context.Context, string) bool
 	ReadFile(context.Context, string) (ReadableFile, error)
 	WriteFile(context.Context, string) (WriteableFile, error)
 	Open(string) (http.File, error)

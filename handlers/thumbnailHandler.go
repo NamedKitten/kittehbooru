@@ -23,27 +23,20 @@ func ThumbnailHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	var cacheFile io.ReadCloser
 
-
 	cacheFilename := fmt.Sprintf("%d.webp", postID)
-
-	if !DB.ThumbnailsStorage.Exists(ctx, cacheFilename) {
+	cacheFile, err = DB.ThumbnailsStorage.ReadFile(ctx, cacheFilename)
+	if err != nil {
 		post, _ := DB.Post(ctx, int64(postID))
-
 		cacheFilename = DB.CreateThumbnail(ctx, post)
+		cacheFile, err = DB.ThumbnailsStorage.ReadFile(ctx, cacheFilename)
+		if err != nil {
+			log.Error().Err(err).Msg("Open Cache File")
+			return
+		}
 	}
 
 	// Return early if no cache file could be created.
 	if cacheFilename == "" {
-		return
-	}
-
-	if !DB.ThumbnailsStorage.Exists(ctx, cacheFilename) {
-		log.Error().Msg("Cache File Not Exist")
-		return
-	}
-	cacheFile, err = DB.ThumbnailsStorage.ReadFile(ctx, cacheFilename)
-	if err != nil {
-		log.Error().Err(err).Msg("Open Cache File")
 		return
 	}
 

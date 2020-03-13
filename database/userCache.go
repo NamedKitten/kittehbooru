@@ -5,7 +5,6 @@ import (
 	"time"
 	"context"
 	"runtime/trace"
-	"fmt"
 
 	"github.com/NamedKitten/kittehimageboard/types"
 )
@@ -26,10 +25,7 @@ func (c *UserCache) Get(ctx context.Context, username string) (p types.User, ok 
 	var result interface{}
 	result, ok = c.cache.Get(username)
 	if ok {
-		fmt.Println("found!", username)
 		p = result.(types.User)
-	} else {
-		fmt.Println("not found!", username)
 	}
 	return p, ok
 }
@@ -37,8 +33,6 @@ func (c *UserCache) Get(ctx context.Context, username string) (p types.User, ok 
 func (c *UserCache) Add(ctx context.Context, u types.User) {
 	defer trace.StartRegion(ctx, "DB/UserCache/Add").End()
 	c.cache.Set(u.Username, u, cache.DefaultExpiration)
-	fmt.Println("added!", u.Username)
-
 }
 
 func (c *UserCache) Init() {
