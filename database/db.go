@@ -58,6 +58,7 @@ type Settings struct {
 // DB is the type at which all things are stored in the database.
 type DB struct {
 	sqldb *sql.DB
+	configFile string `yaml:"-"`
 	// SetupCompleted is used to know when to run setup page.
 	SetupCompleted bool `yaml:"init"`
 	// SearchCache is a cache of search strings and the post IDs
@@ -81,7 +82,7 @@ func (db *DB) Save() {
 	if err != nil {
 		log.Error().Err(err).Msg("Can't encode settings to yaml")
 	}
-	err = ioutil.WriteFile("settings.yaml", data, 0644)
+	err = ioutil.WriteFile(db.configFile, data, 0644)
 	if err != nil {
 		log.Error().Err(err).Msg("Can't save settings")
 	}
@@ -120,16 +121,16 @@ func (db *DB) init() {
 }
 
 // LoadDB loads the settings file and initializes the database
-func LoadDB() *DB {
+func LoadDB(configFile string) *DB {
 	db := &DB{}
-	_, err := os.Stat("settings.yaml")
+	_, err := os.Stat(configFile)
 	if err != nil {
 		if err != nil {
 			log.Fatal().Err(err).Msg("Please copy over settings_example.yaml to settings.yaml.")
 			panic(err)
 		}
 	}
-	data, err := ioutil.ReadFile("settings.yaml")
+	data, err := ioutil.ReadFile(configFile)
 	if err != nil {
 		log.Error().Err(err).Msg("Can't read settings")
 	}
@@ -139,6 +140,7 @@ func LoadDB() *DB {
 		log.Error().Err(err).Msg("Can't unmarshal settings")
 		db = &DB{}
 	}
+	db.configFile = configFile
 	db.init()
 	db.Save()
 	return db

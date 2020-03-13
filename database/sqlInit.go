@@ -28,6 +28,4 @@ func (db *DB) sqlInit() {
 	if err != nil {
 		log.Warn().Err(err).Msg("SQL Create Sessions Table")
 	}
-	// Delete sha256 column if exists from past versions.
-	db.sqldb.Exec(`ALTER TABLE "posts" DROP COLUMN sha256`)
 }

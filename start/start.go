@@ -35,6 +35,8 @@ func taskMiddleware(name string, next http.Handler) http.Handler {
 		// Wrap the http.Request Context with trace.Task object.
 		taskCtx, task := trace.NewTask(r.Context(), name)
 		defer task.End()
+		log.Debug().Str("path", r.URL.Path).Str("method", r.Method).Msg("HTTP")
+
 		r = r.WithContext(taskCtx)
 
 		next.ServeHTTP(w, r)
@@ -43,7 +45,7 @@ func taskMiddleware(name string, next http.Handler) http.Handler {
 
 func Start() {
 	log.Info().Msg("Starting")
-	DB = database.LoadDB()
+	DB = database.LoadDB("settings.yaml")
 	templates.DB = DB
 	handlers.DB = DB
 	log.Info().Msg("Loaded DB")
