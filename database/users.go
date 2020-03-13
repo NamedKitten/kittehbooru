@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 
-	"errors"
 	"runtime/trace"
 
 	"github.com/NamedKitten/kittehimageboard/types"
@@ -22,34 +21,21 @@ func (db *DB) AddUser(ctx context.Context, u types.User) {
 }
 
 // User fetches a user from the database.
-func (db *DB) User(ctx context.Context, username string) (types.User, error) {
+func (db *DB) User(ctx context.Context, username string) (u types.User, err error) {
 	defer trace.StartRegion(ctx, "DB/User").End()
 
-	u := types.User{}
-
-	rows, err := db.sqldb.QueryContext(ctx, `select "avatarID","owner","admin","username","description" from users where username = $1`, username)
+	err = db.sqldb.QueryRowContext(ctx, `select "avatarID","owner","admin","username","description" from users where username = $1`, username).Scan(&u.AvatarID, &u.Owner, &u.Admin, &u.Username, &u.Description)
 	if err != nil {
 		log.Error().Err(err).Msg("User can't query statement")
-		return u, err
 	}
-	defer rows.Close()
-	for rows.Next() {
-		err := rows.Scan(&u.AvatarID, &u.Owner, &u.Admin, &u.Username, &u.Description)
-		if err != nil {
-			log.Error().Err(err).Msg("User can't scan")
-			return u, err
-		} else {
-			return u, nil
-		}
-	}
-	return u, errors.New("No rows exist.")
+	return u, err
 }
 
 // EditUser edits a user in the database.
 func (db *DB) EditUser(ctx context.Context, u types.User) (err error) {
 	defer trace.StartRegion(ctx, "DB/EditUser").End()
 
-	_, err = db.sqldb.ExecContext(ctx, `update users set avatarID=$1, owner=$2, admin=$3, description=$4 where username = $5`, u.AvatarID, u.Owner, u.Admin, u.Description, u.Username)
+	_, err = db.sqldb.ExecContext(ctx, `update users set "avatarID"=$1, owner=$2, admin=$3, description=$4 where username = $5`, u.AvatarID, u.Owner, u.Admin, u.Description, u.Username)
 	if err != nil {
 		log.Warn().Err(err).Msg("EditUser can't execute statement")
 		return err

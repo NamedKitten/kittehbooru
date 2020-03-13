@@ -21,9 +21,9 @@ func (c *TagCountsCache) init() {
 }
 
 func (c *TagCountsCache) Get(tags string) ([]types.TagCounts, bool) {
-	c.lock.Lock()
+	c.lock.RLock()
 	val, ok := c.cache[tags]
-	c.lock.Unlock()
+	c.lock.RUnlock()
 	if ok {
 		log.Debug().Msg(tags + " fetched from tag counts cache.")
 	} else {

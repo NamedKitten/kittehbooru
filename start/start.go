@@ -9,6 +9,7 @@ import (
 	"github.com/NamedKitten/kittehimageboard/database"
 	"github.com/NamedKitten/kittehimageboard/handlers"
 	templates "github.com/NamedKitten/kittehimageboard/template"
+
 	//gorillaHandlers "github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/rs/zerolog"

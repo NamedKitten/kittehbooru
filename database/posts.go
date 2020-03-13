@@ -5,6 +5,7 @@ import (
 	"database/sql"
 
 	"errors"
+	"fmt"
 	"runtime/trace"
 
 	"github.com/NamedKitten/kittehimageboard/utils"
@@ -59,19 +60,22 @@ func (db *DB) AddPost(ctx context.Context, post types.Post) error {
 }
 
 // EditPost edits a post give a new post object and a post ID
-// TODO: Use SQL UPDATE statement
-func (db *DB) EditPost(ctx context.Context, postID int64, post types.Post) error {
+func (db *DB) EditPost(ctx context.Context, postID int64, p types.Post) error {
 	defer trace.StartRegion(ctx, "DB/EditPost").End()
 
-	err := db.DeletePost(ctx, postID)
+	var err error
+	post, _ := db.Post(ctx, postID)
+	db.RemovePostTags(ctx, post)
+
+	tags := utils.TagsListToString(p.Tags)
+	_, err = db.sqldb.ExecContext(ctx, `update posts set "filename"=$1, "ext"=$2, "description"=$3, "tags"=$4, "poster"=$5, "timestamp"=$6, "mimetype"=$7 where postid = $8`, p.Filename, p.FileExtension, p.Description, tags, p.Poster, p.CreatedAt, p.MimeType, postID)
 	if err != nil {
+		log.Warn().Err(err).Msg("EditPost can't execute statement")
 		return err
 	}
-	err = db.AddPost(ctx, post)
-	if err != nil {
-		return err
-	}
-	return nil
+
+	err = db.AddPostTags(ctx, p)
+	return err
 }
 
 // DeletePost deletes a post from the database
@@ -87,6 +91,10 @@ func (db *DB) DeletePost(ctx context.Context, postID int64) error {
 		log.Warn().Err(err).Msg("DeletePost can't execute delete post statement")
 		return err
 	}
+	db.ContentStorage.Delete(fmt.Sprintf("%d.%s", postID, p.FileExtension))
+	db.ContentStorage.Delete(fmt.Sprintf("%d.webp", postID))
+	fmt.Sprintf("%d.webp", postID)
+
 	return nil
 }
 

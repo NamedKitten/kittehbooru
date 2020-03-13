@@ -13,7 +13,6 @@ import (
 )
 
 // paginate paginates a list of int64s
-// TODO: add more comments
 func paginate(x []int64, page int, pageSize int) []int64 {
 	var limit int
 	var start int
@@ -37,13 +36,12 @@ func paginate(x []int64, page int, pageSize int) []int64 {
 	return x[start:limit]
 }
 
-// searchTag is a wrapper around AllPostIDs and TagPosts 
+// searchTag is a wrapper around AllPostIDs and TagPosts
 // for searching for all results for a tag or a wildcard match.
-func (db *DB) searchTag(ctx context.Context, tag string) ([]int64) {
+func (db *DB) searchTag(ctx context.Context, tag string) (posts []int64) {
 	defer trace.StartRegion(ctx, "DB/searchTag").End()
 
-	var posts []int64
-	var err error 
+	var err error
 	if val, ok := db.SearchCache.Get(tag); ok {
 		posts = val
 	} else {
@@ -53,11 +51,10 @@ func (db *DB) searchTag(ctx context.Context, tag string) ([]int64) {
 			posts, err = db.TagPosts(ctx, tag)
 		}
 	}
-	if err != nil {
-		return []int64{}
-	}
-	db.SearchCache.Add(tag, posts)
-	return posts
+	if err == nil {
+		db.SearchCache.Add(tag, posts)
+	} 
+	return
 }
 
 // getPostsForTags gets posts matching tags from DB
@@ -163,7 +160,7 @@ func (db *DB) TopNCommonTags(ctx context.Context, n int, tags []string) []types.
 	// Prevents panic when N > tag count
 	x := math.Min(float64(n), float64(len(tagCountsSlice)))
 	result := tagCountsSlice[:int(x)]
-	go db.TagCountsCache.Add(combinedTags, result)
+	db.TagCountsCache.Add(combinedTags, result)
 	return result
 }
 
@@ -181,7 +178,7 @@ func (db *DB) cacheSearch(ctx context.Context, searchTags []string) []int64 {
 		result = val
 	} else {
 		matching := db.getPostsForTags(ctx, searchTags)
-		go db.SearchCache.Add(combinedTags, matching)
+		db.SearchCache.Add(combinedTags, matching)
 		result = matching
 	}
 	// Sort by posted time

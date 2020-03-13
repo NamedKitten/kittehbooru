@@ -14,7 +14,6 @@ func (db *DB) thumbnailScanner() {
 	for {
 		ctx, task := trace.NewTask(context.Background(), "thumbnailScanner")
 		log.Info().Msg("thumbnailScanner scanning for posts with missing thumbnials.")
-
 		posts := db.cacheSearch(ctx, []string{"*"})
 		for _, postID := range posts {
 			// If the thumbnail doesn't exist, generate a new thumbnail
@@ -29,8 +28,6 @@ func (db *DB) thumbnailScanner() {
 			}
 		}
 		task.End()
-
 		time.Sleep(time.Minute * 15)
 	}
-
 }

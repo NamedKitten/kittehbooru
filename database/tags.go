@@ -24,10 +24,8 @@ func (db *DB) AddPostTags(ctx context.Context, post types.Post) error {
 		} else {
 			posts = append(posts, post.PostID)
 		}
-
 		db.SetTagPosts(ctx, tag, posts)
 	}
-
 	return nil
 }
 
@@ -48,32 +46,24 @@ func (db *DB) SetTagPosts(ctx context.Context, tag string, posts []int64) error 
 }
 
 // TagPosts returns a list of post IDs for a tag
-func (db *DB) TagPosts(ctx context.Context, tag string) ([]int64, error) {
+func (db *DB) TagPosts(ctx context.Context, tag string) (posts []int64, err error) {
 	defer trace.StartRegion(ctx, "DB/TagPosts").End()
 
-	rows, err := db.sqldb.QueryContext(ctx, `select "posts" from tags where tag = $1`, tag)
-	if err != nil {
-		log.Error().Err(err).Msg("TagPosts can't select tags")
-		return []int64{}, err
-	}
-	defer rows.Close()
-
-	var posts []int64
 	var postsString string
 
-	for rows.Next() {
-		err = rows.Scan(&postsString)
-		if err != nil {
-			log.Error().Err(err).Msg("TagPosts can't scan rows")
-			return []int64{}, err
-		}
+	err = db.sqldb.QueryRowContext(ctx, `select "posts" from tags where tag = $1`, tag).Scan(&postsString)
+	if err != nil {
+		log.Error().Err(err).Msg("TagPosts can't select tags")
+		return posts, err
 	}
+
 	err = json.Unmarshal([]byte(postsString), &posts)
 	if err != nil {
 		log.Error().Err(err).Msg("TagPosts Json Unmarshal Error")
-		return []int64{}, err
+		return posts, err
 	}
-	return posts, nil
+
+	return posts, err
 }
 
 // RemovePostTags removes all instances of a post from their tags

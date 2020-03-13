@@ -16,6 +16,10 @@ func (fb FileBackend) Open(s string) (http.File, error) {
 	return os.OpenFile(fb.path+s, os.O_RDONLY, 0666)
 }
 
+func (fb FileBackend) Delete(s string) error {
+	return os.Remove(fb.path + s)
+}
+
 func (fb FileBackend) ReadFile(ctx context.Context, s string) (types.ReadableFile, error) {
 	return os.OpenFile(fb.path+s, os.O_RDONLY, 0666)
 }

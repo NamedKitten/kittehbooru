@@ -41,8 +41,7 @@ func (db *DB) CheckPassword(ctx context.Context, username string, password strin
 	defer trace.StartRegion(ctx, "DB/CheckPassword").End()
 
 	var encPasswd string
-	row := db.sqldb.QueryRowContext(ctx, `select password from passwords where username=$1`, username)
-	switch err := row.Scan(&encPasswd); err {
+	switch err := db.sqldb.QueryRowContext(ctx, `select password from passwords where username=$1`, username).Scan(&encPasswd); err {
 	case sql.ErrNoRows:
 		// If there is no password then we can assume the user doesn't exist and the login is incorrect.
 		return false

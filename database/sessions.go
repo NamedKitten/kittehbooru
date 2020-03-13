@@ -43,26 +43,12 @@ func (db *DB) InvalidateSession(ctx context.Context, username string) {
 }
 
 // CheckToken checks if there is a session for the user, and returns info on it if available
-func (db *DB) CheckToken(ctx context.Context, token string) (types.Session, error) {
-	rows, err := db.sqldb.QueryContext(ctx, `select "username", "expiry" from sessions where token = $1`, token)
+func (db *DB) CheckToken(ctx context.Context, token string) (s types.Session, err error) {
+	err = db.sqldb.QueryRowContext(ctx, `select "username", "expiry" from sessions where token = $1`, token).Scan(&s.Username, &s.ExpirationTime)
 	if err != nil {
 		log.Error().Err(err).Msg("CheckToken can't query")
-		return types.Session{}, err
 	}
-
-	defer rows.Close()
-
-	var username string
-	var expiry int64
-	for rows.Next() {
-		err = rows.Scan(&username, &expiry)
-		if err != nil {
-			log.Error().Err(err).Msg("CheckToken can't scan rows")
-			return types.Session{}, err
-		}
-	}
-
-	return types.Session{Username: username, ExpirationTime: expiry}, nil
+	return
 }
 
 // sessionCleaner removes any expired sessions from the database every 10 seconds

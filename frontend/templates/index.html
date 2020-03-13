@@ -17,12 +17,12 @@
       <div class="col-md-2  order-md-1 order-sm-2">
         <center>
 
-        <h5>Tag Popularity</h5>
+        <h5>{{ .Translator.Localize "TagPopularity" }}</h5>
         <table class="table">
           <thead>
             <tr>
-              <th scope="col">Tag</th>
-              <th scope="col">Posts</th>
+              <th scope="col">{{ .Translator.Localize "Tag" }}</th>
+              <th scope="col">{{ .Translator.Localize "Posts" }}</th>
             </tr>
           </thead>
           {{ range .PostPopularity }}

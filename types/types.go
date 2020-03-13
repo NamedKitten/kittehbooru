@@ -24,6 +24,7 @@ type Storage interface {
 	ReadFile(context.Context, string) (ReadableFile, error)
 	WriteFile(context.Context, string) (WriteableFile, error)
 	Open(string) (http.File, error)
+	Delete(string) error
 }
 
 type Session struct {

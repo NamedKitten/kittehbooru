@@ -9,7 +9,6 @@ import (
 	"strings"
 
 	"github.com/NamedKitten/kittehimageboard/types"
-	"github.com/rs/zerolog/log"
 )
 
 // numOfPostsForTags returns the total number of posts for a list of tags.
@@ -19,6 +18,8 @@ func (db *DB) NumOfPostsForTags(ctx context.Context, searchTags []string) int {
 
 // numOfPagesForTags returns the total number of pages for a list of tags.
 func (db *DB) NumOfPagesForTags(ctx context.Context, searchTags []string) int {
+	// returns the smallest integer value greater than or equal to numPosts / 20
+	// TODO: make variable page size
 	return int(math.Ceil(float64(db.NumOfPostsForTags(ctx, searchTags)) / float64(20)))
 }
 
@@ -75,13 +76,18 @@ func (db *DB) filterTags(tags []string) []string {
 func (db *DB) VerifyRecaptcha(ctx context.Context, resp string) bool {
 	defer trace.StartRegion(ctx, "DB/VerifyRecaptcha").End()
 
+	// if we don't use reCaptcha, return true
 	if !db.Settings.ReCaptcha {
 		return true
 	}
+
 	// TODO: Add context support to recaptcha-go.
+	// if there was a error verifying the response, return false
 	if err := captcha.Verify(resp); err != nil {
 		return false
 	}
+
+	// return true when the captcha is correct
 	return true
 }
 
@@ -92,16 +98,18 @@ func (db *DB) VerifyRecaptcha(ctx context.Context, resp string) bool {
 func (db *DB) CheckForLoggedInUser(ctx context.Context, r *http.Request) (types.User, bool) {
 	defer trace.StartRegion(ctx, "DB/CheckForLoggedInUser").End()
 
+	// if there is no error in fetching the session's token, continue
 	c, err := r.Cookie("sessionToken")
 	if err == nil {
+		// if there is no error checking the token, continue
 		if sess, err := db.CheckToken(ctx, c.Value); err == nil {
+			// fetch the user for the session
 			u, err := db.User(ctx, sess.Username)
 			if err == nil {
+				// return the user
 				return u, true
 			}
 		}
 	}
-	log.Error().Msg("h?????")
-
 	return types.User{}, false
 }
