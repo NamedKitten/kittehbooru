@@ -53,7 +53,7 @@ func (db *DB) searchTag(ctx context.Context, tag string) (posts []int64) {
 	}
 	if err == nil {
 		db.SearchCache.Add(ctx, tag, posts)
-	} 
+	}
 	return
 }
 

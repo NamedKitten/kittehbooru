@@ -57,7 +57,7 @@ type Settings struct {
 
 // DB is the type at which all things are stored in the database.
 type DB struct {
-	sqldb *sql.DB
+	sqldb      *sql.DB
 	configFile string `yaml:"-"`
 	// SetupCompleted is used to know when to run setup page.
 	SetupCompleted bool `yaml:"init"`
@@ -99,6 +99,7 @@ func (db *DB) init() {
 	db.sqldb, err = sql.Open(db.Settings.DatabaseType, db.Settings.DatabaseURI)
 	if err != nil {
 		log.Warn().Err(err).Msg("SQL Open")
+		panic(err)
 	}
 
 	db.sqlInit()

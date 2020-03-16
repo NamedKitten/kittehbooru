@@ -73,7 +73,7 @@ func EditUserHandler(w http.ResponseWriter, r *http.Request) {
 	err = DB.EditUser(ctx, user)
 	if err != nil {
 		log.Error().Err(err).Msg("Edit User")
-		renderError(w, "EDIT_USER_ERR", http.StatusBadRequest)
+		renderError(w, "EDIT_USER_ERR", err, http.StatusBadRequest)
 		return
 	}
 	http.Redirect(w, r, "/user/"+vars["userID"], http.StatusFound)

@@ -6,6 +6,7 @@ import (
 	"github.com/bwmarrin/snowflake"
 	"github.com/rs/zerolog/log"
 
+	"errors"
 	"net/http"
 	"strconv"
 	"strings"
@@ -51,27 +52,27 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 	r.Body = http.MaxBytesReader(w, r.Body, maxUploadSize)
 	if err := r.ParseMultipartForm(maxUploadSize); err != nil {
 		log.Error().Err(err).Msg("File Too Big")
-		renderError(w, "FILE_TOO_BIG", http.StatusBadRequest)
+		renderError(w, "FILE_TOO_BIG", err, http.StatusBadRequest)
 		return
 	}
 
 	file, _, err := r.FormFile("uploadFile")
 	if err != nil {
 		log.Error().Err(err).Msg("File can't be found in form.")
-		renderError(w, "INVALID_FILE", http.StatusBadRequest)
+		renderError(w, "INVALID_FILE", err, http.StatusBadRequest)
 		return
 	}
 	defer file.Close()
 	fileBytes, err := ioutil.ReadAll(file)
 	if err != nil {
 		log.Error().Err(err).Msg("Can't read file")
-		renderError(w, "INVALID_FILE", http.StatusBadRequest)
+		renderError(w, "INVALID_FILE", err, http.StatusBadRequest)
 		return
 	}
 	fileType, err := filetype.Match(fileBytes)
 	if err != nil {
 		log.Error().Err(err).Msg("Can't match fileType")
-		renderError(w, "INVALID_FILE", http.StatusBadRequest)
+		renderError(w, "INVALID_FILE", err, http.StatusBadRequest)
 		return
 	}
 	mimeType := fileType.MIME.Value
@@ -85,7 +86,7 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !validType {
-		renderError(w, "INVALID_FORMAT", http.StatusBadRequest)
+		renderError(w, "INVALID_FORMAT", errors.New("Invalid Format"), http.StatusBadRequest)
 		return
 	}
 
@@ -101,20 +102,20 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 	newFile, err := DB.ContentStorage.WriteFile(ctx, newPath)
 	if err != nil {
 		log.Error().Err(err).Msg("File Create")
-		renderError(w, "CANT_WRITE_FILE", http.StatusInternalServerError)
+		renderError(w, "CANT_WRITE_FILE", err, http.StatusInternalServerError)
 		return
 	}
 	defer newFile.Close()
 	if _, err = newFile.Write(fileBytes); err != nil {
 		log.Error().Err(err).Msg("File Write")
-		renderError(w, "CANT_WRITE_FILE", http.StatusInternalServerError)
+		renderError(w, "CANT_WRITE_FILE", err, http.StatusInternalServerError)
 		return
 	}
 
 	err = newFile.Close()
 	if err != nil {
 		log.Error().Err(err).Msg("File Close")
-		renderError(w, "CANT_CLOSE_FILE", http.StatusInternalServerError)
+		renderError(w, "CANT_CLOSE_FILE", err, http.StatusInternalServerError)
 		return
 	}
 
@@ -147,7 +148,7 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 	err = DB.AddPost(ctx, p)
 	if err != nil {
 		log.Error().Err(err).Msg("Post Creation")
-		renderError(w, "POST_CREATE_ERR", http.StatusBadRequest)
+		renderError(w, "POST_CREATE_ERR", err, http.StatusBadRequest)
 		return
 	}
 	http.Redirect(w, r, "/view/"+fileName, http.StatusFound)

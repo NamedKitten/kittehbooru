@@ -1,0 +1,17 @@
+init: true
+settings:
+  siteName: Imageboard
+  reCaptcha: false
+  reCaptchaPubKey: ""
+  reCaptchaPrivKey: ""
+  rules: OwO
+  videoThumbnails: false
+  pdfThumbnails: false
+  pdfView: false
+  databaseURI: user=kitteh dbname=booru sslmode=disable
+  databaseType: postgres
+  contentStorage: file://data/content/
+  thumbnailsStorage: file://data/cache/
+  contentURL: /content/
+  thumbnailURL: /thumbnail/
+  listenAddress: 0.0.0.0:8000

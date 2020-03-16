@@ -22,10 +22,6 @@ func SetupPageHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func formValueToBool(val string) bool {
-	return val == "on"
-}
-
 func SetupHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
@@ -40,10 +36,7 @@ func SetupHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	username := r.FormValue("adminUsername")
 	password := r.FormValue("adminPassword")
-	siteTitle := r.FormValue("siteTitle")
 	rules := r.FormValue("rules")
-	reCaptchaPublicKey := r.FormValue("reCaptchaPublicKey")
-	reCaptchaPrivateKey := r.FormValue("reCaptchaPrivateKey")
 
 	DB.AddUser(ctx, types.User{
 		Owner:       true,
@@ -57,16 +50,7 @@ func SetupHandler(w http.ResponseWriter, r *http.Request) {
 		log.Error().Err(err).Msg("Setup Password")
 		return
 	}
-
-	DB.Settings.PDFView = formValueToBool(r.FormValue("enablePDFViewing"))
-	DB.Settings.VideoThumbnails = formValueToBool(r.FormValue("enableVideoThumbnails"))
-	DB.Settings.PDFThumbnails = formValueToBool(r.FormValue("enablePDFThumbnails"))
-
-	DB.Settings.SiteName = siteTitle
 	DB.Settings.Rules = rules
-	DB.Settings.ReCaptcha = formValueToBool(r.FormValue("enablereCaptcha"))
-	DB.Settings.ReCaptchaPubkey = reCaptchaPublicKey
-	DB.Settings.ReCaptchaPrivkey = reCaptchaPrivateKey
 	DB.SetupCompleted = true
 	DB.Save()
 	http.SetCookie(w, &http.Cookie{

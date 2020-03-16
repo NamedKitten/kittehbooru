@@ -4,15 +4,14 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/hex"
-	"time"
 	"github.com/patrickmn/go-cache"
+	"time"
 
 	"github.com/NamedKitten/kittehimageboard/types"
 	"github.com/rs/zerolog/log"
 )
 
 var sessionCache = cache.New(10*time.Second, 5*time.Second)
-
 
 // genSessionToken generates a 32 byte long random session token
 func genSessionToken() (string, error) {

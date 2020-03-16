@@ -1,10 +1,10 @@
 package database
 
 import (
-	"github.com/patrickmn/go-cache"
-	"time"
 	"context"
+	"github.com/patrickmn/go-cache"
 	"runtime/trace"
+	"time"
 
 	"github.com/NamedKitten/kittehimageboard/types"
 )

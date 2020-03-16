@@ -29,18 +29,18 @@ func EditPostHandler(w http.ResponseWriter, r *http.Request) {
 	post, err := DB.Post(ctx, int64(postID))
 	if err != nil {
 		log.Error().Err(err).Msg("Can't fetch post")
-		http.Redirect(w, r, "/", http.StatusFound)
+		renderError(w, "CANT_FETCH_POST", err, http.StatusInternalServerError)
 		return
 	}
 
 	if !(user.Admin || post.Poster == user.Username) {
-		http.Redirect(w, r, "/", http.StatusFound)
+		renderError(w, "NO_PERMISSIONS", NoPermissionsError, http.StatusInternalServerError)
 		return
 	}
 
 	r.Body = http.MaxBytesReader(w, r.Body, maxUploadSize)
 	if err := r.ParseMultipartForm(maxUploadSize); err != nil {
-		renderError(w, "FILE_TOO_BIG", http.StatusBadRequest)
+		renderError(w, "FILE_TOO_BIG", err, http.StatusBadRequest)
 		return
 	}
 

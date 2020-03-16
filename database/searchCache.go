@@ -1,10 +1,10 @@
 package database
 
 import (
-	"time"
 	"context"
-	"runtime/trace"
 	"github.com/patrickmn/go-cache"
+	"runtime/trace"
+	"time"
 )
 
 // SearchCache is a struct for managing a cache of search terms and their post IDs
