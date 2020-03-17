@@ -131,37 +131,63 @@ func (db *DB) getPostsForTags(ctx context.Context, tags []string) []int64 {
 	return finalPostIDs
 }
 
-// TopNCommonTags returns the top N common tags for a search result
-func (db *DB) TopNCommonTags(ctx context.Context, n int, tags []string) []types.TagCounts {
+// TopNCommonTags returns the top N common tags for a search of tags
+func (db *DB) TopNCommonTags(ctx context.Context, n int, tags []string, individualTags bool) []types.TagCounts {
 	defer trace.StartRegion(ctx, "DB/Top15CommonTags").End()
 
 	combinedTags := utils.TagsListToString(tags)
 	if val, ok := db.TagCountsCache.Get(ctx, combinedTags); ok {
 		return val
 	}
+	var postsArray []int64
+	if individualTags {
+		posts := make(map[int64]bool)
+		for _, tag := range tags {
+			p := db.cacheSearch(ctx, []string{tag})
+			for _, pid := range p {
+				posts[pid] = true
+			} 
+		}
+		postsArray = make([]int64, 0)
+		for pid, _ := range posts {
+			postsArray = append(postsArray, pid)
+		}
+	} else {
+		postsArray = db.cacheSearch(ctx, tags)
+	}
 
-	posts := db.cacheSearch(ctx, tags)
 
-	tagCounts, _ := db.PostsTagsCounts(ctx, posts)
+	tagCounts, _ := db.PostsTagsCounts(ctx, postsArray)
 
 	tagCountsSlice := make([]types.TagCounts, 0, len(tagCounts))
 	for k, v := range tagCounts {
 		tagCountsSlice = append(tagCountsSlice, types.TagCounts{k, v})
 	}
-	// Sort by tag name first so equal value results are in alphabetical order
+
+
 	sort.Slice(tagCountsSlice, func(i, j int) bool {
-		return strings.HasPrefix(tagCountsSlice[i].Tag, "user:") || tagCountsSlice[i].Tag < tagCountsSlice[j].Tag
+		if tagCountsSlice[i].Count ==  tagCountsSlice[j].Count {
+			if strings.HasPrefix(tagCountsSlice[i].Tag, "user:") && strings.HasPrefix(tagCountsSlice[j].Tag, "user:") {
+				return tagCountsSlice[i].Tag < tagCountsSlice[j].Tag
+			} else if strings.HasPrefix(tagCountsSlice[i].Tag, "user:") {
+				return true
+			} else if strings.HasPrefix(tagCountsSlice[j].Tag, "user:") {
+				return false
+			} else {
+				return tagCountsSlice[i].Tag < tagCountsSlice[j].Tag
+			}
+			return tagCountsSlice[i].Tag < tagCountsSlice[j].Tag
+		} else {
+			return tagCountsSlice[i].Count > tagCountsSlice[j].Count
+		}
 	})
 
-	// Sort by how many posts a tag has
-	sort.Slice(tagCountsSlice, func(i, j int) bool {
-		return tagCountsSlice[i].Count > tagCountsSlice[j].Count
-	})
 	// Calculate the min between how many tags there are and N
 	// Prevents panic when N > tag count
 	x := math.Min(float64(n), float64(len(tagCountsSlice)))
 	result := tagCountsSlice[:int(x)]
-	db.TagCountsCache.Add(ctx, combinedTags, result)
+
+	//db.TagCountsCache.Add(ctx, combinedTags, result)
 	return result
 }
 

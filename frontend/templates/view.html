@@ -17,10 +17,9 @@
   <body>
     {{ template "header.html" . }}
 
-      <div class="container">
-
- 
+      <div class="container-fluid">
           <div class="row">
+
             <div class="col-md-9 order-sm-2">
               {{ template "viewPostInclude.html" .Post }}
               <div class="form-label-group">
@@ -28,12 +27,41 @@
                   rows="6" readonly>{{ nlhtml .Post.Description }}</textarea>
               </div>
             </div>
-            <div class="col-md-3 order-sm-1" >
 
-              <h5>Tags</h5>
-              <div style="margin-left: 1em">
-                {{ range .Post.Tags }}{{if not (eq . "")}}<a href="/search?tags={{ html .}}">{{ html .}}</a><br>{{end}}{{end}}
-              </div>
+
+            <div class="col-md-3 order-sm-1" >
+              <br>
+              {{ if not (eq (len .Query) 0) }}
+              <form action="/search" method="get">
+                <div class="d-table-cell w-50">
+                  <div class="input-group mb-3" style="border-radius:5px;">
+                    <input type="hidden" name="page" value="0">
+                    <input class="form-control" name="tags" placeholder="{{ .Translator.Localize "Tags" }}" value="{{ html .Query }}"
+                      style="border-top-right-radius: 0px; border-bottom-right-radius: 0px; border-top-left-radius: 5px; border-bottom-left-radius: 5px; border: 0px;">
+                    <div class="input-group-append">
+                      <button class="btn btn-primary bg-success btn-success" type="submit"
+                        style="border-width: 0px; border-top-left-radius: 0px; border-bottom-left-radius: 0px;">{{ .Translator.Localize "SearchButton" }}</button>
+                    </div>
+                  </div>
+                </div>
+              </form>
+              {{ end }}
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th scope="col">{{ .Translator.Localize "Tag" }}</th>
+                    <th scope="col">{{ .Translator.Localize "Posts" }}</th>
+                  </tr>
+                </thead>
+                {{ range .Tags }}
+                <tr>
+                  <th scope="row"><a href="/search?tags={{ html .Tag}}">{{ html .Tag}}</a></th>
+                  <td>{{ html .Count}}</td>
+                </tr>
+                {{end}}
+              </table>
+
+  
               <h5>{{ .Translator.Localize "ExtraInfo" }}</h5>
               <div style="margin-left: 1em">
                 {{ $userNameData := newStringInterfaceMap }}

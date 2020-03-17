@@ -51,18 +51,38 @@
         </div>
       </center>
     </div>
-    <div class="container-fluid">
+
+<div class="row">
+    <div class="col-md-9 order-sm-1 order-md-2">
       <div id="grid" class="msc row">
-        {{range .Results }}
-        <div class="grid__elem grid__brick mt-1 col-12 col-sm-6 col-md-4 col-xl-3">
-          <a href="/view/{{ . }}">
-              <img src="{{ thumbnailURL }}{{ . }}.webp" type="image/webp" width="100%">
-          </a>
-        </div>
-        {{ end }}
-        <div class="col-1 my-sizer-element"></div>
+      {{ $tags := html .Tags }}
+      {{range .Results }}
+      <div class="grid__elem grid__brick mt-1 cmt-1 col-12 col-sm-6 col-md-4 col-xl-3">
+        <a href="/view/{{ . }}?q={{$tags}}">
+            <img src="{{ thumbnailURL }}{{ . }}.webp" type="image/webp" width="100%">
+        </a>
       </div>
+      {{ end }}
+      <div class="col-1 my-sizer-element"></div>
     </div>
+  </div>
+    <div class="col-md-3 order-sm-2 order-md-1" >
+      <table class="table">
+        <thead>
+          <tr>
+            <th scope="col">{{ .Translator.Localize "Tag" }}</th>
+            <th scope="col">{{ .Translator.Localize "Posts" }}</th>
+          </tr>
+        </thead>
+        {{ range .TagCounts }}
+        <tr>
+          <th scope="row"><a href="/search?tags={{ html .Tag}}">{{ html .Tag}}</a></th>
+          <td>{{ html .Count}}</td>
+        </tr>
+        {{end}}
+      </table>
+      </div>
+      </div>
     <script>
       window.shuffleInstance = new window.Shuffle(document.getElementById('grid'), { itemSelector: '.grid__elem', sizer: '.my-sizer-element',   speed: 0, });
     </script>

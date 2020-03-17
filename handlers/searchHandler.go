@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/NamedKitten/kittehbooru/types"
 	"github.com/NamedKitten/kittehbooru/i18n"
 	templates "github.com/NamedKitten/kittehbooru/template"
 	"github.com/NamedKitten/kittehbooru/utils"
@@ -29,6 +30,8 @@ type SearchResultsTemplate struct {
 	// Tags is the tags from the search query args, used to refill
 	// the search bar.
 	Tags string
+
+	TagCounts []types.TagCounts
 	templates.T
 }
 
@@ -73,6 +76,8 @@ func SearchHandler(w http.ResponseWriter, r *http.Request) {
 		Next:       page + 1,
 		Prev:       prevPage,
 		Tags:       tagsStr,
+		TagCounts: DB.TopNCommonTags(ctx, 30, tags, false),
+
 		T: templates.T{
 			LoggedIn:     loggedIn,
 			LoggedInUser: user,

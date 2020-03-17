@@ -33,7 +33,7 @@ func RootHandler(w http.ResponseWriter, r *http.Request) {
 			LoggedInUser: user,
 			Translator:   i18n.GetTranslator(r),
 		},
-		PostPopularity: DB.TopNCommonTags(ctx, 20, []string{"*"}),
+		PostPopularity: DB.TopNCommonTags(ctx, 20, []string{"*"}, false),
 	}
 	err := templates.RenderTemplate(w, "index.html", x)
 	if err != nil {
