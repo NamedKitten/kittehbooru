@@ -10,8 +10,7 @@ import (
 	"os/exec"
 	"strings"
 
-	"github.com/NamedKitten/kittehimageboard/types"
-	"github.com/h2non/bimg"
+	"github.com/NamedKitten/kittehbooru/types"
 	"github.com/rs/zerolog/log"
 )
 
@@ -140,23 +139,34 @@ func (db *DB) CreateThumbnail(ctx context.Context, post types.Post) string {
 		return ""
 	}
 
-	buffer, err := ioutil.ReadAll(contentFile)
+	tmpContentFile, err := ioutil.TempFile("", "content_")
 	if err != nil {
-		log.Error().Err(err).Msg("Image Read")
-		return "frontend/img/preview-not-available.jpg"
+		log.Error().Err(err).Msg("Can't create temp file")
+		return ""
 	}
-	o := bimg.Options{
-		Height:      0,
-		Width:       300,
-		Quality:     70,
-		Compression: 100,
-		Embed:       true,
-		Type:        bimg.WEBP,
-	}
+	defer os.Remove(tmpContentFile.Name())
 
-	newImage, err := bimg.NewImage(buffer).Process(o)
+	io.Copy(tmpContentFile, contentFile)
+	tmpContentFile.Close()
+
+
+	tmpOutputFile, err := ioutil.TempFile("", "output_")
 	if err != nil {
-		log.Error().Err(err).Msg("Resize Image")
+		log.Error().Err(err).Msg("Can't create temp file")
+		return ""
+	}
+	defer tmpOutputFile.Close()
+	defer os.Remove(tmpOutputFile.Name())
+
+
+	cmd := exec.Command("convert", "-format", "webp", "-thumbnail", "x300", tmpContentFile.Name(), "webp:" + tmpOutputFile.Name())
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+
+	err = cmd.Run()
+	if err != nil {
+		log.Error().Err(err).Msg("Can't convert thumbnail")
+		return ""
 	}
 
 	newCacheFile, err := db.ThumbnailsStorage.WriteFile(ctx, thumbnailFile)
@@ -164,7 +174,7 @@ func (db *DB) CreateThumbnail(ctx context.Context, post types.Post) string {
 		log.Error().Err(err).Msg("Cache Create")
 		return ""
 	}
-	newCacheFile.Write(newImage)
+	io.Copy(newCacheFile, tmpOutputFile)
 	newCacheFile.Close()
 	return thumbnailFile
 }

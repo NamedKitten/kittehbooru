@@ -6,7 +6,7 @@ import (
 	"os"
 	"runtime/trace"
 
-	"github.com/NamedKitten/kittehimageboard/types"
+	"github.com/NamedKitten/kittehbooru/types"
 )
 
 type FileBackend struct {

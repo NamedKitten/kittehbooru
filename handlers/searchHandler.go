@@ -4,9 +4,9 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/NamedKitten/kittehimageboard/i18n"
-	templates "github.com/NamedKitten/kittehimageboard/template"
-	"github.com/NamedKitten/kittehimageboard/utils"
+	"github.com/NamedKitten/kittehbooru/i18n"
+	templates "github.com/NamedKitten/kittehbooru/template"
+	"github.com/NamedKitten/kittehbooru/utils"
 	"github.com/rs/zerolog/log"
 )
 

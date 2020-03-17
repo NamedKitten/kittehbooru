@@ -7,9 +7,9 @@ import (
 	"runtime/trace"
 	"strings"
 	"database/sql"
-	"github.com/NamedKitten/kittehimageboard/utils"
+	"github.com/NamedKitten/kittehbooru/utils"
 
-	"github.com/NamedKitten/kittehimageboard/types"
+	"github.com/NamedKitten/kittehbooru/types"
 	"github.com/rs/zerolog/log"
 )
 

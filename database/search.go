@@ -6,8 +6,8 @@ import (
 	"runtime/trace"
 	"sort"
 	"strings"
-	"github.com/NamedKitten/kittehimageboard/types"
-	"github.com/NamedKitten/kittehimageboard/utils"
+	"github.com/NamedKitten/kittehbooru/types"
+	"github.com/NamedKitten/kittehbooru/utils"
 	"github.com/bwmarrin/snowflake"
 )
 

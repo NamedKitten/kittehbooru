@@ -8,9 +8,9 @@ import (
 	"fmt"
 	"runtime/trace"
 
-	"github.com/NamedKitten/kittehimageboard/utils"
+	"github.com/NamedKitten/kittehbooru/utils"
 
-	"github.com/NamedKitten/kittehimageboard/types"
+	"github.com/NamedKitten/kittehbooru/types"
 	"github.com/rs/zerolog/log"
 )
 
@@ -105,6 +105,11 @@ func (db *DB) DeletePost(ctx context.Context, postID int64) (err error) {
 func (db *DB) AllPostIDs(ctx context.Context) ([]int64, error) {
 	defer trace.StartRegion(ctx, "DB/AllPostIDs").End()
 	posts := make([]int64, 0)
+	
+	val, ok := db.SearchCache.Get(ctx, "*")
+	if ok {
+		return val, nil 
+	}
 
 	rows, err := db.sqldb.QueryContext(ctx, `select "postid" from posts where true`)
 	if err != nil {
@@ -121,6 +126,8 @@ func (db *DB) AllPostIDs(ctx context.Context) ([]int64, error) {
 		}
 		posts = append(posts, pid)
 	}
+
+	db.SearchCache.Add(ctx, "*", posts)
 	return posts, nil
 }
 

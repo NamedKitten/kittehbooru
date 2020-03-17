@@ -4,15 +4,15 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/NamedKitten/kittehimageboard/i18n"
-	templates "github.com/NamedKitten/kittehimageboard/template"
+	"github.com/NamedKitten/kittehbooru/i18n"
+	templates "github.com/NamedKitten/kittehbooru/template"
 	"github.com/rs/zerolog/log"
 )
 
 /*
 templates.T{Translator: i18n.GetTranslator(r),}
 Translator: i18n.GetTranslator(r),
-"github.com/NamedKitten/kittehimageboard/i18n"
+"github.com/NamedKitten/kittehbooru/i18n"
 
 */
 

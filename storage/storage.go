@@ -3,8 +3,8 @@ package storage
 import (
 	"strings"
 
-	fileBackend "github.com/NamedKitten/kittehimageboard/storage/backends/file"
-	"github.com/NamedKitten/kittehimageboard/types"
+	fileBackend "github.com/NamedKitten/kittehbooru/storage/backends/file"
+	"github.com/NamedKitten/kittehbooru/types"
 )
 
 func GetStorage(s string) types.Storage {

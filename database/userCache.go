@@ -6,7 +6,7 @@ import (
 	"runtime/trace"
 	"time"
 
-	"github.com/NamedKitten/kittehimageboard/types"
+	"github.com/NamedKitten/kittehbooru/types"
 )
 
 // UserCache is a struct for managing a cache of users

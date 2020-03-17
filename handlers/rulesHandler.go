@@ -3,8 +3,8 @@ package handlers
 import (
 	"net/http"
 
-	"github.com/NamedKitten/kittehimageboard/i18n"
-	templates "github.com/NamedKitten/kittehimageboard/template"
+	"github.com/NamedKitten/kittehbooru/i18n"
+	templates "github.com/NamedKitten/kittehbooru/template"
 )
 
 type RulesTemplateData struct {

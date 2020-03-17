@@ -3,9 +3,9 @@ package handlers
 import (
 	"net/http"
 
-	"github.com/NamedKitten/kittehimageboard/i18n"
-	templates "github.com/NamedKitten/kittehimageboard/template"
-	"github.com/NamedKitten/kittehimageboard/types"
+	"github.com/NamedKitten/kittehbooru/i18n"
+	templates "github.com/NamedKitten/kittehbooru/template"
+	"github.com/NamedKitten/kittehbooru/types"
 	"github.com/gorilla/mux"
 )
 

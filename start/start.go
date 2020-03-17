@@ -7,9 +7,9 @@ import (
 	"runtime/trace"
 	"sync"
 
-	"github.com/NamedKitten/kittehimageboard/database"
-	"github.com/NamedKitten/kittehimageboard/handlers"
-	templates "github.com/NamedKitten/kittehimageboard/template"
+	"github.com/NamedKitten/kittehbooru/database"
+	"github.com/NamedKitten/kittehbooru/handlers"
+	templates "github.com/NamedKitten/kittehbooru/template"
 
 	//gorillaHandlers "github.com/gorilla/handlers"
 	"github.com/gorilla/mux"

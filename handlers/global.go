@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/NamedKitten/kittehimageboard/database"
-	templates "github.com/NamedKitten/kittehimageboard/template"
+	"github.com/NamedKitten/kittehbooru/database"
+	templates "github.com/NamedKitten/kittehbooru/template"
 	"github.com/rs/zerolog/log"
 )
 

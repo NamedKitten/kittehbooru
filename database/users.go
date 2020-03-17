@@ -6,7 +6,7 @@ import (
 
 	"runtime/trace"
 
-	"github.com/NamedKitten/kittehimageboard/types"
+	"github.com/NamedKitten/kittehbooru/types"
 	"github.com/rs/zerolog/log"
 )
 

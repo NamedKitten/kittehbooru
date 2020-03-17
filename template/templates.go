@@ -5,9 +5,9 @@ import (
 	"strings"
 	tmpl "text/template"
 
-	"github.com/NamedKitten/kittehimageboard/database"
-	"github.com/NamedKitten/kittehimageboard/i18n"
-	"github.com/NamedKitten/kittehimageboard/types"
+	"github.com/NamedKitten/kittehbooru/database"
+	"github.com/NamedKitten/kittehbooru/i18n"
+	"github.com/NamedKitten/kittehbooru/types"
 )
 
 var DB *database.DB

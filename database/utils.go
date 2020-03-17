@@ -8,7 +8,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/NamedKitten/kittehimageboard/types"
+	"github.com/NamedKitten/kittehbooru/types"
 )
 
 // numOfPostsForTags returns the total number of posts for a list of tags.

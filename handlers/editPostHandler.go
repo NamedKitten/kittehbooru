@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/NamedKitten/kittehimageboard/utils"
+	"github.com/NamedKitten/kittehbooru/utils"
 	"github.com/gorilla/mux"
 	"github.com/rs/zerolog/log"
 )

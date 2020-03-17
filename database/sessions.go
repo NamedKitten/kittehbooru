@@ -7,7 +7,7 @@ import (
 	"github.com/patrickmn/go-cache"
 	"time"
 
-	"github.com/NamedKitten/kittehimageboard/types"
+	"github.com/NamedKitten/kittehbooru/types"
 	"github.com/rs/zerolog/log"
 )
 

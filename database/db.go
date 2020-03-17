@@ -6,10 +6,10 @@ import (
 	"os"
 	"time"
 
-	"github.com/NamedKitten/kittehimageboard/storage"
+	"github.com/NamedKitten/kittehbooru/storage"
 	"gopkg.in/yaml.v2"
 
-	"github.com/NamedKitten/kittehimageboard/types"
+	"github.com/NamedKitten/kittehbooru/types"
 	"github.com/bwmarrin/snowflake"
 	"github.com/ezzarghili/recaptcha-go"
 	_ "github.com/lib/pq"

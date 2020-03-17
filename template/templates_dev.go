@@ -13,7 +13,7 @@ var templateEngine *hot.Template
 func init() {
 	config := &hot.Config{
 		Watch:          true,
-		BaseName:       "kittehimageboard",
+		BaseName:       "kittehbooru",
 		Dir:            "frontend/templates",
 		FilesExtension: []string{".html"},
 		Funcs:          getTemplateFuncs(),
