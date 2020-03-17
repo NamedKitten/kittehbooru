@@ -25,3 +25,7 @@
 ## What is this for?
 - It's primarily a replacement for Gelbooru/Danbooru / other tagged imageboard solutions.
 - It's PHP-free and designed to be high-performance and scalable.
+
+
+## TODO:
+- Work on a better UI.
