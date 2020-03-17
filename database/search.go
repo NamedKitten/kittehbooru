@@ -6,7 +6,6 @@ import (
 	"runtime/trace"
 	"sort"
 	"strings"
-
 	"github.com/NamedKitten/kittehimageboard/types"
 	"github.com/NamedKitten/kittehimageboard/utils"
 	"github.com/bwmarrin/snowflake"
@@ -71,6 +70,8 @@ func (db *DB) getPostsForTags(ctx context.Context, tags []string) []int64 {
 
 	tags = db.filterTags(tags)
 
+	tagsPosts, _ := db.TagsPosts(ctx, tags)
+
 	for _, tag := range tags {
 		// is it a positive tag or a negative tag
 		// true = positive, false = negative
@@ -85,7 +86,7 @@ func (db *DB) getPostsForTags(ctx context.Context, tags []string) []int64 {
 		}
 
 		// posts will be all the posts that are tagged with `tag`
-		posts := db.searchTag(ctx, tag)
+		posts := tagsPosts[tag]
 		if len(posts) == 0 && is {
 			// Return early if it is a positive tag with no match.
 			// This saves time on searches where a tag has no match because
@@ -149,7 +150,7 @@ func (db *DB) TopNCommonTags(ctx context.Context, n int, tags []string) []types.
 	}
 	// Sort by tag name first so equal value results are in alphabetical order
 	sort.Slice(tagCountsSlice, func(i, j int) bool {
-		return tagCountsSlice[i].Tag > tagCountsSlice[j].Tag
+		return strings.HasPrefix(tagCountsSlice[i].Tag, "user:") || tagCountsSlice[i].Tag < tagCountsSlice[j].Tag
 	})
 
 	// Sort by how many posts a tag has

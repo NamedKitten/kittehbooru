@@ -1,11 +1,11 @@
 package handlers
 
 import (
-	"io/ioutil"
-
 	"github.com/bwmarrin/snowflake"
 	"github.com/rs/zerolog/log"
 
+	"io"
+	"bytes"
 	"errors"
 	"net/http"
 	"strconv"
@@ -63,18 +63,30 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer file.Close()
-	fileBytes, err := ioutil.ReadAll(file)
+
+	fileBuf := bytes.NewBuffer([]byte{})
+
+	_, err = io.CopyN(fileBuf, file, 261)
 	if err != nil {
-		log.Error().Err(err).Msg("Can't read file")
+		log.Error().Err(err).Msg("Can't read header")
 		renderError(w, "INVALID_FILE", err, http.StatusBadRequest)
 		return
 	}
-	fileType, err := filetype.Match(fileBytes)
+
+	fileType, err := filetype.Match(fileBuf.Bytes())
 	if err != nil {
 		log.Error().Err(err).Msg("Can't match fileType")
 		renderError(w, "INVALID_FILE", err, http.StatusBadRequest)
 		return
 	}
+
+	_, err = io.Copy(fileBuf, file)
+	if err != nil {
+		log.Error().Err(err).Msg("Can't read rest of file")
+		renderError(w, "INVALID_FILE", err, http.StatusBadRequest)
+		return
+	}
+	
 	mimeType := fileType.MIME.Value
 	extension := fileType.Extension
 
@@ -106,7 +118,7 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer newFile.Close()
-	if _, err = newFile.Write(fileBytes); err != nil {
+	if _, err = io.Copy(newFile, fileBuf); err != nil {
 		log.Error().Err(err).Msg("File Write")
 		renderError(w, "CANT_WRITE_FILE", err, http.StatusInternalServerError)
 		return

@@ -17,6 +17,7 @@ require (
 	github.com/gorilla/mux v1.7.4
 	github.com/h2non/bimg v1.0.19
 	github.com/h2non/filetype v1.0.12
+	github.com/json-iterator/go v1.1.9
 	github.com/lib/pq v1.3.0
 	github.com/nicksnyder/go-i18n/v2 v2.0.3
 	github.com/patrickmn/go-cache v2.1.0+incompatible

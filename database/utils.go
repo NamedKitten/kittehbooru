@@ -29,6 +29,7 @@ func (db *DB) NumOfPagesForTags(ctx context.Context, searchTags []string) int {
 // 2. Removes both a positive and a negative tag if they are the same.
 // 3. Adds * (wildcard operator) if there is only negative matches.
 // 4. Sorts so positive tags come before negative tags.
+// 5. Sorts so wildcard always comes first.
 func (db *DB) filterTags(tags []string) []string {
 	// 1. Remove duplicate tags
 	tempTags := make(map[string]bool)
@@ -67,6 +68,11 @@ func (db *DB) filterTags(tags []string) []string {
 	// This is so we can fail early if one of the positive tags doesn't have any results.
 	sort.Slice(tags, func(i, j int) bool {
 		return !strings.HasPrefix(tags[i], "-") && strings.HasPrefix(tags[j], "-")
+	})
+
+	// 5. Sorts so wildcard always comes first.
+	sort.Slice(tags, func(i, j int) bool {
+		return tags[i] != "*" && tags[j] == "*"
 	})
 
 	return tags

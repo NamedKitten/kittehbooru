@@ -5,12 +5,46 @@ import (
 	"encoding/json"
 
 	"runtime/trace"
-
+	"strings"
+	"database/sql"
 	"github.com/NamedKitten/kittehimageboard/utils"
 
 	"github.com/NamedKitten/kittehimageboard/types"
 	"github.com/rs/zerolog/log"
 )
+
+func sliceContains(s []string, e string) bool {
+    for _, a := range s {
+        if a == e {
+            return true
+        }
+    }
+    return false
+}
+
+func removeWildcardAndNegatives(s []string) []string {
+	tags := make([]string, 0)
+    for _, tag := range s {
+		if tag != "*" {
+			if strings.HasPrefix(tag, "-") {
+				tags = append(tags, tag[1:])
+			} else {
+				tags = append(tags, tag)
+			}
+		}
+    }
+    return tags
+}
+
+func removeItem(s []string, e string) []string {
+	tags := make([]string, 0)
+    for _, a := range s {
+        if a != e {
+            tags = append(tags, a)
+        }
+    }
+    return tags
+}
 
 // AddPostTags adds a post's tags to the database for easy searching.
 func (db *DB) AddPostTags(ctx context.Context, post types.Post) error {
@@ -53,6 +87,9 @@ func (db *DB) TagPosts(ctx context.Context, tag string) (posts []int64, err erro
 
 	err = db.sqldb.QueryRowContext(ctx, `select "posts" from tags where tag = $1`, tag).Scan(&postsString)
 	if err != nil {
+		if err == sql.ErrNoRows {
+			return []int64{}, err
+		}
 		log.Error().Err(err).Msg("TagPosts can't select tags")
 		return posts, err
 	}
@@ -81,4 +118,65 @@ func (db *DB) RemovePostTags(ctx context.Context, p types.Post) error {
 		}
 	}
 	return nil
+}
+
+// TagPosts returns a map of tags to their of post IDs
+func (db *DB) TagsPosts(ctx context.Context, tags []string) (result map[string][]int64, err error) {
+	defer trace.StartRegion(ctx, "DB/TagsPosts").End()
+	result = make(map[string][]int64)
+
+	if sliceContains(tags, "*") {
+		region := trace.StartRegion(ctx, "DB/TagsPosts/wildcard")
+		var wildcardPosts []int64
+		wildcardPosts, err = db.AllPostIDs(ctx)
+		if err != nil {
+			return
+		}
+		result["*"] = wildcardPosts
+		region.End()
+	}
+
+	tags = removeWildcardAndNegatives(tags)
+
+	cachedItems := make([]string, 0)
+
+	for _, tag := range tags {
+		val, ok := db.SearchCache.Get(ctx, tag)
+		if ok {
+			cachedItems = append(cachedItems, tag)
+			result[tag] = val
+		}
+	}
+
+	for _, tag := range cachedItems {
+		tags = removeItem(tags, tag)
+	}
+
+
+	defer trace.StartRegion(ctx, "DB/TagsPosts/tags").End()
+	stmt, err := db.sqldb.PrepareContext(ctx, `select "posts" from tags where tag = $1`)
+	for _, tag := range tags {
+		var postsString string
+		var posts []int64
+		err = stmt.QueryRowContext(ctx, tag).Scan(&postsString)
+		switch {
+		case err == sql.ErrNoRows:
+			continue
+		case err != nil:
+			log.Fatal().Err(err).Msg("TagsPosts weird error")
+		default:
+			err = json.Unmarshal([]byte(postsString), &posts)
+			if err != nil {
+				log.Error().Err(err).Msg("TagsPosts Json Unmarshal Error")
+				return
+			}
+			result[tag] = posts
+		}
+	}
+
+	for _, tag := range tags {
+		db.SearchCache.Add(ctx, tag, result[tag])
+	}
+
+	return
 }
