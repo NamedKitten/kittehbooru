@@ -1,6 +1,6 @@
 init: false
 settings:
-  siteName: "Imageboard"
+  siteName: "KittehBooru"
   reCaptcha: false
   reCaptchaPubKey: ""
   reCaptchaPrivKey: ""
@@ -8,10 +8,10 @@ settings:
   videoThumbnails: false
   pdfThumbnails: false
   pdfView: false
-  databaseURI: user=kitteh dbname=booru sslmode=disable
+  databaseURI: user=dbuser dbname=booru sslmode=disable
   databaseType: postgres
   contentStorage: file://data/content/
   thumbnailsStorage: file://data/cache/
   contentURL: /content/
   thumbnailURL: /thumbnail/
-  listenAddress: 0.0.0.0:80
+  listenAddress: 0.0.0.0:8000
