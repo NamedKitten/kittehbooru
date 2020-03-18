@@ -2,9 +2,10 @@ package database
 
 import (
 	"context"
-	"github.com/patrickmn/go-cache"
 	"runtime/trace"
 	"time"
+
+	"github.com/patrickmn/go-cache"
 
 	"github.com/NamedKitten/kittehbooru/types"
 )

@@ -5,9 +5,10 @@ import (
 	"encoding/json"
 
 	"database/sql"
-	"github.com/NamedKitten/kittehbooru/utils"
 	"runtime/trace"
 	"strings"
+
+	"github.com/NamedKitten/kittehbooru/utils"
 
 	"github.com/NamedKitten/kittehbooru/types"
 	"github.com/rs/zerolog/log"

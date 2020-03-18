@@ -8,9 +8,10 @@ import (
 	"fmt"
 	"runtime/trace"
 
-	"github.com/patrickmn/go-cache"
-	"time"
 	"strconv"
+	"time"
+
+	"github.com/patrickmn/go-cache"
 
 	"github.com/NamedKitten/kittehbooru/utils"
 

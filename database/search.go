@@ -2,15 +2,16 @@ package database
 
 import (
 	"context"
-	"github.com/NamedKitten/kittehbooru/types"
-	"github.com/NamedKitten/kittehbooru/utils"
-	"github.com/bwmarrin/snowflake"
-		"github.com/patrickmn/go-cache"
-	"time"
 	"math"
 	"runtime/trace"
 	"sort"
 	"strings"
+	"time"
+
+	"github.com/NamedKitten/kittehbooru/types"
+	"github.com/NamedKitten/kittehbooru/utils"
+	"github.com/bwmarrin/snowflake"
+	"github.com/patrickmn/go-cache"
 )
 
 // paginate paginates a list of int64s

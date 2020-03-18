@@ -1,13 +1,10 @@
 package start
 
 import (
-	"net"
 	"net/http"
-	"net/http/fcgi"
 	"os"
 	"os/signal"
 	"runtime/trace"
-	"strings"
 
 	"github.com/NamedKitten/kittehbooru/database"
 	"github.com/NamedKitten/kittehbooru/handlers"
@@ -91,28 +88,13 @@ func Start(configFile string) {
 	r.PathPrefix("/js/").Handler(cacheMiddleware(http.StripPrefix("/js/", http.FileServer(http.Dir("frontend/js")))))
 	handleFunc("/thumbnail/{postID}.webp", handlers.ThumbnailHandler)
 
-	if strings.HasPrefix(DB.Settings.ListenAddress, "fastcgi:") {
-		lAddr := strings.TrimPrefix(DB.Settings.ListenAddress, "fastcgi:")
-		l, err := net.Listen("unix", lAddr)
+	go func() {
+		err := http.ListenAndServe(DB.Settings.ListenAddress, r)
 		if err != nil {
-			log.Panic().Err(err).Msg("Listen Socket")
+			log.Error().Err(err).Msg("Can't start web")
+			panic(err)
 		}
-		go func() {
-			err := fcgi.Serve(l, r)
-			if err != nil {
-				log.Panic().Err(err).Msg("FastCGI Serve")
-			}
-		}()
-
-	} else {
-		go func() {
-			err := http.ListenAndServe(DB.Settings.ListenAddress, r)
-			if err != nil {
-				log.Error().Err(err).Msg("Can't start web")
-				panic(err)
-			}
-		}()
-	}
+	}()
 
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt)

@@ -4,8 +4,9 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/hex"
-	"github.com/patrickmn/go-cache"
 	"time"
+
+	"github.com/patrickmn/go-cache"
 
 	"github.com/NamedKitten/kittehbooru/types"
 	"github.com/rs/zerolog/log"
