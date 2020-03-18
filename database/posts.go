@@ -10,6 +10,7 @@ import (
 
 	"github.com/patrickmn/go-cache"
 	"time"
+	"strconv"
 
 	"github.com/NamedKitten/kittehbooru/utils"
 
@@ -148,7 +149,7 @@ func (db *DB) PostsTagsCounts(ctx context.Context, posts []int64) (res map[strin
 	var tagsSlice []string
 
 	for _, p := range posts {
-		if val, ok := postTagsCache.Get(string(p)); ok {
+		if val, ok := postTagsCache.Get(strconv.Itoa(int(p))); ok {
 			for _, tag := range val.([]string) {
 				if i, ok := res[tag]; ok {
 					res[tag] = i + 1
@@ -167,7 +168,7 @@ func (db *DB) PostsTagsCounts(ctx context.Context, posts []int64) (res map[strin
 			log.Fatal().Err(err)
 		default:
 			tagsSlice = utils.SplitTagsString(tags)
-			postTagsCache.Set(string(p), tagsSlice, cache.DefaultExpiration)
+			postTagsCache.Set(strconv.Itoa(int(p)), tagsSlice, cache.DefaultExpiration)
 			for _, tag := range tagsSlice {
 				if i, ok := res[tag]; ok {
 					res[tag] = i + 1

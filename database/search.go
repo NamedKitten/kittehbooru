@@ -68,7 +68,6 @@ func (db *DB) getPostsForTags(ctx context.Context, tags []string) []int64 {
 	// so that we only get the posts that match ALL of the positive tags
 	posCount := 0
 	posCounts := make(map[int64]int)
-	negMatch := make(map[int64]bool)
 
 	tags = db.filterTags(tags)
 
@@ -96,15 +95,17 @@ func (db *DB) getPostsForTags(ctx context.Context, tags []string) []int64 {
 			return []int64{}
 		}
 		for _, post := range posts {
-			if !is {
-				// if its a negative match, aka post we DONT want, add it to this map instead
-				negMatch[post] = true
-			} else if i, ok := posCounts[post]; ok {
-				// add to counter of positive counts
-				posCounts[post] = i + 1
+			if is {
+				if i, ok := posCounts[post]; ok {
+					// add to counter of positive counts
+					posCounts[post] = i + 1
+				} else {
+					// add the count to map starting at 1 if not existing already
+					posCounts[post] = 1
+				}
 			} else {
-				// add the count to map starting at 1 if not existing already
-				posCounts[post] = 1
+				// If it's -1, it'll never increase above tagsPosts
+				posCounts[post] = -1
 			}
 		}
 	}
@@ -112,18 +113,9 @@ func (db *DB) getPostsForTags(ctx context.Context, tags []string) []int64 {
 	finalPostIDs := make([]int64, 0)
 
 	for posPost, posCountTimes := range posCounts {
-		// so we only get the posts that match ALL positive tags
-		if posCountTimes == posCount {
-			found := false
-			for negPost := range negMatch {
-				// if there is a post that is a negative match, do not add this to the finalPostIDs array
-				if posPost == negPost {
-					found = true
-				}
-			}
-			if !found {
-				finalPostIDs = append(finalPostIDs, posPost)
-			}
+		// so we only get the posts that match ALL positive tagsH
+		if posCountTimes >= posCount {
+			finalPostIDs = append(finalPostIDs, posPost)
 		}
 	}
 
