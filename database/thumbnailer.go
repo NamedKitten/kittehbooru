@@ -149,7 +149,6 @@ func (db *DB) CreateThumbnail(ctx context.Context, post types.Post) string {
 	io.Copy(tmpContentFile, contentFile)
 	tmpContentFile.Close()
 
-
 	tmpOutputFile, err := ioutil.TempFile("", "output_")
 	if err != nil {
 		log.Error().Err(err).Msg("Can't create temp file")
@@ -158,8 +157,7 @@ func (db *DB) CreateThumbnail(ctx context.Context, post types.Post) string {
 	defer tmpOutputFile.Close()
 	defer os.Remove(tmpOutputFile.Name())
 
-
-	cmd := exec.Command("convert", "-format", "webp", "-thumbnail", "x300", tmpContentFile.Name(), "webp:" + tmpOutputFile.Name())
+	cmd := exec.Command("convert", "-format", "webp", "-thumbnail", "x300", tmpContentFile.Name(), "webp:"+tmpOutputFile.Name())
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 

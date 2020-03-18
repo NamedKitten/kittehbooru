@@ -2,13 +2,15 @@ package database
 
 import (
 	"context"
+	"github.com/NamedKitten/kittehbooru/types"
+	"github.com/NamedKitten/kittehbooru/utils"
+	"github.com/bwmarrin/snowflake"
+		"github.com/patrickmn/go-cache"
+	"time"
 	"math"
 	"runtime/trace"
 	"sort"
 	"strings"
-	"github.com/NamedKitten/kittehbooru/types"
-	"github.com/NamedKitten/kittehbooru/utils"
-	"github.com/bwmarrin/snowflake"
 )
 
 // paginate paginates a list of int64s
@@ -131,13 +133,15 @@ func (db *DB) getPostsForTags(ctx context.Context, tags []string) []int64 {
 	return finalPostIDs
 }
 
+var tagCountsCache = cache.New(5*time.Minute, 5*time.Second)
+
 // TopNCommonTags returns the top N common tags for a search of tags
 func (db *DB) TopNCommonTags(ctx context.Context, n int, tags []string, individualTags bool) []types.TagCounts {
 	defer trace.StartRegion(ctx, "DB/Top15CommonTags").End()
 
 	combinedTags := utils.TagsListToString(tags)
-	if val, ok := db.TagCountsCache.Get(ctx, combinedTags); ok {
-		return val
+	if val, ok := tagCountsCache.Get(combinedTags); ok {
+		return val.([]types.TagCounts)
 	}
 	var postsArray []int64
 	if individualTags {
@@ -146,16 +150,15 @@ func (db *DB) TopNCommonTags(ctx context.Context, n int, tags []string, individu
 			p := db.cacheSearch(ctx, []string{tag})
 			for _, pid := range p {
 				posts[pid] = true
-			} 
+			}
 		}
 		postsArray = make([]int64, 0)
-		for pid, _ := range posts {
+		for pid := range posts {
 			postsArray = append(postsArray, pid)
 		}
 	} else {
 		postsArray = db.cacheSearch(ctx, tags)
 	}
-
 
 	tagCounts, _ := db.PostsTagsCounts(ctx, postsArray)
 
@@ -164,9 +167,17 @@ func (db *DB) TopNCommonTags(ctx context.Context, n int, tags []string, individu
 		tagCountsSlice = append(tagCountsSlice, types.TagCounts{k, v})
 	}
 
+	sort.Slice(tagCountsSlice, func(i, j int) bool {
+		return tagCountsSlice[i].Count > tagCountsSlice[j].Count
+	})
+
+	// Calculate the min between how many tags there are and N
+	// Prevents panic when N > tag count
+	x := math.Min(float64(n), float64(len(tagCountsSlice)))
+	tagCountsSlice = tagCountsSlice[:int(x)]
 
 	sort.Slice(tagCountsSlice, func(i, j int) bool {
-		if tagCountsSlice[i].Count ==  tagCountsSlice[j].Count {
+		if tagCountsSlice[i].Count == tagCountsSlice[j].Count {
 			if strings.HasPrefix(tagCountsSlice[i].Tag, "user:") && strings.HasPrefix(tagCountsSlice[j].Tag, "user:") {
 				return tagCountsSlice[i].Tag < tagCountsSlice[j].Tag
 			} else if strings.HasPrefix(tagCountsSlice[i].Tag, "user:") {
@@ -182,13 +193,8 @@ func (db *DB) TopNCommonTags(ctx context.Context, n int, tags []string, individu
 		}
 	})
 
-	// Calculate the min between how many tags there are and N
-	// Prevents panic when N > tag count
-	x := math.Min(float64(n), float64(len(tagCountsSlice)))
-	result := tagCountsSlice[:int(x)]
-
-	//db.TagCountsCache.Add(ctx, combinedTags, result)
-	return result
+	tagCountsCache.Set(combinedTags, tagCountsSlice, cache.DefaultExpiration)
+	return tagCountsSlice
 }
 
 // cacheSearch searches for posts matching tags and returns a

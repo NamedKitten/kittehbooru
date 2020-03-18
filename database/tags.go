@@ -4,27 +4,27 @@ import (
 	"context"
 	"encoding/json"
 
-	"runtime/trace"
-	"strings"
 	"database/sql"
 	"github.com/NamedKitten/kittehbooru/utils"
+	"runtime/trace"
+	"strings"
 
 	"github.com/NamedKitten/kittehbooru/types"
 	"github.com/rs/zerolog/log"
 )
 
 func sliceContains(s []string, e string) bool {
-    for _, a := range s {
-        if a == e {
-            return true
-        }
-    }
-    return false
+	for _, a := range s {
+		if a == e {
+			return true
+		}
+	}
+	return false
 }
 
 func removeWildcardAndNegatives(s []string) []string {
 	tags := make([]string, 0)
-    for _, tag := range s {
+	for _, tag := range s {
 		if tag != "*" {
 			if strings.HasPrefix(tag, "-") {
 				tags = append(tags, tag[1:])
@@ -32,18 +32,18 @@ func removeWildcardAndNegatives(s []string) []string {
 				tags = append(tags, tag)
 			}
 		}
-    }
-    return tags
+	}
+	return tags
 }
 
 func removeItem(s []string, e string) []string {
 	tags := make([]string, 0)
-    for _, a := range s {
-        if a != e {
-            tags = append(tags, a)
-        }
-    }
-    return tags
+	for _, a := range s {
+		if a != e {
+			tags = append(tags, a)
+		}
+	}
+	return tags
 }
 
 // AddPostTags adds a post's tags to the database for easy searching.
@@ -151,7 +151,6 @@ func (db *DB) TagsPosts(ctx context.Context, tags []string) (result map[string][
 	for _, tag := range cachedItems {
 		tags = removeItem(tags, tag)
 	}
-
 
 	defer trace.StartRegion(ctx, "DB/TagsPosts/tags").End()
 	stmt, err := db.sqldb.PrepareContext(ctx, `select "posts" from tags where tag = $1`)

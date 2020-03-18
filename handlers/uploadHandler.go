@@ -4,9 +4,9 @@ import (
 	"github.com/bwmarrin/snowflake"
 	"github.com/rs/zerolog/log"
 
-	"io"
 	"bytes"
 	"errors"
+	"io"
 	"net/http"
 	"strconv"
 	"strings"
@@ -86,7 +86,7 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 		renderError(w, "INVALID_FILE", err, http.StatusBadRequest)
 		return
 	}
-	
+
 	mimeType := fileType.MIME.Value
 	extension := fileType.Extension
 

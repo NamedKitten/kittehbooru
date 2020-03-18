@@ -4,9 +4,9 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/NamedKitten/kittehbooru/types"
 	"github.com/NamedKitten/kittehbooru/i18n"
 	templates "github.com/NamedKitten/kittehbooru/template"
+	"github.com/NamedKitten/kittehbooru/types"
 	"github.com/NamedKitten/kittehbooru/utils"
 	"github.com/rs/zerolog/log"
 )
@@ -76,7 +76,7 @@ func SearchHandler(w http.ResponseWriter, r *http.Request) {
 		Next:       page + 1,
 		Prev:       prevPage,
 		Tags:       tagsStr,
-		TagCounts: DB.TopNCommonTags(ctx, 30, tags, false),
+		TagCounts:  DB.TopNCommonTags(ctx, 30, tags, false),
 
 		T: templates.T{
 			LoggedIn:     loggedIn,

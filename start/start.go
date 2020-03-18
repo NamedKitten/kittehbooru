@@ -1,11 +1,13 @@
 package start
 
 import (
-	"context"
+	"net"
 	"net/http"
+	"net/http/fcgi"
 	"os"
+	"os/signal"
 	"runtime/trace"
-	"sync"
+	"strings"
 
 	"github.com/NamedKitten/kittehbooru/database"
 	"github.com/NamedKitten/kittehbooru/handlers"
@@ -44,7 +46,8 @@ func taskMiddleware(name string, next http.Handler) http.Handler {
 	})
 }
 
-func Start(configFile string, c chan os.Signal) {
+func Start(configFile string) {
+
 	log.Info().Msg("Starting")
 	DB = database.LoadDB(configFile)
 	templates.DB = DB
@@ -88,22 +91,33 @@ func Start(configFile string, c chan os.Signal) {
 	r.PathPrefix("/js/").Handler(cacheMiddleware(http.StripPrefix("/js/", http.FileServer(http.Dir("frontend/js")))))
 	handleFunc("/thumbnail/{postID}.webp", handlers.ThumbnailHandler)
 
-	server := http.Server{Addr: DB.Settings.ListenAddress, Handler: r}
-
-	var wg sync.WaitGroup
-
-	go func() {
-		wg.Add(1)
-		defer wg.Done()
-		err := server.ListenAndServe()
-		if err != nil && err != http.ErrServerClosed {
-			log.Error().Err(err).Msg("Can't start web")
-			panic(err)
+	if strings.HasPrefix(DB.Settings.ListenAddress, "fastcgi:") {
+		lAddr := strings.TrimPrefix(DB.Settings.ListenAddress, "fastcgi:")
+		l, err := net.Listen("unix", lAddr)
+		if err != nil {
+			log.Panic().Err(err).Msg("Listen Socket")
 		}
-	}()
+		go func() {
+			err := fcgi.Serve(l, r)
+			if err != nil {
+				log.Panic().Err(err).Msg("FastCGI Serve")
+			}
+		}()
+
+	} else {
+		go func() {
+			err := http.ListenAndServe(DB.Settings.ListenAddress, r)
+			if err != nil {
+				log.Error().Err(err).Msg("Can't start web")
+				panic(err)
+			}
+		}()
+	}
+
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt)
+
 	<-c
 	DB.Save()
 	log.Info().Msg("Exiting")
-	server.Shutdown(context.TODO())
-	wg.Wait()
 }

@@ -8,6 +8,9 @@ import (
 	"fmt"
 	"runtime/trace"
 
+	"github.com/patrickmn/go-cache"
+	"time"
+
 	"github.com/NamedKitten/kittehbooru/utils"
 
 	"github.com/NamedKitten/kittehbooru/types"
@@ -105,10 +108,10 @@ func (db *DB) DeletePost(ctx context.Context, postID int64) (err error) {
 func (db *DB) AllPostIDs(ctx context.Context) ([]int64, error) {
 	defer trace.StartRegion(ctx, "DB/AllPostIDs").End()
 	posts := make([]int64, 0)
-	
+
 	val, ok := db.SearchCache.Get(ctx, "*")
 	if ok {
-		return val, nil 
+		return val, nil
 	}
 
 	rows, err := db.sqldb.QueryContext(ctx, `select "postid" from posts where true`)
@@ -131,6 +134,8 @@ func (db *DB) AllPostIDs(ctx context.Context) ([]int64, error) {
 	return posts, nil
 }
 
+var postTagsCache = cache.New(5*time.Minute, 5*time.Second)
+
 // PostsTagsCounts returns a map of tag to how many time the tag was encountered in all posts
 func (db *DB) PostsTagsCounts(ctx context.Context, posts []int64) (res map[string]int, err error) {
 	defer trace.StartRegion(ctx, "DB/PostsTagsCounts").End()
@@ -143,6 +148,17 @@ func (db *DB) PostsTagsCounts(ctx context.Context, posts []int64) (res map[strin
 	var tagsSlice []string
 
 	for _, p := range posts {
+		if val, ok := postTagsCache.Get(string(p)); ok {
+			for _, tag := range val.([]string) {
+				if i, ok := res[tag]; ok {
+					res[tag] = i + 1
+				} else {
+					res[tag] = 1
+				}
+			}
+			continue
+		}
+
 		err = stmt.QueryRowContext(ctx, p).Scan(&tags)
 		switch {
 		case err == sql.ErrNoRows:
@@ -151,6 +167,7 @@ func (db *DB) PostsTagsCounts(ctx context.Context, posts []int64) (res map[strin
 			log.Fatal().Err(err)
 		default:
 			tagsSlice = utils.SplitTagsString(tags)
+			postTagsCache.Set(string(p), tagsSlice, cache.DefaultExpiration)
 			for _, tag := range tagsSlice {
 				if i, ok := res[tag]; ok {
 					res[tag] = i + 1

@@ -15,8 +15,8 @@ type ViewResultsTemplate struct {
 	Post         types.Post
 	Author       types.User
 	IsAbleToEdit bool
-	Tags  []types.TagCounts
-	Query string
+	Tags         []types.TagCounts
+	Query        string
 	templates.T
 }
 
@@ -44,13 +44,12 @@ func ViewHandler(w http.ResponseWriter, r *http.Request) {
 
 	query := r.URL.Query().Get("q")
 
-
 	templateInfo := ViewResultsTemplate{
 		Post:         post,
 		Author:       poster,
 		IsAbleToEdit: (user.Admin || post.Poster == user.Username) && loggedIn,
-		Tags: DB.TopNCommonTags(ctx, len(post.Tags), post.Tags, true),
-		Query: query,
+		Tags:         DB.TopNCommonTags(ctx, len(post.Tags), post.Tags, true),
+		Query:        query,
 		T: templates.T{
 			LoggedIn:     loggedIn,
 			LoggedInUser: user,

@@ -64,8 +64,6 @@ type DB struct {
 	// SearchCache is a cache of search strings and the post IDs
 	// that match the result.
 	SearchCache SearchCache `yaml:"-"`
-	// TagCountsCache is a cache of tag counts
-	TagCountsCache TagCountsCache `yaml:"-"`
 	// UserCache is a cache of users
 	UserCache UserCache `yaml:"-"`
 	// Settings contains instance-specific settings for this instance.
@@ -116,7 +114,6 @@ func (db *DB) init() {
 	}
 	db.SearchCache.Init()
 	db.UserCache.Init()
-	db.TagCountsCache.Init()
 	go db.thumbnailScanner()
 	go db.sessionCleaner()
 }
