@@ -213,11 +213,13 @@ func (db *DB) cacheSearch(ctx context.Context, searchTags []string) []int64 {
 }
 
 // GetSearchIDs returns a paginated list of Post IDs from a list of tags.
-func (db *DB) GetSearchIDs(ctx context.Context, searchTags []string, page int) []int64 {
+func (db *DB) GetSearchIDs(ctx context.Context, searchTags []string, page int) ([]int64, int, int) {
 	defer trace.StartRegion(ctx, "DB/GetSearchIDs").End()
 
 	matching := db.cacheSearch(ctx, searchTags)
-	return paginate(matching, page, 20)
+	numPosts := len(matching)
+	numPages := int(math.Ceil(float64(numPosts) / float64(20)))
+	return paginate(matching, page, 20), numPosts, numPages
 }
 
 // getSearchPage returns a paginated list of posts from a list of tags.

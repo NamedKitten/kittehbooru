@@ -48,7 +48,7 @@ func ViewHandler(w http.ResponseWriter, r *http.Request) {
 		Post:         post,
 		Author:       poster,
 		IsAbleToEdit: (user.Admin || post.Poster == user.Username) && loggedIn,
-		Tags:         DB.TopNCommonTags(ctx, len(post.Tags), post.Tags, false),
+		Tags:         DB.TopNCommonTags(ctx, len(post.Tags), post.Tags, true),
 		Query:        query,
 		T: templates.T{
 			LoggedIn:     loggedIn,

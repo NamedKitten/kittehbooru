@@ -2,7 +2,6 @@ package database
 
 import (
 	"context"
-	"math"
 	"net/http"
 	"runtime/trace"
 	"sort"
@@ -10,18 +9,6 @@ import (
 
 	"github.com/NamedKitten/kittehbooru/types"
 )
-
-// numOfPostsForTags returns the total number of posts for a list of tags.
-func (db *DB) NumOfPostsForTags(ctx context.Context, searchTags []string) int {
-	return len(db.cacheSearch(ctx, searchTags))
-}
-
-// numOfPagesForTags returns the total number of pages for a list of tags.
-func (db *DB) NumOfPagesForTags(ctx context.Context, searchTags []string) int {
-	// returns the smallest integer value greater than or equal to numPosts / 20
-	// TODO: make variable page size
-	return int(math.Ceil(float64(db.NumOfPostsForTags(ctx, searchTags)) / float64(20)))
-}
 
 // filterTags filters tags before searching using them
 // Order of operations:

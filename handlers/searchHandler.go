@@ -9,6 +9,8 @@ import (
 	"github.com/NamedKitten/kittehbooru/types"
 	"github.com/NamedKitten/kittehbooru/utils"
 	"github.com/rs/zerolog/log"
+
+"sync"
 )
 
 // SearchResultsTemplate contains data to be used in the template.
@@ -59,7 +61,6 @@ func SearchHandler(w http.ResponseWriter, r *http.Request) {
 		log.Error().Err(err).Msg("Can't convert pageStr to string")
 		return
 	}
-	matchingPosts := DB.GetSearchIDs(ctx, tags, page)
 	var prevPage int
 	if page <= 0 {
 		prevPage = 0
@@ -67,17 +68,34 @@ func SearchHandler(w http.ResponseWriter, r *http.Request) {
 		prevPage = page - 1
 	}
 
+	var tagCounts []types.TagCounts
+	var matchingPosts []int64
+	var numPosts int
+	var numPages int
+
+	var wg sync.WaitGroup
+	wg.Add(2)
+	// Run these both in parallel to make page load faster if they both take long times.
+	go func() {
+		matchingPosts, numPosts, numPages = DB.GetSearchIDs(ctx, tags, page)
+		wg.Done()
+	}()
+	go func() {
+		tagCounts = DB.TopNCommonTags(ctx, 30, tags, false)
+		wg.Done()
+	}()
+	wg.Wait()
+
 	searchResults := SearchResultsTemplate{
 		Results:    matchingPosts,
 		RealPage:   page,
 		Page:       page + 1,
-		NumPosts:   DB.NumOfPostsForTags(ctx, tags),
-		TotalPages: DB.NumOfPagesForTags(ctx, tags),
+		NumPosts:   numPosts,
+		TotalPages: numPages,
 		Next:       page + 1,
 		Prev:       prevPage,
 		Tags:       tagsStr,
-		TagCounts:  DB.TopNCommonTags(ctx, 30, tags, false),
-
+		TagCounts:  tagCounts,
 		T: templates.T{
 			LoggedIn:     loggedIn,
 			LoggedInUser: user,
