@@ -28,7 +28,6 @@ func RootHandler(w http.ResponseWriter, r *http.Request) {
 	user, loggedIn := DB.CheckForLoggedInUser(ctx, r)
 	x := RootTemplateData{
 		T: templates.T{
-
 			LoggedIn:     loggedIn,
 			LoggedInUser: user,
 			Translator:   i18n.GetTranslator(r),
@@ -37,6 +36,6 @@ func RootHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	err := templates.RenderTemplate(w, "index.html", x)
 	if err != nil {
-		panic(err)
+		renderError(w, "TEMPLATE_RENDER_ERROR", err, http.StatusBadRequest)
 	}
 }

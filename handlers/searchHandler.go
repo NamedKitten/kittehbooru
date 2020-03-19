@@ -87,7 +87,6 @@ func SearchHandler(w http.ResponseWriter, r *http.Request) {
 
 	err = templates.RenderTemplate(w, "search.html", searchResults)
 	if err != nil {
-		log.Error().Err(err).Msg("Render Search")
-		return
+		renderError(w, "TEMPLATE_RENDER_ERROR", err, http.StatusBadRequest)
 	}
 }

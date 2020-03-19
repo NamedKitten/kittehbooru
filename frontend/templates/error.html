@@ -13,11 +13,10 @@
     <div class="container-fluid">
       <div class="row">
         <div class="col-sm-9 col-md-7 col-lg-7 mx-auto">
-          <div class="card card-signin my-5 bg-light">
+          <div class="card card-error my-5 bg-error">
             <div class="card-body">
               <h5 class="card-title text-center">Error!</h5>
-              <textarea class="form-control" id="rules" name="rules" readonly
-                rows=1>{{ nlhtml . }}</textarea>
+              <textarea class="form-control" id="error" name="error" readonly>{{ . }}</textarea>
             </div>
           </div>
         </div>

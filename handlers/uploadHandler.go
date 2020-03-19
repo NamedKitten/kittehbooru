@@ -181,6 +181,6 @@ func UploadPageHandler(w http.ResponseWriter, r *http.Request) {
 		Translator:   i18n.GetTranslator(r),
 	})
 	if err != nil {
-		panic(err)
+		renderError(w, "TEMPLATE_RENDER_ERROR", err, http.StatusBadRequest)
 	}
 }

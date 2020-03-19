@@ -16,7 +16,9 @@ var NoPermissionsError = errors.New("No Permissions")
 
 func renderError(w http.ResponseWriter, message string, e error, statusCode int) {
 	w.WriteHeader(http.StatusBadRequest)
-	err := templates.RenderTemplate(w, "error.html", message+": "+fmt.Sprintln(e))
+
+	errorString := fmt.Sprintln(e)	
+	err := templates.RenderTemplate(w, "error.html", message+": "+errorString)
 
 	if err != nil {
 		log.Error().Err(err).Msg("RenderError Error")

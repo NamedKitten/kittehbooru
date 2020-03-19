@@ -15,7 +15,7 @@ import (
 func RegisterPageHandler(w http.ResponseWriter, r *http.Request) {
 	err := templates.RenderTemplate(w, "register.html", templates.T{Translator: i18n.GetTranslator(r)})
 	if err != nil {
-		panic(err)
+		renderError(w, "TEMPLATE_RENDER_ERROR", err, http.StatusBadRequest)
 	}
 }
 

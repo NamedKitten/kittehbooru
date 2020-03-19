@@ -29,6 +29,7 @@ func UserHandler(w http.ResponseWriter, r *http.Request) {
 	username := vars["userID"]
 	user, err := DB.User(ctx, vars["userID"])
 	if err != nil {
+		renderError(w, "USER_NOT_FOUND", err, http.StatusBadRequest)
 		return
 	}
 
@@ -46,6 +47,6 @@ func UserHandler(w http.ResponseWriter, r *http.Request) {
 
 	err = templates.RenderTemplate(w, "user.html", templateInfo)
 	if err != nil {
-		panic(err)
+		renderError(w, "TEMPLATE_RENDER_ERROR", err, http.StatusBadRequest)
 	}
 }

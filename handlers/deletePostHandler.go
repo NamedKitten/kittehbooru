@@ -41,7 +41,7 @@ func DeletePostPageHandler(w http.ResponseWriter, r *http.Request) {
 
 	err = templates.RenderTemplate(w, "deletePost.html", templateInfo)
 	if err != nil {
-		panic(err)
+		renderError(w, "TEMPLATE_RENDER_ERROR", err, http.StatusBadRequest)
 	}
 }
 

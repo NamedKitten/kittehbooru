@@ -31,7 +31,7 @@ func LoginPageHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	err := templates.RenderTemplate(w, "login.html", templates.T{Translator: i18n.GetTranslator(r)})
 	if err != nil {
-		panic(err)
+		renderError(w, "TEMPLATE_RENDER_ERROR", err, http.StatusBadRequest)
 	}
 }
 
@@ -50,11 +50,9 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 
 	_, err = DB.User(ctx, username)
 	if err != nil {
-		log.Info().Str("username", username).Msg("Login Not Found")
+		renderError(w, "INCORRECT_USER_OR_PASSWORD", err, http.StatusBadRequest)
 	} else {
 		if DB.CheckPassword(ctx, username, password) {
-			log.Info().Str("username", username).Msg("Login")
-
 			http.SetCookie(w, &http.Cookie{
 				Name:    "sessionToken",
 				Value:   DB.CreateSession(ctx, username),
@@ -63,7 +61,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 			http.Redirect(w, r, "/", http.StatusFound)
 			return
 		} else {
-			log.Info().Str("username", username).Msg("Invalid Password")
+			renderError(w, "INCORRECT_USER_OR_PASSWORD", err, http.StatusBadRequest)
 		}
 	}
 	_ = username
