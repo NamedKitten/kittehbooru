@@ -10,7 +10,7 @@ import (
 	"github.com/NamedKitten/kittehbooru/utils"
 	"github.com/rs/zerolog/log"
 
-"sync"
+	"sync"
 )
 
 // SearchResultsTemplate contains data to be used in the template.

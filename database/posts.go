@@ -142,40 +142,39 @@ func (db *DB) PostsTagsCounts(ctx context.Context, posts []int64) (res map[strin
 	defer stmt.Close()
 
 	for _, p := range posts {
-		
-			var tags string
-			var tagsSlice []string
 
-			if val, ok := postTagsCache.Get(ctx, strconv.Itoa(int(p))); ok {
-				for _, tag := range val.([]string) {
-					if i, ok := res[tag]; ok {
-						res[tag] = i + 1
-					} else {
-						res[tag] = 1
-					}
-				}
-				continue
-			}
+		var tags string
+		var tagsSlice []string
 
-			err = stmt.QueryRowContext(ctx, p).Scan(&tags)
-			switch {
-			case err == sql.ErrNoRows:
-				return
-			case err != nil:
-				log.Fatal().Err(err)
-			default:
-				tagsSlice = utils.SplitTagsString(tags)
-				postTagsCache.Set(ctx, strconv.Itoa(int(p)), tagsSlice, 0)
-				for _, tag := range tagsSlice {
-					if i, ok := res[tag]; ok {
-						res[tag] = i + 1
-					} else {
-						res[tag] = 1
-					}
+		if val, ok := postTagsCache.Get(ctx, strconv.Itoa(int(p))); ok {
+			for _, tag := range val.([]string) {
+				if i, ok := res[tag]; ok {
+					res[tag] = i + 1
+				} else {
+					res[tag] = 1
 				}
 			}
+			continue
+		}
+
+		err = stmt.QueryRowContext(ctx, p).Scan(&tags)
+		switch {
+		case err == sql.ErrNoRows:
+			return
+		case err != nil:
+			log.Fatal().Err(err)
+		default:
+			tagsSlice = utils.SplitTagsString(tags)
+			postTagsCache.Set(ctx, strconv.Itoa(int(p)), tagsSlice, 0)
+			for _, tag := range tagsSlice {
+				if i, ok := res[tag]; ok {
+					res[tag] = i + 1
+				} else {
+					res[tag] = 1
+				}
+			}
+		}
 	}
-
 
 	return res, nil
 }
