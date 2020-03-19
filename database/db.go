@@ -61,14 +61,8 @@ type DB struct {
 	configFile string `yaml:"-"`
 	// SetupCompleted is used to know when to run setup page.
 	SetupCompleted bool `yaml:"init"`
-	// SearchCache is a cache of search strings and the post IDs
-	// that match the result.
-	SearchCache SearchCache `yaml:"-"`
-	// UserCache is a cache of users
-	UserCache UserCache `yaml:"-"`
 	// Settings contains instance-specific settings for this instance.
-	Settings Settings `yaml:"settings"`
-
+	Settings          Settings      `yaml:"settings"`
 	ContentStorage    types.Storage `yaml:"-"`
 	ThumbnailsStorage types.Storage `yaml:"-"`
 }
@@ -112,8 +106,6 @@ func (db *DB) init() {
 			panic(err)
 		}
 	}
-	db.SearchCache.Init()
-	db.UserCache.Init()
 	go db.thumbnailScanner()
 	go db.sessionCleaner()
 }

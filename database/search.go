@@ -6,12 +6,10 @@ import (
 	"runtime/trace"
 	"sort"
 	"strings"
-	"time"
 
 	"github.com/NamedKitten/kittehbooru/types"
 	"github.com/NamedKitten/kittehbooru/utils"
 	"github.com/bwmarrin/snowflake"
-	"github.com/patrickmn/go-cache"
 )
 
 // paginate paginates a list of int64s
@@ -44,8 +42,8 @@ func (db *DB) searchTag(ctx context.Context, tag string) (posts []int64) {
 	defer trace.StartRegion(ctx, "DB/searchTag").End()
 
 	var err error
-	if val, ok := db.SearchCache.Get(ctx, tag); ok {
-		posts = val
+	if val, ok := searchCache.Get(ctx, tag); ok {
+		posts = val.([]int64)
 	} else {
 		if tag == "*" {
 			posts, err = db.AllPostIDs(ctx)
@@ -54,7 +52,7 @@ func (db *DB) searchTag(ctx context.Context, tag string) (posts []int64) {
 		}
 	}
 	if err == nil {
-		db.SearchCache.Add(ctx, tag, posts)
+		searchCache.Add(ctx, tag, posts, 0)
 	}
 	return
 }
@@ -126,14 +124,12 @@ func (db *DB) getPostsForTags(ctx context.Context, tags []string) []int64 {
 	return finalPostIDs
 }
 
-var tagCountsCache = cache.New(5*time.Minute, 5*time.Second)
-
 // TopNCommonTags returns the top N common tags for a search of tags
 func (db *DB) TopNCommonTags(ctx context.Context, n int, tags []string, individualTags bool) []types.TagCounts {
 	defer trace.StartRegion(ctx, "DB/Top15CommonTags").End()
 
 	combinedTags := utils.TagsListToString(tags)
-	if val, ok := tagCountsCache.Get(combinedTags); ok {
+	if val, ok := tagCountsCache.Get(ctx, combinedTags); ok {
 		return val.([]types.TagCounts)
 	}
 	var postsArray []int64
@@ -186,7 +182,7 @@ func (db *DB) TopNCommonTags(ctx context.Context, n int, tags []string, individu
 		}
 	})
 
-	tagCountsCache.Set(combinedTags, tagCountsSlice, cache.DefaultExpiration)
+	tagCountsCache.Set(ctx, combinedTags, tagCountsSlice, 0)
 	return tagCountsSlice
 }
 
@@ -200,11 +196,11 @@ func (db *DB) cacheSearch(ctx context.Context, searchTags []string) []int64 {
 	combinedTags := utils.TagsListToString(searchTags)
 	// If it is in the cache then great! use the cached result
 	// otherise search for them and add to the cache.
-	if val, ok := db.SearchCache.Get(ctx, combinedTags); ok {
-		result = val
+	if val, ok := searchCache.Get(ctx, combinedTags); ok {
+		result = val.([]int64)
 	} else {
 		matching := db.getPostsForTags(ctx, searchTags)
-		db.SearchCache.Add(ctx, combinedTags, matching)
+		searchCache.Set(ctx, combinedTags, matching, 0)
 		result = matching
 	}
 	// Sort by posted time

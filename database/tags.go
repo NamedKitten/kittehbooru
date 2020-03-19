@@ -142,10 +142,10 @@ func (db *DB) TagsPosts(ctx context.Context, tags []string) (result map[string][
 	cachedItems := make([]string, 0)
 
 	for _, tag := range tags {
-		val, ok := db.SearchCache.Get(ctx, tag)
+		val, ok := searchCache.Get(ctx, tag)
 		if ok {
 			cachedItems = append(cachedItems, tag)
-			result[tag] = val
+			result[tag] = val.([]int64)
 		}
 	}
 
@@ -165,17 +165,19 @@ func (db *DB) TagsPosts(ctx context.Context, tags []string) (result map[string][
 		case err != nil:
 			log.Fatal().Err(err).Msg("TagsPosts weird error")
 		default:
+			task := trace.StartRegion(ctx, "DB/TagsPosts/json")
 			err = json.Unmarshal([]byte(postsString), &posts)
 			if err != nil {
 				log.Error().Err(err).Msg("TagsPosts Json Unmarshal Error")
 				return
 			}
 			result[tag] = posts
+			task.End()
 		}
 	}
 
 	for _, tag := range tags {
-		db.SearchCache.Add(ctx, tag, result[tag])
+		searchCache.Add(ctx, tag, result[tag], 0)
 	}
 
 	return

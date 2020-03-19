@@ -9,9 +9,6 @@ import (
 	"runtime/trace"
 
 	"strconv"
-	"time"
-
-	"github.com/patrickmn/go-cache"
 
 	"github.com/NamedKitten/kittehbooru/utils"
 
@@ -111,9 +108,9 @@ func (db *DB) AllPostIDs(ctx context.Context) ([]int64, error) {
 	defer trace.StartRegion(ctx, "DB/AllPostIDs").End()
 	posts := make([]int64, 0)
 
-	val, ok := db.SearchCache.Get(ctx, "*")
+	val, ok := searchCache.Get(ctx, "*")
 	if ok {
-		return val, nil
+		return val.([]int64), nil
 	}
 
 	rows, err := db.sqldb.QueryContext(ctx, `select "postid" from posts where true`)
@@ -132,11 +129,9 @@ func (db *DB) AllPostIDs(ctx context.Context) ([]int64, error) {
 		posts = append(posts, pid)
 	}
 
-	db.SearchCache.Add(ctx, "*", posts)
+	searchCache.Add(ctx, "*", posts, 0)
 	return posts, nil
 }
-
-var postTagsCache = cache.New(5*time.Minute, 5*time.Second)
 
 // PostsTagsCounts returns a map of tag to how many time the tag was encountered in all posts
 func (db *DB) PostsTagsCounts(ctx context.Context, posts []int64) (res map[string]int, err error) {
@@ -146,39 +141,41 @@ func (db *DB) PostsTagsCounts(ctx context.Context, posts []int64) (res map[strin
 	stmt, err := db.sqldb.PrepareContext(ctx, `select "tags" from posts where postID = $1`)
 	defer stmt.Close()
 
-	var tags string
-	var tagsSlice []string
-
 	for _, p := range posts {
-		if val, ok := postTagsCache.Get(strconv.Itoa(int(p))); ok {
-			for _, tag := range val.([]string) {
-				if i, ok := res[tag]; ok {
-					res[tag] = i + 1
-				} else {
-					res[tag] = 1
-				}
-			}
-			continue
-		}
+		
+			var tags string
+			var tagsSlice []string
 
-		err = stmt.QueryRowContext(ctx, p).Scan(&tags)
-		switch {
-		case err == sql.ErrNoRows:
-			continue
-		case err != nil:
-			log.Fatal().Err(err)
-		default:
-			tagsSlice = utils.SplitTagsString(tags)
-			postTagsCache.Set(strconv.Itoa(int(p)), tagsSlice, cache.DefaultExpiration)
-			for _, tag := range tagsSlice {
-				if i, ok := res[tag]; ok {
-					res[tag] = i + 1
-				} else {
-					res[tag] = 1
+			if val, ok := postTagsCache.Get(ctx, strconv.Itoa(int(p))); ok {
+				for _, tag := range val.([]string) {
+					if i, ok := res[tag]; ok {
+						res[tag] = i + 1
+					} else {
+						res[tag] = 1
+					}
+				}
+				continue
+			}
+
+			err = stmt.QueryRowContext(ctx, p).Scan(&tags)
+			switch {
+			case err == sql.ErrNoRows:
+				return
+			case err != nil:
+				log.Fatal().Err(err)
+			default:
+				tagsSlice = utils.SplitTagsString(tags)
+				postTagsCache.Set(ctx, strconv.Itoa(int(p)), tagsSlice, 0)
+				for _, tag := range tagsSlice {
+					if i, ok := res[tag]; ok {
+						res[tag] = i + 1
+					} else {
+						res[tag] = 1
+					}
 				}
 			}
-		}
 	}
+
 
 	return res, nil
 }

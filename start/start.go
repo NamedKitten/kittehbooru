@@ -4,6 +4,8 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"reflect"
+	"runtime"
 	"runtime/trace"
 
 	"github.com/NamedKitten/kittehbooru/database"
@@ -33,9 +35,9 @@ func cacheMiddleware(next http.Handler) http.Handler {
 func taskMiddleware(name string, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Wrap the http.Request Context with trace.Task object.
-		taskCtx, task := trace.NewTask(r.Context(), name)
+		taskCtx, task := trace.NewTask(r.Context(), runtime.FuncForPC(reflect.ValueOf(next).Pointer()).Name()+" "+name)
 		defer task.End()
-		log.Debug().Str("path", r.URL.Path).Str("method", r.Method).Msg("HTTP")
+		log.Debug().Str("path", r.URL.Path).Str("method", r.Method).Str("query", r.URL.Query().Encode()).Msg("HTTP")
 
 		r = r.WithContext(taskCtx)
 
