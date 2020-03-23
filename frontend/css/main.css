@@ -1,14 +1,144 @@
-      .swfEmbedDiv {
-        height: 500px
-      }
-      .pdf-view,
-      .text-view {
-        height: 100000px;
-      }
+:root {
+  --base-1: #2e3440;
+  --base-2: #3b4252;
+  --base-3: #434c5e;
+  --base-4: #4c566a;
+  --text-1: #d8dee9;
+  --text-2: #e5e9f0;
+  --text-3: #eceff4;
+  --accent-1: #88c0d0;
+  --accent-2: #81a1c1;
+  --accent-3: #5e81ac;
+  --red: #bf616a;
+  --orange: #d08770;
+  --yellow: #ebcb8b;
+  --green: #a3be8c;
+  --purple: #b48ead;
+}
 
-      .card-img-top {
-        width: 100%;
-        float: left;
-      }
+body {
+  background-color: var(--base-1);
+}
+*, *:hover {
+  color: var(--text-3)
+}
+.nav, .navbar {
+  background-color: var(--base-4);
+}
+
+.link {
+  display: block;
+  text-decoration: none;
+  padding: 0.5rem 1rem;
+  color: var(--accent-3);
+}
+
+.link:hover {
+  color: var(--accent-2);
+}
+
+.link:hover {
+  text-decoration: underline;
+}
+
+.navbar-nav {
+background-color: var(--base-3)
+}
+
+.lighter-bg, .bg-light {
+  background-color: var(--base-4) !important;
+}
+
+h1, h2, h3, h5, h6 {
+  text-decoration: none;
+}
+
+table th,
+table td {
+  padding: 0.75rem;
+  vertical-align: top;
+  border-top: 1px solid var(--base-3);
+}
+
+table thead th {
+  vertical-align: bottom;
+  border-bottom: 0px;
+}
+
+table tbody + tbody {
+  border-top: 1px solid var(--base-3);
+}
+
+a {
+  color: var(--accent-1);
+}
+a:hover {
+  color: var(--accent-3);
+}
 
 
+.search-bar  {
+  border: 0px !important;
+  border-radius: 0px !important;
+  height: calc(1.5em + 1rem) !important;
+  width: 80%;
+  color: var(--text-3);
+  background-color:var(--base-3);
+}
+.search-bar:hover, .search-bar:focus {
+  background-color:var(--base-4);
+  color: var(--text-3);
+}
+
+.button {
+  display: inline-block;
+  font-weight: 400;
+  color: var(--text-2);
+  text-align: center;
+  vertical-align: middle;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  border: 0px;
+  background-color: transparent;
+  line-height: 1.5;
+  border-radius: 0px;
+  height: calc(1.5em + 1rem) !important;
+}
+
+.button-block {
+  width: 100%;
+}
+
+.button:hover {
+  color: var(--text-3);
+}
+
+.bg-ac-1 {
+  background-color: var(--accent-1);
+}
+.bg-ac-2 {
+  background-color: var(--accent-2);
+}
+.bg-ac-3 {
+  background-color: var(--accent-3);
+}
+
+.text-muted {
+  color: var(--text-1) !important;
+}
+
+
+.swfEmbedDiv {
+  height: 500px
+}
+
+.pdf-view, .text-view {
+  height: 100000px;
+}
+
+.card-img-top {
+  width: 100%;
+  float: left;
+}

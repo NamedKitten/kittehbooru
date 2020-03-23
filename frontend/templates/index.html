@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="/css/bootstrap.css">
     <script src="/js/jquery.js"></script>
     <script src="/js/bootstrap.js"></script>
+    <link rel="stylesheet" href="/css/main.css">
   </head>
 
   <body>
@@ -18,7 +19,7 @@
         <center>
 
         <h5>{{ .Translator.Localize "TagPopularity" }}</h5>
-        <table class="table">
+        <table>
           <thead>
             <tr>
               <th scope="col">{{ .Translator.Localize "Tag" }}</th>
@@ -39,14 +40,10 @@
         <h4>{{ .Translator.Localize "SearchText" }}</h4>
         <form action="/search" method="get">
           <div class="d-table-cell w-50">
-            <div class="input-group mb-3" style="border-radius:5px;">
+            <div class="input-group mb-3">
               <input type="hidden" name="page" value="0">
-              <input class="form-control" name="tags" placeholder="{{ .Translator.Localize "Tags" }}""
-                style="border-top-right-radius: 0px; border-bottom-right-radius: 0px; border-top-left-radius: 5px; border-bottom-left-radius: 5px; border: 0px;">
-              <div class="input-group-append">
-                <button class="btn btn-primary bg-success btn-success" type="submit"
-                  style="border-width: 0px; border-top-left-radius: 0px; border-bottom-left-radius: 0px;">{{ .Translator.Localize "SearchButton" }}</button>
-              </div>
+              <input class="form-control search-bar" name="tags" placeholder='{{ .Translator.Localize "Tags" }}'>
+              <button class="button bg-ac-3" type="submit">{{ .Translator.Localize "SearchButton" }}</button>
             </div>
           </div>
 

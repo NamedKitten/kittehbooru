@@ -57,7 +57,7 @@ func (db *DB) searchTag(ctx context.Context, tag string) (posts []int64) {
 	return
 }
 
-// getPostsForTags gets posts matching tags from DB
+// getPostsForTags gets posts matching tags from fDB
 // it uses a tags table which maps a tag to all the posts containing a tag
 func (db *DB) getPostsForTags(ctx context.Context, tags []string) []int64 {
 	defer trace.StartRegion(ctx, "DB/getPostsForTags").End()
@@ -66,7 +66,7 @@ func (db *DB) getPostsForTags(ctx context.Context, tags []string) []int64 {
 	// basically a simple way of getting the intersection of all positive tags
 	// so that we only get the posts that match ALL of the positive tags
 	posCount := 0
-	posCounts := make(map[int64]int)
+	posCounts := make(map[int64]int64)
 
 	tags = db.filterTags(tags)
 
@@ -112,8 +112,8 @@ func (db *DB) getPostsForTags(ctx context.Context, tags []string) []int64 {
 	finalPostIDs := make([]int64, 0)
 
 	for posPost, posCountTimes := range posCounts {
-		// so we only get the posts that match ALL positive tagsH
-		if posCountTimes >= posCount {
+		// so we only get the posts that match ALL positive tags
+		if posCountTimes == int64(posCount) {
 			finalPostIDs = append(finalPostIDs, posPost)
 		}
 	}
@@ -215,7 +215,6 @@ func (db *DB) cacheSearch(ctx context.Context, searchTags []string) []int64 {
 // GetSearchIDs returns a paginated list of Post IDs from a list of tags.
 func (db *DB) GetSearchIDs(ctx context.Context, searchTags []string, page int) ([]int64, int, int) {
 	defer trace.StartRegion(ctx, "DB/GetSearchIDs").End()
-
 	matching := db.cacheSearch(ctx, searchTags)
 	numPosts := len(matching)
 	numPages := int(math.Ceil(float64(numPosts) / float64(20)))
@@ -223,14 +222,12 @@ func (db *DB) GetSearchIDs(ctx context.Context, searchTags []string, page int) (
 }
 
 // getSearchPage returns a paginated list of posts from a list of tags.
-func (db *DB) GetSearchPage(ctx context.Context, searchTags []string, page int) []types.Post {
+func (db *DB) GetSearchPage(ctx context.Context, searchTags []string, page int) ([]types.Post, int, int) {
 	defer trace.StartRegion(ctx, "DB/GetSearchPage").End()
-
-	matching := db.cacheSearch(ctx, searchTags)
-	pageContent := paginate(matching, page, 20)
+	pageContent, numPosts, numPages := db.GetSearchIDs(ctx, searchTags, page)
 	posts, err := db.Posts(ctx, pageContent)
 	if err != nil {
-		return posts
+		return posts, 0, 0
 	}
-	return posts
+	return posts, numPosts, numPages
 }

@@ -12,7 +12,7 @@
         }
     </style>
 
-    <nav id="headerNav" class="headerNav navbar navbar-dark fixed-top bg-primary" style="position: relative;">
+    <nav id="headerNav" class="headerNav navbar navbar-dark fixed-top" style="position: relative;">
         <a class="navbar-brand" href="/">{{ settings.SiteName }}</a>
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
             aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
@@ -21,30 +21,30 @@
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
             <ul class="navbar-nav mr-auto">
                 <li class="nav-item">
-                    <a class="nav-link" href="/">{{ .Translator.Localize "Home" }}</a>
+                    <a class="link" href="/">{{ .Translator.Localize "Home" }}</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="/rules">{{ .Translator.Localize "Rules" }}</a>
+                    <a class="link" href="/rules">{{ .Translator.Localize "Rules" }}</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="/search">{{ .Translator.Localize "SearchButton" }}</a>
+                    <a class="link" href="/search">{{ .Translator.Localize "SearchButton" }}</a>
                 </li>
                 {{ if .LoggedIn }}
                 <li class="nav-item">
-                    <a class="nav-link" href="/logout">{{ .Translator.Localize "Logout" }}</a>
+                    <a class="link" href="/logout">{{ .Translator.Localize "Logout" }}</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="/upload">{{ .Translator.Localize "Upload" }}</a>
+                    <a class="link" href="/upload">{{ .Translator.Localize "Upload" }}</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="/user/{{.LoggedInUser.Username}}">{{ .Translator.Localize "UserProfileAccountSettings" }}</a>
+                    <a class="link" href="/user/{{.LoggedInUser.Username}}">{{ .Translator.Localize "UserProfileAccountSettings" }}</a>
                 </li>
                 {{ else }}
                 <li class="nav-item">
-                    <a class="nav-link" href="/login">{{ .Translator.Localize "Login" }}</a>
+                    <a class="link" href="/login">{{ .Translator.Localize "Login" }}</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="/register">{{ .Translator.Localize "Register" }}</a>
+                    <a class="link" href="/register">{{ .Translator.Localize "Register" }}</a>
                 </li>
                 {{end}}
 

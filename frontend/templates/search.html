@@ -9,6 +9,7 @@
     <script src="/js/jquery.js"></script>
     <script src="/js/shuffle.js"></script>
     <script src="/js/bootstrap.js"></script>
+    <link rel="stylesheet" href="/css/main.css">
     <style>
       .disabledLink {
         pointer-events: none;
@@ -25,22 +26,18 @@
             <form method="GET" action="/search">
               <input type="hidden" name="page" value="{{ .Prev }}">
               <input type="hidden" name="tags" value="{{ .Tags }}">
-              <button class="btn btn-success btn-block" type="submit">{{ .Translator.Localize "PrevPage" }}</button>
+              <button class="button button-block bg-ac-3" type="submit">{{ .Translator.Localize "PrevPage" }}</button>
             </form>
           </div>
           <div class="col">
-            <button class="btn btn-block" disabled>{{.Page}} / {{.TotalPages}}</button>
+            <button class="button" disabled>{{.Page}} / {{.TotalPages}}</button>
           </div>
           <div class="col-md-5 mb-3">
             <form action="/search" method="get">
-              <div class="input-group" style="border-radius:5px;">
+              <div class="input-group" style="">
                 <input type="hidden" name="page" value="0">
-                <input class="form-control" name="tags" placeholder="{{ .Translator.Localize "Tags" }}" value="{{ html .Tags }}"
-                  style="border-top-right-radius: 0px; border-bottom-right-radius: 0px; border-top-left-radius: 5px; border-bottom-left-radius: 5px; border: 0px;">
-                <div class="input-group-append">
-                  <button class="btn btn-primary bg-success btn-success" type="submit"
-                    style="border-width: 0px; border-top-left-radius: 0px; border-bottom-left-radius: 0px;">{{ .Translator.Localize "SearchButton" }}</button>
-                </div>
+                <input class="search-bar" name="tags" placeholder="{{ .Translator.Localize "Tags" }}" value="{{ html .Tags }}">
+                <button class="button bg-ac-3" type="submit">{{ .Translator.Localize "SearchButton" }}</button>
               </div>
             </form>
           </div>
@@ -48,7 +45,7 @@
             <form action="/search">
               <input type="hidden" name="page" value="{{ .Next }}">
               <input type="hidden" name="tags" value="{{ .Tags }}">
-              <button class="btn btn-success btn-block" type="submit" {{if eq .TotalPages .Page }}disabled{{end}}>{{ .Translator.Localize "NextPage" }}</button>
+              <button class="button button-block bg-ac-3" type="submit" {{if eq .TotalPages .Page }}disabled{{end}}>{{ .Translator.Localize "NextPage" }}</button>
             </form>
           </div>
         </div>
@@ -70,7 +67,7 @@
     </div>
   </div>
     <div class="col-md-3 order-sm-2 order-md-1" >
-      <table class="table">
+      <table>
         <thead>
           <tr>
             <th scope="col">{{ .Translator.Localize "Tag" }}</th>

@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <title>Hi</title>
     <link rel="stylesheet" href="/css/bootstrap.css">
+    <link rel="stylesheet" href="/css/main.css">
     <script src="/js/jquery.js"></script>
     <script src="/js/bootstrap.js"></script>
   </head>
@@ -16,7 +17,7 @@
     <div class="container-fluid">
       <div class="row">
         <div class="col-sm-9 col-md-7 col-lg-5 mx-auto">
-          <div class="card card-signin my-5 bg-light">
+          <div class="card card-signin my-5 lighter-bg">
             <div class="card-body ">
               <h5 class="card-title text-center">{{ .Translator.Localize "Login" }}</h5>
               <form class="form-signin" method="post">
@@ -29,7 +30,7 @@
                   <input type="password" id="inputPassword" class="form-control" placeholder="{{ .Translator.Localize "Password" }}" required=""
                     name="password">
                   <br>
-                </div><button class="btn btn-lg btn-primary btn-block text-uppercase" type="submit">{{ .Translator.Localize "Login" }}</button>
+                </div><button class="button bg-ac-3 button-block" type="submit">{{ .Translator.Localize "Login" }}</button>
               </form>
             </div>
           </div>
