@@ -2,13 +2,12 @@ package database
 
 import (
 	"context"
-	"encoding/json"
-
 	"database/sql"
-	"runtime/trace"
-	"strings"
 
-	"github.com/NamedKitten/kittehbooru/utils"
+	"fmt"
+	"runtime/trace"
+	"strconv"
+	"strings"
 
 	"github.com/NamedKitten/kittehbooru/types"
 	"github.com/rs/zerolog/log"
@@ -23,15 +22,11 @@ func sliceContains(s []string, e string) bool {
 	return false
 }
 
-func removeWildcardAndNegatives(s []string) []string {
+func removeWildcard(s []string) []string {
 	tags := make([]string, 0)
 	for _, tag := range s {
 		if tag != "*" {
-			if strings.HasPrefix(tag, "-") {
-				tags = append(tags, tag[1:])
-			} else {
-				tags = append(tags, tag)
-			}
+			tags = append(tags, tag)
 		}
 	}
 	return tags
@@ -50,31 +45,24 @@ func removeItem(s []string, e string) []string {
 // AddPostTags adds a post's tags to the database for easy searching.
 func (db *DB) AddPostTags(ctx context.Context, post types.Post) error {
 	defer trace.StartRegion(ctx, "DB/addPostTags").End()
-	for _, tag := range post.Tags {
-		posts, err := db.TagPosts(ctx, tag)
-		// If it doesn't exist in the database, make it with just the post ID
-		// otherise append it to existing result
-		if err != nil {
-			posts = []int64{post.PostID}
-		} else {
-			posts = append(posts, post.PostID)
-		}
-		db.SetTagPosts(ctx, tag, posts)
-	}
-	return nil
-}
+	db.RemovePostTags(ctx, post.PostID)
 
-// SetTagPosts performs the actual database operation of setting the tags.
-func (db *DB) SetTagPosts(ctx context.Context, tag string, posts []int64) error {
-	defer trace.StartRegion(ctx, "DB/SetTagPosts").End()
-	x, err := json.Marshal(posts)
+	tx, err := db.sqldb.Begin()
 	if err != nil {
-		log.Error().Err(err).Msg("SetTagPosts can't unmarshal posts list")
 		return err
 	}
-	_, err = db.sqldb.ExecContext(ctx, `INSERT INTO "tags"("tag", "posts") VALUES ($1, $2) ON CONFLICT (tag) DO UPDATE SET posts = EXCLUDED.posts`, tag, string(x))
+	defer tx.Rollback()
+	stmt, err := tx.Prepare(`INSERT INTO "tagMap"(postid, tag) VALUES( $1, $2 )`)
 	if err != nil {
-		log.Warn().Err(err).Msg("SetTagPosts can't execute insert tags statement")
+		return err
+	}
+	defer stmt.Close()
+	for _, tag := range post.Tags {
+		if _, err := stmt.Exec(post.PostID, tag); err != nil {
+			return err
+		}
+	}
+	if err := tx.Commit(); err != nil {
 		return err
 	}
 	return nil
@@ -84,100 +72,122 @@ func (db *DB) SetTagPosts(ctx context.Context, tag string, posts []int64) error 
 func (db *DB) TagPosts(ctx context.Context, tag string) (posts []int64, err error) {
 	defer trace.StartRegion(ctx, "DB/TagPosts").End()
 
-	var postsString string
-
-	err = db.sqldb.QueryRowContext(ctx, `select "posts" from tags where tag = $1`, tag).Scan(&postsString)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return []int64{}, err
-		}
-		log.Error().Err(err).Msg("TagPosts can't select tags")
-		return posts, err
+	x, err := db.TagsPosts(ctx, []string{tag})
+	if err == nil {
+		return x[tag], err
 	}
-
-	err = json.Unmarshal([]byte(postsString), &posts)
-	if err != nil {
-		log.Error().Err(err).Msg("TagPosts Json Unmarshal Error")
-		return posts, err
-	}
-
-	return posts, err
+	return
 }
+
+// PostTags returns a list of tags for a post
+func (db *DB) PostTags(ctx context.Context, pid int64) (tagsSlice []string, err error) {
+	defer trace.StartRegion(ctx, "DB/PostTags").End()
+
+	stmt, err := db.sqldb.PrepareContext(ctx, `select "tag" from "tagMap" where postid = $1`)
+	tagsSlice = make([]string, 0)
+	var tag string
+
+	err = stmt.QueryRowContext(ctx, pid).Scan(&tag)
+	switch {
+	case err == sql.ErrNoRows:
+		return
+	case err != nil:
+		log.Fatal().Err(err)
+	default:
+		tagsSlice = append(tagsSlice, tag)
+	}
+
+	return
+}
+
 
 // RemovePostTags removes all instances of a post from their tags
-func (db *DB) RemovePostTags(ctx context.Context, p types.Post) error {
+func (db *DB) RemovePostTags(ctx context.Context, postID int64) (err error) {
 	defer trace.StartRegion(ctx, "DB/RemovePostTags").End()
-	for _, tag := range p.Tags {
-		posts, err := db.TagPosts(ctx, tag)
-		if err != nil {
-			return err
-		}
-		posts = utils.RemoveFromSlice(posts, p.PostID)
-		err = db.SetTagPosts(ctx, tag, posts)
-		if err != nil {
-			return err
-		}
+	_, err = db.sqldb.ExecContext(ctx, `DELETE FROM "tagMap" WHERE postid = $1`, postID)
+	if err != nil {
+		log.Warn().Err(err).Msg("RemovePostTags can't execute delete statement")
+		return
 	}
-	return nil
+	return
 }
 
-// TagPosts returns a map of tags to their of post IDs
+// TagPosts returns a map of tags for posts to their post IDs
 func (db *DB) TagsPosts(ctx context.Context, tags []string) (result map[string][]int64, err error) {
 	defer trace.StartRegion(ctx, "DB/TagsPosts").End()
 	result = make(map[string][]int64)
 
-	if sliceContains(tags, "*") {
-		region := trace.StartRegion(ctx, "DB/TagsPosts/wildcard")
-		var wildcardPosts []int64
-		wildcardPosts, err = db.AllPostIDs(ctx)
+	tags = removeWildcard(tags)
+
+	posTags := make([]string, 0)
+	negTags := make([]string, 0)
+	args := make([]interface{}, 0)
+
+	for _, tag := range tags {
+		if strings.HasPrefix(tag, "-") {
+			negTags = append(negTags, tag[1:])
+		} else {
+			posTags = append(posTags, tag)
+		}
+	}
+
+	argsI := 1
+	posArgs := make([]string, 0)
+	negArgs := make([]string, 0)
+
+	for _, tag := range posTags {
+		posArgs = append(posArgs, "$"+strconv.Itoa(argsI))
+		args = append(args, tag)
+		argsI = argsI + 1
+	}
+
+	for _, tag := range negTags {
+		negArgs = append(negArgs, "$"+strconv.Itoa(argsI))
+		args = append(args, tag)
+		argsI = argsI + 1
+	}
+
+	posArgsStr := strings.Join(posArgs, ",")
+	negArgsStr := strings.Join(negArgs, ",")
+
+	sStart := `SELECT postID, tag FROM "tagMap" WHERE`
+	cond := ""
+	sEnd := `GROUP BY postID, tag`
+
+	if len(negTags) == 0 && len(posTags) == 0 {
+		cond = "true"
+	} else if len(posTags) != 0 && len(negTags) != 0 {
+		cond = fmt.Sprintf(`(tag IN (%s)) AND postID NOT IN (SELECT postID FROM "tagMap" WHERE (tag IN (%s)))`, posArgsStr, negArgsStr)
+		sEnd = sEnd + fmt.Sprintf(` HAVING COUNT( postID ) =%d`, len(posTags))
+	} else if len(negTags) != 0 {
+		cond = fmt.Sprintf(`NOT postID IN (SELECT postID FROM "tagMap" WHERE (tag IN (%s)))`, negArgsStr)
+	} else if len(posTags) != 0 {
+		sEnd = sEnd + fmt.Sprintf(` HAVING COUNT( postID ) =%d`, len(posTags))
+		cond = fmt.Sprintf(`(tag IN (%s))`, posArgsStr)
+	}
+
+	s := fmt.Sprintf("%s %s %s", sStart, cond, sEnd)
+
+	rows, err := db.sqldb.QueryContext(ctx, s, args...)
+	if err != nil {
+		log.Error().Err(err).Msg("TagsPosts can't query posts")
+	}
+	defer rows.Close()
+
+	var pid int64
+	var tag string
+	for rows.Next() {
+		err = rows.Scan(&pid, &tag)
 		if err != nil {
+			log.Error().Err(err).Msg("TagsPosts can't scan row")
 			return
 		}
-		result["*"] = wildcardPosts
-		region.End()
-	}
 
-	tags = removeWildcardAndNegatives(tags)
-
-	cachedItems := make([]string, 0)
-
-	for _, tag := range tags {
-		val, ok := searchCache.Get(ctx, tag)
-		if ok {
-			cachedItems = append(cachedItems, tag)
-			result[tag] = val.([]int64)
+		if result[tag] == nil {
+			result[tag] = make([]int64, 0)
 		}
-	}
+		result[tag] = append(result[tag], pid)
 
-	for _, tag := range cachedItems {
-		tags = removeItem(tags, tag)
-	}
-
-	defer trace.StartRegion(ctx, "DB/TagsPosts/tags").End()
-	stmt, err := db.sqldb.PrepareContext(ctx, `select "posts" from tags where tag = $1`)
-	for _, tag := range tags {
-		var postsString string
-		var posts []int64
-		err = stmt.QueryRowContext(ctx, tag).Scan(&postsString)
-		switch {
-		case err == sql.ErrNoRows:
-			continue
-		case err != nil:
-			log.Fatal().Err(err).Msg("TagsPosts weird error")
-		default:
-			task := trace.StartRegion(ctx, "DB/TagsPosts/json")
-			err = json.Unmarshal([]byte(postsString), &posts)
-			if err != nil {
-				log.Error().Err(err).Msg("TagsPosts Json Unmarshal Error")
-				return
-			}
-			result[tag] = posts
-			task.End()
-		}
-	}
-
-	for _, tag := range tags {
-		searchCache.Add(ctx, tag, result[tag], 0)
 	}
 
 	return

@@ -8,8 +8,6 @@ import (
 	"fmt"
 	"runtime/trace"
 
-	"strconv"
-
 	"github.com/NamedKitten/kittehbooru/utils"
 
 	"github.com/NamedKitten/kittehbooru/types"
@@ -55,17 +53,6 @@ func (db *DB) AddPost(ctx context.Context, post types.Post) (err error) {
 func (db *DB) EditPost(ctx context.Context, postID int64, p types.Post) (err error) {
 	defer trace.StartRegion(ctx, "DB/EditPost").End()
 
-	var oldPost types.Post
-
-	oldPost, err = db.Post(ctx, postID)
-	if err != nil {
-		return
-	}
-	err = db.RemovePostTags(ctx, oldPost)
-	if err != nil {
-		return
-	}
-
 	tags := utils.TagsListToString(p.Tags)
 	_, err = db.sqldb.ExecContext(ctx, `update posts set "filename"=$1, "ext"=$2, "description"=$3, "tags"=$4, "poster"=$5, "timestamp"=$6, "mimetype"=$7 where postid = $8`, p.Filename, p.FileExtension, p.Description, tags, p.Poster, p.CreatedAt, p.MimeType, postID)
 	if err != nil {
@@ -87,7 +74,7 @@ func (db *DB) DeletePost(ctx context.Context, postID int64) (err error) {
 	if err != nil {
 		return
 	}
-	err = db.RemovePostTags(ctx, p)
+	err = db.RemovePostTags(ctx, p.PostID)
 	if err != nil {
 		return
 	}
@@ -138,42 +125,28 @@ func (db *DB) PostsTagsCounts(ctx context.Context, posts []int64) (res map[strin
 	defer trace.StartRegion(ctx, "DB/PostsTagsCounts").End()
 
 	res = make(map[string]int)
-	stmt, err := db.sqldb.PrepareContext(ctx, `select "tags" from posts where postID = $1`)
+	stmt, err := db.sqldb.PrepareContext(ctx, `select "tag" from "tagMap" where postid = $1`)
 	defer stmt.Close()
 
 	for _, p := range posts {
 
-		var tags string
-		var tagsSlice []string
+		var tag string
 
-		if val, ok := postTagsCache.Get(ctx, strconv.Itoa(int(p))); ok {
-			for _, tag := range val.([]string) {
+		rows, err := stmt.QueryContext(ctx, p)
+		if err != nil {
+			return nil, err
+		}
+		for rows.Next() {
+			rows.Scan(&tag)
+
 				if i, ok := res[tag]; ok {
 					res[tag] = i + 1
 				} else {
 					res[tag] = 1
 				}
-			}
-			continue
+			
 		}
 
-		err = stmt.QueryRowContext(ctx, p).Scan(&tags)
-		switch {
-		case err == sql.ErrNoRows:
-			return
-		case err != nil:
-			log.Fatal().Err(err)
-		default:
-			tagsSlice = utils.SplitTagsString(tags)
-			postTagsCache.Set(ctx, strconv.Itoa(int(p)), tagsSlice, 0)
-			for _, tag := range tagsSlice {
-				if i, ok := res[tag]; ok {
-					res[tag] = i + 1
-				} else {
-					res[tag] = 1
-				}
-			}
-		}
 	}
 
 	return res, nil

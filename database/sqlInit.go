@@ -28,4 +28,9 @@ func (db *DB) sqlInit() {
 	if err != nil {
 		log.Warn().Err(err).Msg("SQL Create Sessions Table")
 	}
+
+	_, err = db.sqldb.Exec(`CREATE TABLE IF NOT EXISTS "tagMap" (  "id" SERIAL PRIMARY KEY, "tag"  TEXT, "postid"  bigint)`)
+	if err != nil {
+		log.Warn().Err(err).Msg("SQL Create TagMap Table")
+	}
 }
