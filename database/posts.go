@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"runtime/trace"
+	"strconv"
 
 	"github.com/NamedKitten/kittehbooru/utils"
 
@@ -121,34 +122,48 @@ func (db *DB) AllPostIDs(ctx context.Context) ([]int64, error) {
 }
 
 // PostsTagsCounts returns a map of tag to how many time the tag was encountered in all posts
+// PostsTagsCounts returns a map of tag to how many time the tag was encountered in all posts
 func (db *DB) PostsTagsCounts(ctx context.Context, posts []int64) (res map[string]int, err error) {
 	defer trace.StartRegion(ctx, "DB/PostsTagsCounts").End()
 
 	res = make(map[string]int)
-	stmt, err := db.sqldb.PrepareContext(ctx, `select "tag" from "tagMap" where postid = $1`)
+	stmt, err := db.sqldb.PrepareContext(ctx, `select "tags" from posts where postID = $1`)
 	defer stmt.Close()
 
 	for _, p := range posts {
 
-		var tag string
+		var tags string
+		var tagsSlice []string
 
-		rows, err := stmt.QueryContext(ctx, p)
-		if err != nil {
-			return nil, err
-		}
-		for rows.Next() {
-			rows.Scan(&tag)
-
+		if val, ok := postTagsCache.Get(ctx, strconv.Itoa(int(p))); ok {
+			for _, tag := range val.([]string) {
 				if i, ok := res[tag]; ok {
 					res[tag] = i + 1
 				} else {
 					res[tag] = 1
 				}
-			
+			}
+			continue
 		}
 
+		err = stmt.QueryRowContext(ctx, p).Scan(&tags)
+		switch {
+		case err == sql.ErrNoRows:
+			return
+		case err != nil:
+			log.Fatal().Err(err)
+		default:
+			tagsSlice = utils.SplitTagsString(tags)
+			postTagsCache.Set(ctx, strconv.Itoa(int(p)), tagsSlice, 0)
+			for _, tag := range tagsSlice {
+				if i, ok := res[tag]; ok {
+					res[tag] = i + 1
+				} else {
+					res[tag] = 1
+				}
+			}
+		}
 	}
-
 	return res, nil
 }
 

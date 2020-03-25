@@ -135,6 +135,7 @@ func (db *DB) TagsPosts(ctx context.Context, tags []string) (result map[string][
 	posArgs := make([]string, 0)
 	negArgs := make([]string, 0)
 
+	// We send args to QueryContext to prevent SQL injection from tags.
 	for _, tag := range posTags {
 		posArgs = append(posArgs, "$"+strconv.Itoa(argsI))
 		args = append(args, tag)
@@ -155,13 +156,20 @@ func (db *DB) TagsPosts(ctx context.Context, tags []string) (result map[string][
 	sEnd := `GROUP BY postID, tag`
 
 	if len(negTags) == 0 && len(posTags) == 0 {
+		// If there is no tags provided, assume it's a wildcard search.
 		cond = "true"
 	} else if len(posTags) != 0 && len(negTags) != 0 {
+		// Search using BOTH a positive tag AND and negative tag
+		// include logic for non-matching tag.
 		cond = fmt.Sprintf(`(tag IN (%s)) AND postID NOT IN (SELECT postID FROM "tagMap" WHERE (tag IN (%s)))`, posArgsStr, negArgsStr)
+		// If we didn't group by having count then it'd be a OR of the positive tags
+		// and not a AND
 		sEnd = sEnd + fmt.Sprintf(` HAVING COUNT( postID ) =%d`, len(posTags))
 	} else if len(negTags) != 0 {
+		// Search for posts that don't match tags
 		cond = fmt.Sprintf(`NOT postID IN (SELECT postID FROM "tagMap" WHERE (tag IN (%s)))`, negArgsStr)
 	} else if len(posTags) != 0 {
+		// Search for only positive tags
 		sEnd = sEnd + fmt.Sprintf(` HAVING COUNT( postID ) =%d`, len(posTags))
 		cond = fmt.Sprintf(`(tag IN (%s))`, posArgsStr)
 	}
