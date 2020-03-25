@@ -9,81 +9,53 @@
     <script src="/js/jquery.js"></script>
     <script src="/js/bootstrap.js"></script>
     <link rel="stylesheet" href="/css/main.css">
-    <style>
-      .card-img-top {
-        object-fit: contain;
-        vertical-align: middle
-      }
-    </style>
   </head>
 
   <body>
     {{ template "header.html" . }}
     <center>
-      <div class="container">
+      <div class="container-fluid">
 
-        <div class="card">
+        <div class="row">
 
-          <center>{{ template "viewPostInclude.html" .AvatarPost }}</center>
-          <div class="card-header">
-            {{ $userProfileData := newStringInterfaceMap }}
-            {{ $userProfileData = addToStringInterfaceMap $userProfileData "Name" .User.Username }}
-            <b>{{ .Translator.LocalizeWithData "UsersProfile" $userProfileData }}</b>
-            <ul class="nav nav-tabs card-header-tabs pull-right infoSection" id="myTab" role="tablist">
-              <li class="nav-item">
-                <a class="nav-link active" id="info-tab" data-toggle="tab" href="#info" role="tab" aria-controls="info"
-                  aria-selected="true">{{ .Translator.Localize "Info" }}</a>
-              </li>
-              {{ if .IsAbleToEdit }}
-              <li class="nav-item">
-                <a class="nav-link" id="settings-tab" data-toggle="tab" href="#settings" role="tab"
-                  aria-controls="settings" aria-selected="false">{{ .Translator.Localize "Settings" }}</a>
-              </li>
-              {{ end }}
-            </ul>
+          <div class="col-md-4">
+            {{ template "viewPostInclude.html" .AvatarPost }}
           </div>
-          <div class="card-body">
-            <div class="tab-content" id="myTabContent">
-              <div class="tab-pane fade show active" id="info" role="tabpanel" aria-labelledby="info-tab">
-                {{ nl2br .User.Description }}
-              </div>
 
-              {{ if .IsAbleToEdit }}
-              <div class="tab-pane fade" id="settings" role="tabpanel" aria-labelledby="settings-tab">
-                <form class="form-signin" method="post" action="/editUser/{{ .User.Username }}">
-                  <div class="form-label-group">
-                    <label for="description">{{ .Translator.Localize "Description" }}</label>
-                    <textarea class="form-control" id="description" name="description"
-                      rows="6">{{ nlhtml .User.Description }}</textarea>
-                  </div>
-                  <br>
-                  <div class="form-label-group">
-                    <label for="passwordPrevious">{{ .Translator.Localize "PreviousPassword" }}</label>
-                    <input class="form-control" id="passwordPrevious" name="passwordPrevious" type="password" value=""></input>
-                  </div>
-                  <div class="form-label-group">
-                    <label for="password">{{ .Translator.Localize "Password" }}</label>
-                    <input class="form-control" id="password" name="password" type="password" value=""></input>
-                  </div>
-                  <div class="form-label-group">
-                    <label for="passwordConfirm">{{ .Translator.Localize "ConfirmPassword" }}</label>
-                    <input class="form-control" id="passwordConfirm" name="passwordConfirm" type="password" value=""></input>
-                    <small class="form-text text-muted">
-                      {{ .Translator.Localize "PasswordChange" }}
-                    </small>
-                  </div>
-                  <br>
-                  <button class="btn btn-lg btn-primary btn-block text-uppercase" type="submit">{{ .Translator.Localize "Edit" }}</button>
-                  <br>
-                </form>
-                <form class="form-signin" method="get" action="/deleteUser">
-                  <button class="btn btn-lg btn-danger btn-block text-uppercase" type="submit">{{ .Translator.Localize "DeleteAccount" }}</button>
-                </form>
-              </div>
-              {{ end }}
+
+          <div class="col-md-8" >
+            {{ if .IsAbleToEdit }}
+            <form class="" method="post" action="/editUser/{{ .User.Username }}">
+            <label for="description">{{ .Translator.Localize "Description" }}</label>
+            <textarea class="form-control" id="description" name="description" rows="6">{{ nlhtml .User.Description }}</textarea>
+            <label for="passwordPrevious">{{ .Translator.Localize "PreviousPassword" }}</label>
+            <input class="form-control" id="passwordPrevious" name="passwordPrevious" type="password" value=""></input>
+            <label for="password">{{ .Translator.Localize "Password" }}</label>
+            <input class="form-control" id="password" name="password" type="password" value=""></input>
+            <label for="passwordConfirm">{{ .Translator.Localize "ConfirmPassword" }}</label>
+            <input class="form-control" id="passwordConfirm" name="passwordConfirm" type="password" value=""></input>
+            <small class="form-text text-muted">
+              {{ .Translator.Localize "PasswordChange" }}
+            </small>
+            <br>
+            <button class="button button-block button-green" type="submit">{{ .Translator.Localize "Edit" }}</button>
+            </form>
+            <br>
+            <form method="get" action="/deleteUser">
+              <button class="button button-block  button-red" type="submit">{{ .Translator.Localize "DeleteAccount" }}</button>
+            </form>
+
             </div>
+            {{ else }}
+            {{ nlhtml .User.Description }}
+
+            {{ end }}
+
           </div>
         </div>
+
+
+        
       </div>
     </center>
   </body>

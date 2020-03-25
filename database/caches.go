@@ -27,6 +27,10 @@ func (c ContextCache) Set(ctx context.Context, k string, x interface{}, d time.D
 	defer trace.StartRegion(ctx, c.name+"/Set").End()
 	c.c.Set(k, x, d)
 }
+func (c ContextCache) Delete(ctx context.Context, k string) {
+	defer trace.StartRegion(ctx, c.name+"/Delete").End()
+	c.c.Delete(k)
+}
 
 var userCache = ContextCache{cache.New(time.Minute, time.Minute), "userCache"}
 var postTagsCache = ContextCache{cache.New(5*time.Minute, time.Minute), "postTagsCache"}

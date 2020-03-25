@@ -40,12 +40,13 @@ func (db *DB) User(ctx context.Context, username string) (u types.User, err erro
 // EditUser edits a user in the database.
 func (db *DB) EditUser(ctx context.Context, u types.User) (err error) {
 	defer trace.StartRegion(ctx, "DB/EditUser").End()
-
+	userCache.Delete(ctx, u.Username)
 	_, err = db.sqldb.ExecContext(ctx, `update users set "avatarID"=$1, owner=$2, admin=$3, description=$4 where username = $5`, u.AvatarID, u.Owner, u.Admin, u.Description, u.Username)
 	if err != nil {
 		log.Warn().Err(err).Msg("EditUser can't execute statement")
 		return err
 	}
+	userCache.Delete(ctx, u.Username)
 	return nil
 }
 

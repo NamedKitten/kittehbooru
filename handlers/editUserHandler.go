@@ -35,6 +35,7 @@ func EditUserHandler(w http.ResponseWriter, r *http.Request) {
 		log.Error().Err(err).Msg("Parse Form")
 		return
 	}
+	
 	description := r.PostFormValue("description")
 	if !(len(description) == 0) {
 		user.Description = description

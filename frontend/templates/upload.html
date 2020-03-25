@@ -20,39 +20,23 @@
 
   <body>
     {{ template "header.html" . }}
-    <div class="container-fluid">
-      <div class="row">
-        <div class="col-sm-9 col-md-7 col-lg-5 mx-auto">
-          <div class="card card-signin my-3 bg-primary">
-            <div class="card-body">
-              <h5 class="card-title text-center">{{ .Translator.Localize "Upload" }}</h5>
+    <div class="container">
+        <div class="centerblock">
+              <h5>{{ .Translator.Localize "Upload" }}</h5>
               <form enctype="multipart/form-data" class="form-signin" method="post">
-                <div class="form-group">
-                  <div class="input-group mb-3">
-                    <div class="custom-file bg-primary">
-                      <div class="input-group-prepend"></div>
-                      <input type="file" class="custom-file-input" id="inputGroupFile02" name="uploadFile">
-                      <label class="custom-file-label" for="inputGroupFile02">{{ .Translator.Localize "ChooseFile" }}</label>
-                        </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="form-label-group">
-                  <label for="tags">{{ .Translator.Localize "Tags" }}</label> <input type="text" class="form-control" id="tags" name="tags"
-                    required="">
-                </div>
-                <div class="form-label-group">
-                  <label for="description">{{ .Translator.Localize "Description" }}</label>
-                  <textarea class="form-control" id="description" name="description" rows="6"></textarea>
-                </div>
+                <div class="custom-file">
+                  <input type="file" class="custom-file-input button" id="inputGroupFile02" name="uploadFile">
+                  <label class="custom-file-label form-control" for="inputGroupFile02">{{ .Translator.Localize "ChooseFile" }}</label>
                 <br>
                 <br>
-                <button class="btn btn-lg btn-success btn-block text-uppercase" type="submit">{{ .Translator.Localize "Upload" }}</button>
+                <label for="tags">{{ .Translator.Localize "Tags" }}</label>
+                <input type="text" class="form-control" id="tags" name="tags" required="">
+                <label for="description">{{ .Translator.Localize "Description" }}</label>
+                <textarea class="form-control" id="description" name="description" rows="6"></textarea>
+                <br>
+                <br>
+                <button class="button button-green button-block" type="submit">{{ .Translator.Localize "Upload" }}</button>
               </form>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   </body>

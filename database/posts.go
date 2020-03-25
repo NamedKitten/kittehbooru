@@ -131,7 +131,6 @@ func (db *DB) PostsTagsCounts(ctx context.Context, posts []int64) (res map[strin
 	defer stmt.Close()
 
 	for _, p := range posts {
-
 		var tags string
 		var tagsSlice []string
 

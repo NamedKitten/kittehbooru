@@ -107,12 +107,41 @@ a:hover {
   height: calc(1.5em + 1rem) !important;
 }
 
+.button-red, .button-red:focus, .button-red:hover {
+  background-color: var(--red);
+  color: var(--base-1);
+}
+
+.button-green, .button-green:focus, .button-green:hover {
+  background-color: var(--green);
+  color: var(--base-1);
+}
+  
+
 .button-block {
   width: 100%;
 }
 
 .button:hover {
   color: var(--text-3);
+}
+
+.centerblock {
+  position: relative;
+  display: -ms-flexbox;
+  display: flex;
+  -ms-flex-direction: column;
+  flex-direction: column;
+  min-width: 0;
+  word-wrap: break-word;
+  background-color: var(--base-2);
+  background-clip: border-box;
+  border: 1px solid rgba(0, 0, 0, 0.125);
+  border-radius: 0.25rem;
+  -ms-flex: 1 1 auto;
+  flex: 1 1 auto;
+  min-height: 1px;
+  padding: 1.25rem;1
 }
 
 .bg-ac-1 {
@@ -128,6 +157,25 @@ a:hover {
 .text-muted {
   color: var(--text-1) !important;
 }
+
+.form-control, .form-control:hover, .form-control:active, .form-control:focus {
+ color: var(--text-1);
+}
+
+.custom-file-label {
+  background-color: var(--base-4);
+  color: var(--text-3);
+}
+
+.form-control {
+ background-color: var(--base-4);
+ border-radius: 0px;
+ border: 1px solid var(--base-1);
+}
+.form-control:focus {
+  background-color: var(--base-4);
+ }
+ 
 
 
 .swfEmbedDiv {

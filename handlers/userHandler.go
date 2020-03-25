@@ -33,7 +33,10 @@ func UserHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	avatarPost, _ := DB.Post(ctx, user.AvatarID)
+	avatarPost, err := DB.Post(ctx, user.AvatarID)
+	if err != nil {
+		avatarPost = types.Post{}
+	}
 	templateInfo := UserResultsTemplate{
 		AvatarPost:   avatarPost,
 		User:         user,
