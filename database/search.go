@@ -93,24 +93,14 @@ func (db *DB) TopNCommonTags(ctx context.Context, n int, tags []string, individu
 	if val, ok := tagCountsCache.Get(ctx, combinedTags); ok {
 		return val.([]types.TagCounts)
 	}
-	var postsArray []int64
+	var tagCounts map[string]int
 	if individualTags {
-		posts := make(map[int64]bool)
-		for _, tag := range tags {
-			p := db.cacheSearch(ctx, []string{tag})
-			for _, pid := range p {
-				posts[pid] = true
-			}
-		}
-		postsArray = make([]int64, 0)
-		for pid := range posts {
-			postsArray = append(postsArray, pid)
-		}
+		tagCounts, _ = db.TagsCounts(ctx, tags)
 	} else {
-		postsArray = db.cacheSearch(ctx, tags)
+		postsArray := db.cacheSearch(ctx, tags)
+		tagCounts, _ = db.PostsTagsCounts(ctx, postsArray)
 	}
 
-	tagCounts, _ := db.PostsTagsCounts(ctx, postsArray)
 
 	tagCountsSlice := make([]types.TagCounts, 0, len(tagCounts))
 	for k, v := range tagCounts {

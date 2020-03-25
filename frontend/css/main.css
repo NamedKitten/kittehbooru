@@ -30,7 +30,7 @@ body {
   display: block;
   text-decoration: none;
   padding: 0.5rem 1rem;
-  color: var(--accent-3);
+  color: var(--accent-1);
 }
 
 .link:hover {
@@ -39,10 +39,6 @@ body {
 
 .link:hover {
   text-decoration: underline;
-}
-
-.navbar-nav {
-background-color: var(--base-3)
 }
 
 .lighter-bg, .bg-light {

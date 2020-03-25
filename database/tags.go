@@ -112,6 +112,31 @@ func (db *DB) RemovePostTags(ctx context.Context, postID int64) (err error) {
 	return
 }
 
+// PostsTagsCounts returns a map of tag to how many time the tag was encountered in tagMap column
+func (db *DB) TagsCounts(ctx context.Context, tags []string) (res map[string]int, err error) {
+	defer trace.StartRegion(ctx, "DB/PostsTagsCounts").End()
+
+	res = make(map[string]int)
+	stmt, err := db.sqldb.PrepareContext(ctx, `select COUNT (DISTINCT postid) from "tagMap" where tag = $1`)
+	defer stmt.Close()
+
+	for _, tag := range tags {
+		var count int
+
+		err = stmt.QueryRowContext(ctx, tag).Scan(&count)
+		switch {
+		case err == sql.ErrNoRows:
+			res[tag] = 0
+		case err != nil:
+			log.Fatal().Err(err)
+		default:
+			res[tag] = count
+		}
+	}
+
+	return res, nil
+}
+
 // TagPosts returns a map of tags for posts to their post IDs
 func (db *DB) TagsPosts(ctx context.Context, tags []string) (result map[string][]int64, err error) {
 	defer trace.StartRegion(ctx, "DB/TagsPosts").End()
@@ -200,3 +225,4 @@ func (db *DB) TagsPosts(ctx context.Context, tags []string) (result map[string][
 
 	return
 }
+

@@ -40,6 +40,11 @@ func (db *DB) Post(ctx context.Context, postID int64) (p types.Post, err error) 
 func (db *DB) AddPost(ctx context.Context, post types.Post) (err error) {
 	defer trace.StartRegion(ctx, "DB/AddPost").End()
 
+	tagCountsCache.Delete(ctx, "*")
+	for _, tag := range post.Tags {
+		tagCountsCache.Delete(ctx, tag)
+	}
+
 	_, err = db.sqldb.ExecContext(ctx, `INSERT INTO "posts"("postid", "filename", "ext", "description", "tags", "poster", "timestamp", "mimetype") VALUES ($1,$2,$3,$4,$5,$6,$7, $8)`, post.PostID, post.Filename, post.FileExtension, post.Description, utils.TagsListToString(post.Tags), post.Poster, post.CreatedAt, post.MimeType)
 	if err != nil {
 		log.Warn().Err(err).Msg("AddPost can't execute insert post statement")
@@ -122,13 +127,14 @@ func (db *DB) AllPostIDs(ctx context.Context) ([]int64, error) {
 }
 
 // PostsTagsCounts returns a map of tag to how many time the tag was encountered in all posts
-// PostsTagsCounts returns a map of tag to how many time the tag was encountered in all posts
 func (db *DB) PostsTagsCounts(ctx context.Context, posts []int64) (res map[string]int, err error) {
 	defer trace.StartRegion(ctx, "DB/PostsTagsCounts").End()
 
 	res = make(map[string]int)
 	stmt, err := db.sqldb.PrepareContext(ctx, `select "tags" from posts where postID = $1`)
 	defer stmt.Close()
+
+
 
 	for _, p := range posts {
 		var tags string
@@ -163,10 +169,11 @@ func (db *DB) PostsTagsCounts(ctx context.Context, posts []int64) (res map[strin
 			}
 		}
 	}
+
 	return res, nil
 }
 
-// PostsTagsCounts returns a list of posts from their post IDs, does the same as Post but
+// Posts returns a list of posts from their post IDs, does the same as Post but
 // uses a prepared statement to do it all in one db connection
 func (db *DB) Posts(ctx context.Context, posts []int64) (res []types.Post, err error) {
 	defer trace.StartRegion(ctx, "DB/Posts").End()
