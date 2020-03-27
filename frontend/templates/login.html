@@ -17,20 +17,15 @@
     <div class="container-fluid">
       <div class="row">
         <div class="col-sm-9 col-md-7 col-lg-5 mx-auto">
-          <div class="card card-signin my-5 lighter-bg">
-            <div class="card-body ">
-              <h5 class="card-title text-center">{{ .Translator.Localize "Login" }}</h5>
+          <div class="card-block my-5 lighter-bg">
+            <div class="card-block-body">
+              <h5 class="card-block-title text-center">{{ .Translator.Localize "Login" }}</h5>
               <form class="form-signin" method="post">
-                <div class="form-label-group">
-                  <input type="text" id="inputEmail" class="form-control" placeholder="{{ .Translator.Localize "Username" }}" required=""
-                    autofocus="" name="username">
-                </div>
+                <input type="text" id="inputEmail" class="form-control" placeholder="{{ .Translator.Localize "Username" }}" required="" autofocus="" name="username">
                 <br>
-                <div class="form-label-group">
-                  <input type="password" id="inputPassword" class="form-control" placeholder="{{ .Translator.Localize "Password" }}" required=""
-                    name="password">
-                  <br>
-                </div><button class="button bg-ac-3 button-block" type="submit">{{ .Translator.Localize "Login" }}</button>
+                <input type="password" id="inputPassword" class="form-control" placeholder="{{ .Translator.Localize "Password" }}" required="" name="password">
+                <br>
+                <button class="button bg-ac-3 button-block" type="submit">{{ .Translator.Localize "Login" }}</button>
               </form>
             </div>
           </div>

@@ -13,30 +13,24 @@
 
   <body>
     {{ template "header.html" . }}
-
-    <div class="container">
+    <div class="container-fluid">
       <div class="row">
-        <div class="col-sm-9 col-md-7 col-lg-6 mx-auto my-auto">
-          <div class="my-5"> </div>
-          <div class="alert alert-warning" style="margin-top: 33%; margin-bottom: 33%;" role="alert">
-            <h4 class="alert-heading">{{ .Translator.Localize "Warning" }}</h4>
-            <p>{{ .Translator.Localize "ConfirmDeletePost" }}</p>
-            <hr>
-            <div class="btn-group d-flex flex-row-reverse">
+        <div class="col-sm-9 col-md-7 col-lg-5 mx-auto">
+          <div class="card-block my-5 lighter-bg">
+            <div class="card-block-body">
+              <h5 class="card-block-title center-text">{{ .Translator.Localize "Warning" }}</h5>
+              <p>{{ .Translator.Localize "ConfirmDeletePost" }}</p>
               <form method="post">
-                <button type="submit" class="btn btn-danger">{{ .Translator.Localize "Delete" }}</button>
+                <button type="submit" class="button button-red button-block">{{ .Translator.Localize "Delete" }}</button>
               </form>
-
-
+              <br>
               <form action="/view/{{.PostID}}" method="get">
-                <button type="submit" class="btn btn-dark">{{ .Translator.Localize "GoBack" }}</button>
+                <button type="submit" class="button bg-ac-3 button-block">{{ .Translator.Localize "GoBack" }}</button>
               </form>
             </div>
-
           </div>
         </div>
       </div>
-    </div>
   </body>
 
 </html>

@@ -36,7 +36,13 @@ func (db *DB) CreateSession(ctx context.Context, username string) string {
 
 // InvalidateSession invalidates a session for a user
 func (db *DB) InvalidateSession(ctx context.Context, username string) {
-	_, err := db.sqldb.ExecContext(ctx, `delete from sessions where username = $1`, username)
+	var token string
+	err := db.sqldb.QueryRowContext(ctx, `select "token" from sessions where username = $1`, username).Scan(&token)
+	if err != nil {
+		log.Error().Err(err).Msg("InvalidateSession can't query")
+	}
+	sessionCache.Delete(ctx, token)
+	_, err = db.sqldb.ExecContext(ctx, `delete from sessions where username = $1`, username)
 	if err != nil {
 		log.Error().Err(err).Msg("InvalidateSession can't exec statement")
 	}

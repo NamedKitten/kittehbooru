@@ -112,7 +112,7 @@ a:hover {
 
 .button-red, .button-red:focus, .button-red:hover {
   background-color: var(--red);
-  color: var(--base-1);
+  color: #000000;
 }
 
 .button-green, .button-green:focus, .button-green:hover {
@@ -144,7 +144,6 @@ a:hover {
   flex: 1 1 auto;
   min-height: 1px;
   padding: 1.25rem;
-  1
 }
 
 .bg-ac-1 {
@@ -161,6 +160,33 @@ a:hover {
 
 .text-muted {
   color: var(--text-1) !important;
+}
+
+.card-block {
+  min-width: 0;
+  position: relative;
+  display: -ms-flexbox;
+  display: flex;
+  -ms-flex-direction: column;
+  flex-direction: column;
+  word-wrap: break-word;
+  background-color: var(--base-4);
+  background-clip: border-box;
+}
+
+.card-block-body {
+  min-height: 1px;
+  padding: 1.25rem;
+  -ms-flex: 1 1 auto;
+  flex: 1 1 auto;
+}
+
+.card-block-title {
+  margin-bottom: 0.75rem;
+}
+
+.center-text {
+  text-align: center !important;
 }
 
 .form-control, .form-control:hover, .form-control:active, .form-control:focus {
