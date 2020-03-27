@@ -40,6 +40,8 @@ func (db *DB) Post(ctx context.Context, postID int64) (p types.Post, err error) 
 func (db *DB) AddPost(ctx context.Context, post types.Post) (err error) {
 	defer trace.StartRegion(ctx, "DB/AddPost").End()
 
+	post.Tags = db.filterTags(post.Tags)
+
 	tagCountsCache.Delete(ctx, "*")
 	for _, tag := range post.Tags {
 		tagCountsCache.Delete(ctx, tag)
@@ -58,6 +60,8 @@ func (db *DB) AddPost(ctx context.Context, post types.Post) (err error) {
 // EditPost edits a post give a new post object and a post ID
 func (db *DB) EditPost(ctx context.Context, postID int64, p types.Post) (err error) {
 	defer trace.StartRegion(ctx, "DB/EditPost").End()
+
+	p.Tags = db.filterTags(p.Tags)
 
 	tags := utils.TagsListToString(p.Tags)
 	_, err = db.sqldb.ExecContext(ctx, `update posts set "filename"=$1, "ext"=$2, "description"=$3, "tags"=$4, "poster"=$5, "timestamp"=$6, "mimetype"=$7 where postid = $8`, p.Filename, p.FileExtension, p.Description, tags, p.Poster, p.CreatedAt, p.MimeType, postID)

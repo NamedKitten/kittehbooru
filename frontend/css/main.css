@@ -19,11 +19,18 @@
 body {
   background-color: var(--base-1);
 }
+
 *, *:hover {
   color: var(--text-3)
 }
+
 .nav, .navbar {
   background-color: var(--base-4);
+  padding-top: 0.25rem;
+  padding-bottom: 0.25rem !important;
+  font-size: smaller;
+  line-height: 1em;
+  margin-bottom: 5px
 }
 
 .link {
@@ -49,8 +56,7 @@ h1, h2, h3, h5, h6 {
   text-decoration: none;
 }
 
-table th,
-table td {
+table th, table td {
   padding: 0.75rem;
   vertical-align: top;
   border-top: 1px solid var(--base-3);
@@ -61,28 +67,29 @@ table thead th {
   border-bottom: 0px;
 }
 
-table tbody + tbody {
+table tbody+tbody {
   border-top: 1px solid var(--base-3);
 }
 
 a {
   color: var(--accent-1);
 }
+
 a:hover {
   color: var(--accent-3);
 }
 
-
-.search-bar  {
+.search-bar {
   border: 0px !important;
   border-radius: 0px !important;
   height: calc(1.5em + 1rem) !important;
   width: 80%;
   color: var(--text-3);
-  background-color:var(--base-3);
+  background-color: var(--base-3);
 }
+
 .search-bar:hover, .search-bar:focus {
-  background-color:var(--base-4);
+  background-color: var(--base-4);
   color: var(--text-3);
 }
 
@@ -112,7 +119,6 @@ a:hover {
   background-color: var(--green);
   color: var(--base-1);
 }
-  
 
 .button-block {
   width: 100%;
@@ -137,15 +143,18 @@ a:hover {
   -ms-flex: 1 1 auto;
   flex: 1 1 auto;
   min-height: 1px;
-  padding: 1.25rem;1
+  padding: 1.25rem;
+  1
 }
 
 .bg-ac-1 {
   background-color: var(--accent-1);
 }
+
 .bg-ac-2 {
   background-color: var(--accent-2);
 }
+
 .bg-ac-3 {
   background-color: var(--accent-3);
 }
@@ -155,7 +164,7 @@ a:hover {
 }
 
 .form-control, .form-control:hover, .form-control:active, .form-control:focus {
- color: var(--text-1);
+  color: var(--text-1);
 }
 
 .custom-file-label {
@@ -164,15 +173,14 @@ a:hover {
 }
 
 .form-control {
- background-color: var(--base-4);
- border-radius: 0px;
- border: 1px solid var(--base-1);
+  background-color: var(--base-4);
+  border-radius: 0px;
+  border: 1px solid var(--base-1);
 }
+
 .form-control:focus {
   background-color: var(--base-4);
- }
- 
-
+}
 
 .swfEmbedDiv {
   height: 500px

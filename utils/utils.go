@@ -8,9 +8,10 @@ import (
 )
 
 func FilterString(s string) string {
-	re := regexp.MustCompile("[[:^ascii:]]")
+	re := regexp.MustCompile(`[^\p{L}\p{Z}:_-]+`)
 	s = re.ReplaceAllLiteralString(s, "")
 	s = strings.TrimSpace(s)
+	s = strings.ToLower(s)
 	return s
 }
 
