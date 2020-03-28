@@ -20,8 +20,7 @@
           <div class="card card-signin my-5 bg-light">
             <div class="card-body">
               <h5 class="card-title text-center">{{ .Translator.Localize "Rules" }}</h5>
-              <textarea class="form-control" id="rules" name="rules" readonly
-                rows={{.RulesLineCount}}>{{ with settings }}{{ nlhtml .Rules }}{{end}}</textarea>
+              {{ with settings }}{{ nl2br .Rules }}{{end}}
             </div>
           </div>
         </div>

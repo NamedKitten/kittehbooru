@@ -1,10 +1,10 @@
 <header>
     <nav id="headerNav" class="headerNav navbar navbar-dark fixed-top" style="position: relative;">
         <a class="navbar-brand" href="/">{{ settings.SiteName }}</a>
-        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
-            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+        <input type="checkbox" id="navbar-toggle-cbox">
+        <label for="navbar-toggle-cbox" class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-header" aria-controls="navbar-header">
             <span class="navbar-toggler-icon"></span>
-        </button>
+        </label>
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
             <ul class="navbar-nav mr-auto">
                 <li class="nav-item">
@@ -38,10 +38,5 @@
 
             </ul>
         </div>
-
-        <!---{{ if .LoggedIn }}
-        <h4>Logged in as {{ html .LoggedInUser.Username }}</h4>
-        {{end}}-->
-
     </nav>
 </header>
