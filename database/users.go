@@ -14,7 +14,7 @@ import (
 func (db *DB) AddUser(ctx context.Context, u types.User) {
 	defer trace.StartRegion(ctx, "DB/AddUser").End()
 
-	_, err := db.sqldb.ExecContext(ctx, `INSERT INTO "users"("avatarID","owner","admin","username","description") VALUES ($1,$2,$3,$4,$5)`, u.AvatarID, u.Owner, u.Admin, u.Username, "")
+	_, err := db.sqldb.ExecContext(ctx, `INSERT INTO "users"("avatarID","owner","admin","username","description","theme") VALUES ($1,$2,$3,$4,$5,$6)`, u.AvatarID, u.Owner, u.Admin, u.Username, "", "dark")
 	if err != nil {
 		log.Warn().Err(err).Msg("AddUser can't execute statement")
 	}

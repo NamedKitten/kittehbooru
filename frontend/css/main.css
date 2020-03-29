@@ -21,12 +21,12 @@
   --base-2: #e5e9f0;
   --base-3: #eceff4;
   --base-4: #eceff4;
-  --text-1: #000;
-  --text-2: #000;
-  --text-3: #000;
-  --accent-1: #88c0d0;
+  --text-1: #3b4252;
+  --text-2: #434c5e;
+  --text-3: #4c566a;
+  --accent-1: #5e81ac;
   --accent-2: #81a1c1;
-  --accent-3: #5e81ac;
+  --accent-3: #88c0d0;
   --red: #bf616a;
   --orange: #d08770;
   --yellow: #ebcb8b;
@@ -151,12 +151,17 @@ a:hover {
 
 .button-green {
   background-color: var(--green);
-  color: var(--base-1);
+  color: var(--text-1);
+}
+
+[data-theme="dark"] .button-green, [data-theme="dark"] .button-green {
+  color: var(--base-1) !important;
 }
 
 .button-green:focus, .button-green:hover {
   color: var(--text-3) !important;
 }
+
 
 
 .button-block {
