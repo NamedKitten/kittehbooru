@@ -1,4 +1,4 @@
-:root {
+ :root {
   --base-1: #2e3440;
   --base-2: #3b4252;
   --base-3: #434c5e;
@@ -16,8 +16,38 @@
   --purple: #b48ead;
 }
 
+[data-theme="light"] {
+  --base-1: #d8dee9;
+  --base-2: #e5e9f0;
+  --base-3: #eceff4;
+  --base-4: #eceff4;
+  --text-1: #000;
+  --text-2: #000;
+  --text-3: #000;
+  --accent-1: #88c0d0;
+  --accent-2: #81a1c1;
+  --accent-3: #5e81ac;
+  --red: #bf616a;
+  --orange: #d08770;
+  --yellow: #ebcb8b;
+  --green: #a3be8c;
+  --purple: #b48ead;
+}
+
+.navbar-dark .navbar-toggler-icon {
+  color: var(--text-3) !important;
+}
+
+.navbar-dark .navbar-brand, .navbar-dark .navbar-brand:focus, .navbar-dark .navbar-brand:hover {
+  color: var(--text-3) !important;
+}
+
 body {
   background-color: var(--base-1);
+}
+
+.text-bold {
+  font-weight: bold !important;
 }
 
 *, *:hover {
@@ -95,7 +125,6 @@ a:hover {
 
 .button {
   display: inline-block;
-  font-weight: 400;
   color: var(--text-2);
   text-align: center;
   vertical-align: middle;
@@ -115,10 +144,20 @@ a:hover {
   color: #000000;
 }
 
-.button-green, .button-green:focus, .button-green:hover {
+.button-red:focus, .button-red:hover {
+  color: var(--text-3) !important;
+}
+
+
+.button-green {
   background-color: var(--green);
   color: var(--base-1);
 }
+
+.button-green:focus, .button-green:hover {
+  color: var(--text-3) !important;
+}
+
 
 .button-block {
   width: 100%;
@@ -225,7 +264,7 @@ a:hover {
   height: 100000px;
 }
 
-.card-img-top {
+.content-image {
   width: 100%;
   float: left;
 }
