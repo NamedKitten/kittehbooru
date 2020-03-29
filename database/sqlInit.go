@@ -8,7 +8,7 @@ import (
 // Also provides migration between schema versions.
 func (db *DB) sqlInit() {
 	var err error
-	_, err = db.sqldb.Exec(`CREATE TABLE IF NOT EXISTS "users" (  "avatarID"  bigint,  "owner"  BOOL,  "admin"  BOOL,  "username"  TEXT,  "description"  TEXT,  PRIMARY KEY("username"))`)
+	_, err = db.sqldb.Exec(`CREATE TABLE IF NOT EXISTS "users" (  "avatarID"  bigint,  "owner"  BOOL,  "admin"  BOOL,  "username"  TEXT,  "description"  TEXT, "theme" TEXT, PRIMARY KEY("username"))`)
 	if err != nil {
 		log.Warn().Err(err).Msg("SQL Create Users Table")
 	}
@@ -33,4 +33,6 @@ func (db *DB) sqlInit() {
 	if err != nil {
 		log.Warn().Err(err).Msg("SQL Create TagMap Table")
 	}
+
+	db.sqldb.Exec(`ALTER TABLE users ADD COLUMN theme TEXT DEFAULT 'dark' NOT NULL`)
 }

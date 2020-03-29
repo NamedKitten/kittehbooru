@@ -1,0 +1,9 @@
+{{ if .LoggedIn }}
+{{ if not (eq 0 (len .LoggedInUser.Theme)) }}
+<html data-theme={{.LoggedInUser.Theme}}>
+{{ else }}
+<html data-theme=dark>
+{{ end }}
+{{ else }}
+<html>
+{{ end }}

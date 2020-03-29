@@ -27,7 +27,7 @@ func (db *DB) User(ctx context.Context, username string) (u types.User, err erro
 	if val, ok := userCache.Get(ctx, username); ok {
 		u = val.(types.User)
 	} else {
-		err = db.sqldb.QueryRowContext(ctx, `select "avatarID","owner","admin","username","description" from users where username = $1`, username).Scan(&u.AvatarID, &u.Owner, &u.Admin, &u.Username, &u.Description)
+		err = db.sqldb.QueryRowContext(ctx, `select "avatarID","owner","admin","username","description", "theme" from users where username = $1`, username).Scan(&u.AvatarID, &u.Owner, &u.Admin, &u.Username, &u.Description, &u.Theme)
 		if err != nil {
 			log.Error().Err(err).Msg("User can't query statement")
 		} else {
@@ -41,7 +41,7 @@ func (db *DB) User(ctx context.Context, username string) (u types.User, err erro
 func (db *DB) EditUser(ctx context.Context, u types.User) (err error) {
 	defer trace.StartRegion(ctx, "DB/EditUser").End()
 	userCache.Delete(ctx, u.Username)
-	_, err = db.sqldb.ExecContext(ctx, `update users set "avatarID"=$1, owner=$2, admin=$3, description=$4 where username = $5`, u.AvatarID, u.Owner, u.Admin, u.Description, u.Username)
+	_, err = db.sqldb.ExecContext(ctx, `update users set "avatarID"=$1, owner=$2, admin=$3, description=$4, theme=$5 where username = $6`, u.AvatarID, u.Owner, u.Admin, u.Description, u.Theme, u.Username)
 	if err != nil {
 		log.Warn().Err(err).Msg("EditUser can't execute statement")
 		return err

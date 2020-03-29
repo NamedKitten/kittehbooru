@@ -25,7 +25,7 @@ func EditUserHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !(user.Admin || loggedInUser.Username == user.Username) {
+	if !(loggedInUser.Admin || loggedInUser.Username == user.Username) {
 		http.Redirect(w, r, "/", http.StatusFound)
 		return
 	}
@@ -39,6 +39,11 @@ func EditUserHandler(w http.ResponseWriter, r *http.Request) {
 	description := r.PostFormValue("description")
 	if !(len(description) == 0) {
 		user.Description = description
+	}
+
+	theme := r.PostFormValue("theme")
+	if !(len(theme) == 0) {
+		user.Theme = theme
 	}
 
 	password := r.PostFormValue("password")

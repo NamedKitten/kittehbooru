@@ -45,6 +45,8 @@ type User struct {
 	// Posts is a list of all the IDs of the posts that the user
 	// created, also used in the user view page for a preview.
 	Posts []int64 `json:"posts"`
+	// Theme is a string of the theme.
+	Theme string `json:"theme"`
 }
 
 type Post struct {

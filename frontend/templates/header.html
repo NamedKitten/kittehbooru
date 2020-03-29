@@ -1,5 +1,12 @@
 <header>
-    <nav id="headerNav" class="headerNav navbar navbar-dark fixed-top" style="position: relative;">
+{{ $navTheme := "dark" }}
+
+{{ if .LoggedIn }}
+{{ if eq "light" .LoggedInUser.Theme }}
+{{ $navTheme = "light" }}
+{{ end }}
+{{ end }}
+    <nav id="headerNav" class="headerNav navbar navbar-{{ $navTheme }} fixed-top" style="position: relative;">
         <a class="navbar-brand" href="/">{{ settings.SiteName }}</a>
         <input type="checkbox" id="navbar-toggle-cbox">
         <label for="navbar-toggle-cbox" class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-header" aria-controls="navbar-header">
