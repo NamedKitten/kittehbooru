@@ -1,4 +1,4 @@
- :root {
+ :root, [data-theme="dark"] {
   --base-1: #2e3440;
   --base-2: #3b4252;
   --base-3: #434c5e;
@@ -270,6 +270,6 @@ a:hover {
 }
 
 .content-image {
-  width: 100%;
-  float: left;
+  max-width: 100%;
+  float: center;
 }

@@ -22,6 +22,10 @@ var PostNotExistError = errors.New("Post does not exist")
 func (db *DB) Post(ctx context.Context, postID int64) (p types.Post, err error) {
 	defer trace.StartRegion(ctx, "DB/Post").End()
 
+	if postID == 0 {
+		return types.Post{}, errors.New("Invalid ID")
+	}
+
 	var tags string
 
 	// Query for the post
