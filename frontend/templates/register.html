@@ -1,57 +1,50 @@
 <!DOCTYPE html>
 {{ template "htmlThemeHead.html" . }}
+{{ template "htmlHead.html" . }}
+{{ template "header.html" . }}
+{{ with settings }}
+{{ if .ReCaptcha }}
+<script src="https://www.google.com/recaptcha/api.js?render={{.ReCaptchaPubkey}}"></script>
+<script>
+  grecaptcha.ready(function () {
+    grecaptcha.execute('{{.ReCaptchaPubkey}}', { action: 'contact' }).then(function (token) {
+      var recaptchaResponse = document.getElementById('recaptchaResponse');
+      recaptchaResponse.value = token;
+    });
+  });
+</script>
+{{end}}
+{{end}}
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-sm-9 col-md-7 col-lg-5 mx-auto">
+      <div class="card-block my-5 lighter-bg">
+        <div class="card-block-body">
+          <h5 class="card-block-title center-text">{{ .Translator.Localize "Register" }}</h5>
+          <form class="form-signin" method="post">
+            <input type="hidden" name="recaptchaResponse" id="recaptchaResponse" required>
 
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>Hi</title>
-    <link rel="stylesheet" href="/css/bootstrap.css">
-    <link rel="stylesheet" href="/css/main.css">
-    {{ with settings }}
-    {{ if .ReCaptcha }}
-    <script src="https://www.google.com/recaptcha/api.js?render={{.ReCaptchaPubkey}}"></script>
-    <script>
-      grecaptcha.ready(function () {
-        grecaptcha.execute('{{.ReCaptchaPubkey}}', { action: 'contact' }).then(function (token) {
-          var recaptchaResponse = document.getElementById('recaptchaResponse');
-          recaptchaResponse.value = token;
-        });
-      });
-    </script>
-    {{end}}
-    {{end}}
-    </head>
-  <body>
-    {{ template "header.html" . }}
-
-    <div class="container-fluid">
-      <div class="row">
-        <div class="col-sm-9 col-md-7 col-lg-5 mx-auto">
-          <div class="card-block my-5 lighter-bg">
-            <div class="card-block-body">
-              <h5 class="card-block-title center-text">{{ .Translator.Localize "Register" }}</h5>
-              <form class="form-signin" method="post">
-                <input type="hidden" name="recaptchaResponse" id="recaptchaResponse" required>
-
-                <label for="username">{{ .Translator.Localize "Username" }}</label>
-                <input type="text" class="form-control" id="username" name="username" placeholder="{{ .Translator.Localize "Username" }}">
-                <small class="form-text text-muted">
-                  {{ .Translator.Localize "ThisWillBeUsername" }}
-                </small>
-                <br>
-                <label for="password">{{ .Translator.Localize "Password" }}</label>
-                <input type="password" class="form-control" id="password" name="password" placeholder="{{ .Translator.Localize "Password" }}">
-                <small class="form-text text-muted">
-                  {{ .Translator.Localize "ThisWillBePassword" }}
-                </small>
-                <br>
-                <button class="button bg-ac-3 button-block" type="submit">{{ .Translator.Localize "Register" }}</button>
-              </form>
-            </div>
-          </div>
+            <label for="username">{{ .Translator.Localize "Username" }}</label>
+            <input type="text" class="form-control" id="username" name="username"
+              placeholder="{{ .Translator.Localize "Username" }}">
+            <small class="form-text text-muted">
+              {{ .Translator.Localize "ThisWillBeUsername" }}
+            </small>
+            <br>
+            <label for="password">{{ .Translator.Localize "Password" }}</label>
+            <input type="password" class="form-control" id="password" name="password"
+              placeholder="{{ .Translator.Localize "Password" }}">
+            <small class="form-text text-muted">
+              {{ .Translator.Localize "ThisWillBePassword" }}
+            </small>
+            <br>
+            <button class="button bg-ac-3 button-block" type="submit">{{ .Translator.Localize "Register" }}</button>
+          </form>
         </div>
       </div>
     </div>
-  </body>
+  </div>
+</div>
+</body>
 
 </html>

@@ -1,48 +1,24 @@
 <header>
-{{ $navTheme := "dark" }}
-{{ if .LoggedIn }}
-{{ if eq "light" .LoggedInUser.Theme }}
-{{ $navTheme = "light" }}
-{{ end }}
-{{ end }}
-    <nav id="headerNav" class="headerNav navbar navbar-{{ $navTheme }} fixed-top" style="position: relative;">
-        <a class="navbar-brand" href="/">{{ settings.SiteName }}</a>
+    <nav id="headerNav" class="headerNav" style="position: relative;">
+        <a href="/">{{ settings.SiteName }}</a>
         <input type="checkbox" id="navbar-toggle-cbox">
-        <label for="navbar-toggle-cbox" class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-header" aria-controls="navbar-header">
-            <span class="navbar-toggler-icon"></span>
+        <label for="navbar-toggle-cbox" class="navToggle" type="button" data-toggle="collapse"
+            data-target="#navbar-header" aria-controls="navbar-header">
+            <span class="navToggleIcon"></span>
         </label>
-        <div class="collapse navbar-collapse" id="navbarSupportedContent">
-            <ul class="navbar-nav mr-auto">
-                <li class="nav-item">
-                    <a class="link" href="/">{{ .Translator.Localize "Home" }}</a>
-                </li>
-                <li class="nav-item">
-                    <a class="link" href="/rules">{{ .Translator.Localize "Rules" }}</a>
-                </li>
-                <li class="nav-item">
-                    <a class="link" href="/search">{{ .Translator.Localize "SearchButton" }}</a>
-                </li>
-                {{ if .LoggedIn }}
-                <li class="nav-item">
-                    <a class="link" href="/logout">{{ .Translator.Localize "Logout" }}</a>
-                </li>
-                <li class="nav-item">
-                    <a class="link" href="/upload">{{ .Translator.Localize "Upload" }}</a>
-                </li>
-                <li class="nav-item">
-                    <a class="link" href="/user/{{.LoggedInUser.Username}}">{{ .Translator.Localize "UserProfileAccountSettings" }}</a>
-                </li>
-                {{ else }}
-                <li class="nav-item">
-                    <a class="link" href="/login">{{ .Translator.Localize "Login" }}</a>
-                </li>
-                <li class="nav-item">
-                    <a class="link" href="/register">{{ .Translator.Localize "Register" }}</a>
-                </li>
-                {{end}}
-
-
-            </ul>
+        <div class="collapse" id="navbarSupportedContent">
+            <a class="link" href="/">{{ .Translator.Localize "Home" }}</a><br>
+            <a class="link" href="/rules">{{ .Translator.Localize "Rules" }}</a><br>
+            <a class="link" href="/search">{{ .Translator.Localize "SearchButton" }}</a><br>
+            {{ if .LoggedIn }}
+            <a class="link" href="/logout">{{ .Translator.Localize "Logout" }}</a><br>
+            <a class="link" href="/upload">{{ .Translator.Localize "Upload" }}</a><br>
+            <a class="link"
+                href="/user/{{.LoggedInUser.Username}}">{{ .Translator.Localize "UserProfileAccountSettings" }}</a><br>
+            {{ else }}
+            <a class="link" href="/login">{{ .Translator.Localize "Login" }}</a><br>
+            <a class="link" href="/register">{{ .Translator.Localize "Register" }}</a><br>
+            {{end}}
         </div>
     </nav>
 </header>

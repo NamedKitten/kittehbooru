@@ -1,42 +1,34 @@
 <!DOCTYPE html>
 {{ template "htmlThemeHead.html" . }}
+{{ template "htmlHead.html" . }}
 
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>Hi</title>
-    <link rel="stylesheet" href="/css/bootstrap.css">
-    <link rel="stylesheet" href="/css/main.css">
-
-  </head>
-
-  <style>
-    .custom-file-label::after {
-      border-radius: 0px;
-    }
-  </style>
-
-  <body>
-    {{ template "header.html" . }}
-    <div class="container">
-        <div class="centerblock">
-              <h5>{{ .Translator.Localize "Upload" }}</h5>
-              <form enctype="multipart/form-data" class="form-signin" method="post">
-                <div class="custom-file">
-                  <input type="file" class="custom-file-input button" id="inputGroupFile02" name="uploadFile">
-                  <label class="custom-file-label form-control" for="inputGroupFile02">{{ .Translator.Localize "ChooseFile" }}</label>
-                <br>
-                <br>
-                <label for="tags">{{ .Translator.Localize "Tags" }}</label>
-                <input type="text" class="form-control" id="tags" name="tags" required="">
-                <label for="description">{{ .Translator.Localize "Description" }}</label>
-                <textarea class="form-control" id="description" name="description" rows="6"></textarea>
-                <br>
-                <br>
-                <button class="button button-green button-block" type="submit">{{ .Translator.Localize "Upload" }}</button>
-              </form>
-      </div>
+<body>
+<style>
+  .custom-file-label::after {
+    border-radius: 0px;
+  }
+</style>
+  {{ template "header.html" . }}
+  <div class="container">
+    <div class="centerblock">
+      <h5>{{ .Translator.Localize "Upload" }}</h5>
+      <form enctype="multipart/form-data" class="form-signin" method="post">
+        <div class="custom-file">
+          <input type="file" class="custom-file-input button" id="inputGroupFile02" name="uploadFile">
+          <label class="custom-file-label form-control"
+            for="inputGroupFile02">{{ .Translator.Localize "ChooseFile" }}</label>
+          <br>
+          <br>
+          <label for="tags">{{ .Translator.Localize "Tags" }}</label>
+          <input type="text" class="form-control" id="tags" name="tags" required="">
+          <label for="description">{{ .Translator.Localize "Description" }}</label>
+          <textarea class="form-control" id="description" name="description" rows="6"></textarea>
+          <br>
+          <br>
+          <button class="button button-green button-block" type="submit">{{ .Translator.Localize "Upload" }}</button>
+      </form>
     </div>
-  </body>
+  </div>
+</body>
 
 </html>
